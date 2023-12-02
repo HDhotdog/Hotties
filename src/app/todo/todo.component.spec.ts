@@ -3,7 +3,7 @@ import { IonicModule } from '@ionic/angular';
 
 import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
 
-import { TodoComponent } from './todo.page';
+import { TodoComponent } from './todo.component';
 
 describe('Tab1Page', () => {
   let component: TodoComponent;

@@ -17,11 +17,11 @@
       </div>
       
       <div class="input-container">
-        <ion-button color="danger" shape="round" (click)="clearTodos()">
+        <ion-button class="delete-button" color="danger" shape="round" (click)="clearTodos()">
           <ion-icon slot="icon-only" name="trash"></ion-icon>
         </ion-button>
         <ion-input placeholder="{{getSuggestion()}}" [(ngModel)]="inputField" (keyup.enter)="addTodo(inputField)"></ion-input>
-        <ion-button color="primary" shape="round" (click)="addTodo(inputField)">
+        <ion-button class="add-button" color="primary" shape="round" (click)="addTodo(inputField)">
           <ion-icon slot="icon-only" name="add"></ion-icon>
         </ion-button>
       </div>
