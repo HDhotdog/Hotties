@@ -11,6 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Storage } from '@ionic/storage'
 import { TodoService } from './todo.service';
+import { SuggestionService } from '../suggestion/suggestion.service';
 
 
 @NgModule({
@@ -27,7 +28,8 @@ import { TodoService } from './todo.service';
   declarations: [TodoComponent],
   providers: [
     Storage,
-    TodoService
+    TodoService,
+    SuggestionService
   ]
 })
 export class TodoModule { }
