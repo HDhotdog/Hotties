@@ -79,8 +79,6 @@ export class TodoComponent {
   }
 
   private saveSuggestion(text: string) {
-    console.log( this.suggestionService.suggestions
-      .filter((sugg) => sugg.toLowerCase() == text.trim().toLowerCase()));
     const included: boolean = this.suggestionService.suggestions
       .filter((sugg) => sugg.toLowerCase() == text.trim().toLowerCase()).length > 0
 
