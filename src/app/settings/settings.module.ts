@@ -6,6 +6,7 @@ import { SettingsComponent } from './settings.component';
 import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
 
 import { SettingsRoutingModule } from './settings-routing.module';
+import { CacheSettingComponent } from './cache-setting/cache-setting.component';
 
 @NgModule({
   imports: [
@@ -15,6 +16,6 @@ import { SettingsRoutingModule } from './settings-routing.module';
     ExploreContainerComponentModule,
     SettingsRoutingModule
   ],
-  declarations: [SettingsComponent]
+  declarations: [SettingsComponent, CacheSettingComponent]
 })
-export class SettingsComponentModule {}
+export class SettingsComponentModule { }

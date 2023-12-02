@@ -20,6 +20,10 @@ export class SuggestionService {
         const { value } = await Preferences.get({ key: this.SUGGESTION_STORAGE })
         this.suggestions = (value ? JSON.parse(value) : []) as string[];
     }
+
+    public async clearSuggestions() {
+        Preferences.remove({ key: this.SUGGESTION_STORAGE });
+    }
 }
 
 

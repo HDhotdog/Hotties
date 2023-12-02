@@ -13,12 +13,16 @@ export class TodoService {
     }
 
     public async saveTodos() {
-        Preferences.set({key: this.TODO_STORAGE, value: JSON.stringify(this.todos)});
+        Preferences.set({ key: this.TODO_STORAGE, value: JSON.stringify(this.todos) });
     }
 
     public async loadTodos() {
-        const { value } = await Preferences.get({key: this.TODO_STORAGE})
+        const { value } = await Preferences.get({ key: this.TODO_STORAGE })
         this.todos = (value ? JSON.parse(value) : []) as ToDo[];
+    }
+
+    public async clearTodos() {
+        Preferences.remove({ key: this.TODO_STORAGE })
     }
 }
 
@@ -26,4 +30,4 @@ export class TodoService {
 export interface ToDo {
     task: string
     done: boolean
-  }
+}

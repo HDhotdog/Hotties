@@ -1,0 +1,27 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Manage cache
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-button id="open-todo-toast" class="clear-button" (click)="clearTodoCache()">Clear todos</ion-button>
+    </ion-item>
+    <ion-item>
+      <ion-button id="open-suggestion-toast" class="clear-button" (click)="clearSuggestionCache()">Clear
+        suggestions</ion-button>
+    </ion-item>
+  </ion-list>
+  <ion-toast position="top" trigger="open-todo-toast" message="Todos have been cleared." [duration]="1500"></ion-toast>
+  <ion-toast position="top" trigger="open-suggestion-toast" message="Suggestions have been cleared."
+    [duration]="1500"></ion-toast>
+</ion-content>

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { ActivatedRoute, Route, Router } from '@angular/router';
 
 @Component({
   selector: 'app-settings',
@@ -7,6 +8,9 @@ import { Component } from '@angular/core';
 })
 export class SettingsComponent {
 
-  constructor() {}
+  constructor(private router: Router, private route: ActivatedRoute) { }
 
+  public openCacheSetting() {
+    this.router.navigate(['cache'], { relativeTo: this.route });
+  }
 }
