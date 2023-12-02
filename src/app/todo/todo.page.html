@@ -1,0 +1,29 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Shopping List
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <div class="container-elements">
+      <div class="upper-container">
+        <ion-button
+        class="todo"
+        *ngFor="let todo of this.todoService.todos"
+        [ngClass]="{'fade-out': todo.done}"
+       (click)="markAsDone(todo)">{{todo.task}}</ion-button>
+      </div>
+      
+      <div class="input-container">
+        <ion-button color="danger" shape="round" (click)="clearTodos()">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-button>
+        <ion-input placeholder="{{getSuggestion()}}" [(ngModel)]="inputField" (keyup.enter)="addTodo(inputField)"></ion-input>
+        <ion-button color="primary" shape="round" (click)="addTodo(inputField)">
+          <ion-icon slot="icon-only" name="add"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+</ion-content>
