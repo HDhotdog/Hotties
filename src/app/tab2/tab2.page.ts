@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { PhotoService, UserPhoto } from '../services/photo.service';
+import { Photo } from '@capacitor/camera';
 
 @Component({
   selector: 'app-tab2',
@@ -7,6 +9,19 @@ import { Component } from '@angular/core';
 })
 export class Tab2Page {
 
-  constructor() {}
+  constructor(public photoService: PhotoService) {}
 
+  async ngOnInit() {
+    await this.photoService.loadSaved();
+  }
+
+  addPhotoToGallery() {
+    this.photoService.addNewToGallery();
+  }
+
+  deletePhoto(photo: UserPhoto) {
+    const index = this.photoService.photos.indexOf(photo);
+    this.photoService.photos.splice(index, 1);
+    this.photoService.saveImages();
+  }
 }
