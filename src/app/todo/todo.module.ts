@@ -3,7 +3,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TodoComponent } from './todo.component';
-import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
 
 import { TodoRoutingModule } from './todo-routing.module';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,7 +18,6 @@ import { SuggestionService } from '../suggestion/suggestion.service';
     IonicModule,
     CommonModule,
     FormsModule,
-    ExploreContainerComponentModule,
     TodoRoutingModule,
     MatButtonModule,
     MatCheckboxModule,

@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { PhotoService, UserPhoto } from './photo.service';
-import { Photo } from '@capacitor/camera';
 
 @Component({
   selector: 'app-tab2',
