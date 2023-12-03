@@ -8,17 +8,13 @@ import { CategoryService } from 'src/app/category/category.service';
   templateUrl: './category-setting.component.html',
   styleUrls: ['./category-setting.component.scss'],
 })
-export class CategorySettingComponent implements OnInit {
+export class CategorySettingComponent {
 
   constructor(
     public categoryService: CategoryService,
     private location: Location,
     private router: Router,
     private route: ActivatedRoute) { }
-
-  ngOnInit() {
-    console.log();
-  }
 
   async ionViewWillEnter() {
     this.categoryService.loadCategories();

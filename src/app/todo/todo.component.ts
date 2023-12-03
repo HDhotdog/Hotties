@@ -12,6 +12,7 @@ import { ToDo } from './todo';
 export class TodoComponent implements OnInit {
 
   public inputField: string = "";
+  public categoryInputField: string = "";
   public currentSuggestion: Suggestion = { suggestion: "Cookies", suffix: "! :D" };
   public sortIncreasing: boolean = false;
   public categoryService: CategoryService;
@@ -26,10 +27,11 @@ export class TodoComponent implements OnInit {
     this.categoryService = categoryService;
   }
 
-   async ngOnInit() {
+  async ngOnInit() {
     await this.categoryService.loadCategories().then(() => {
       this.currentCategoryIndex = this.categoryService.lastCategory;
       this.selectedCategory = this.categoryService.categories[this.currentCategoryIndex];
+      this.categoryInputField = this.selectedCategory.name;
       this.isLoading = false;
     });
   }
@@ -37,6 +39,7 @@ export class TodoComponent implements OnInit {
   async ionViewWillEnter() {
     await this.categoryService.loadCategories().then(() => {
       this.selectedCategory = this.categoryService.categories[0];
+      this.categoryInputField = this.selectedCategory.name;
     });
 
     this.generateSuggestion();
@@ -93,12 +96,12 @@ export class TodoComponent implements OnInit {
   private saveSuggestion(text: string) {
     if (this.selectedCategory.saveSuggestions) {
       const included: boolean = this.selectedCategory.suggestions
-      .filter((sugg) => sugg.toLowerCase() == text.trim().toLowerCase()).length > 0
+        .filter((sugg) => sugg.toLowerCase() == text.trim().toLowerCase()).length > 0
 
-    if (!included) {
-      this.selectedCategory.suggestions.push(text);
-      this.categoryService.saveCategories();
-    }
+      if (!included) {
+        this.selectedCategory.suggestions.push(text);
+        this.categoryService.saveCategories();
+      }
     }
   }
 
@@ -122,10 +125,13 @@ export class TodoComponent implements OnInit {
     this.categoryService.saveCategories();
   }
 
-  public mockData(): ToDo[] {
-    return [{
-      task: "something",
-      done: false
-    }]
+  public changeCategory() {
+    const index = this.categoryService.categories.map(function (e) { return e.name; }).indexOf(this.categoryInputField);
+
+    if (index >= 0) {
+      this.selectedCategory = this.categoryService.categories[index];
+      this.currentCategoryIndex = index;
+    }
+    this.generateSuggestion();
   }
 }

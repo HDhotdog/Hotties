@@ -17,8 +17,10 @@ ion-content {
     --overflow: hidden;
 }
 
-ion-title {
-    text-align: center;
+ion-grid {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }
 
 .upper-container {

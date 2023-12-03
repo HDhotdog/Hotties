@@ -14,7 +14,7 @@ export class AddCategorySettingComponent implements OnInit {
 
   public name: string = "";
   public saveSuggestions: boolean = true;
-  private previousInputs: Category = {} as Category
+  public previousInputs: Category = {} as Category
 
   constructor(private location: Location,
     private categoryService: CategoryService,

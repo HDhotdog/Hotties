@@ -1,13 +1,21 @@
 <ion-header [translucent]="true">
-  <ion-toolbar class="toolbar">
+  <ion-toolbar class="toolbar" *ngIf="!this.isLoading">
+
     <ion-buttons slot="start">
-      <ion-button class="back-button">
-        <ion-icon name="chevron-down-circle"></ion-icon>
+      <ion-button>
+        <ion-icon></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>
-      {{this.selectedCategory.name}}
-    </ion-title>
+
+    <ion-grid>
+      <ion-row>
+        <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()">
+          <div slot="label"></div>
+          <ion-select-option *ngFor="let category of this.categoryService.categories">{{category.name}}</ion-select-option>
+        </ion-select>
+      </ion-row>
+    </ion-grid>
+
     <ion-buttons slot="end">
       <ion-button class="back-button" (click)="changeSort()">
         <ion-icon name="{{this.sortIncreasing ? 'arrow-up' : 'arrow-down'}}"></ion-icon>
@@ -18,23 +26,21 @@
 </ion-header>
 
 <ion-content>
-    <div class="container-elements">
-      <div class="upper-container" *ngIf="!this.isLoading">
-        <ion-button
-        class="todo"
-        *ngFor="let todo of this.categoryService.categories[this.currentCategoryIndex].elements"
-        [ngClass]="{'fade-out': todo.done}"
-       (click)="markAsDone(todo)">{{todo.task}}</ion-button>
-      </div>
-      
-      <div class="input-container">
-        <ion-button class="delete-button" color="danger" shape="round" (click)="clearTodos()">
-          <ion-icon slot="icon-only" name="trash"></ion-icon>
-        </ion-button>
-        <ion-input placeholder="{{getCurrentSuggestion}}" [(ngModel)]="inputField" (keyup.enter)="addTodo(inputField)"></ion-input>
-        <ion-button class="add-button" color="primary" shape="round" (click)="addTodo(inputField)">
-          <ion-icon slot="icon-only" name="add"></ion-icon>
-        </ion-button>
-      </div>
+  <div class="container-elements">
+    <div class="upper-container" *ngIf="!this.isLoading">
+      <ion-button class="todo" *ngFor="let todo of this.selectedCategory.elements"
+        [ngClass]="{'fade-out': todo.done}" (click)="markAsDone(todo)">{{todo.task}}</ion-button>
     </div>
+
+    <div class="input-container">
+      <ion-button class="delete-button" color="danger" shape="round" (click)="clearTodos()">
+        <ion-icon slot="icon-only" name="trash"></ion-icon>
+      </ion-button>
+      <ion-input placeholder="{{getCurrentSuggestion}}" [(ngModel)]="inputField"
+        (keyup.enter)="addTodo(inputField)"></ion-input>
+      <ion-button class="add-button" color="primary" shape="round" (click)="addTodo(inputField)">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
 </ion-content>
