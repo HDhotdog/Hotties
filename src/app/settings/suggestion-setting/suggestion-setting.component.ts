@@ -1,0 +1,29 @@
+import { Location } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { SuggestionService } from 'src/app/suggestion/suggestion.service';
+
+@Component({
+  selector: 'app-suggestion-setting',
+  templateUrl: './suggestion-setting.component.html',
+  styleUrls: ['./suggestion-setting.component.scss'],
+})
+export class SuggestionSettingComponent {
+
+  constructor(public suggestionService: SuggestionService, private location: Location) {
+    this.suggestionService = suggestionService;
+  }
+
+  async ionViewWillEnter() {
+    this.suggestionService.loadSuggestions();
+  }
+
+  public navigateBack() {
+    this.location.back()
+  }
+
+  public removeSuggestion(index: number) {
+    this.suggestionService.suggestions.splice(index, 1);
+    this.suggestionService.saveSuggestions();
+  }
+
+}

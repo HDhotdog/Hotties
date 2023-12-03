@@ -1,32 +1,30 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { SuggestionService } from 'src/app/suggestion/suggestion.service';
-import { TodoService } from 'src/app/todo/todo.service';
 import { Location } from '@angular/common';
+import { Component } from '@angular/core';
+import { Category } from 'src/app/category/category';
+import { CategoryService } from 'src/app/category/category.service';
 
 @Component({
   selector: 'app-cache-setting',
   templateUrl: './cache-setting.component.html',
   styleUrls: ['./cache-setting.component.scss'],
 })
-export class CacheSettingComponent implements OnInit {
+export class CacheSettingComponent {
 
-  constructor(private todoService: TodoService,
-    private suggestionService: SuggestionService,
+  constructor(private categoryService: CategoryService,
     private location: Location) {
   }
 
-  ngOnInit() {
-  }
 
-  public clearTodoCache() {
-    this.todoService.todos = [];
-    this.todoService.clearTodos();
-  }
+  public async clearCategoryCache() {
+    const category: Category = {
+      name: "Shopping List",
+      elements: [],
+      suggestions: [],
+      saveSuggestions: true
+    }
 
-  public clearSuggestionCache() {
-    this.suggestionService.suggestions = [];
-    this.suggestionService.clearSuggestions();
+    this.categoryService.categories = [category] 
+    this.categoryService.saveCategories();
   }
 
   public navigateBack() {

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
+import { ToDo } from './todo';
 
 @Injectable({
     providedIn: 'root'
@@ -22,12 +23,7 @@ export class TodoService {
     }
 
     public async clearTodos() {
+        this.todos.length = 0;
         Preferences.remove({ key: this.TODO_STORAGE })
     }
-}
-
-
-export interface ToDo {
-    task: string
-    done: boolean
 }

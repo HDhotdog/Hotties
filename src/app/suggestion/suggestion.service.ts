@@ -13,6 +13,10 @@ export class SuggestionService {
     }
 
     public async saveSuggestions() {
+        this.suggestions.sort(function (a, b) {
+            return a.localeCompare(b);
+        });
+        
         Preferences.set({ key: this.SUGGESTION_STORAGE, value: JSON.stringify(this.suggestions) });
     }
 
@@ -22,6 +26,7 @@ export class SuggestionService {
     }
 
     public async clearSuggestions() {
+        this.suggestions.length = 0;
         Preferences.remove({ key: this.SUGGESTION_STORAGE });
     }
 }

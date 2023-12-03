@@ -1,0 +1,40 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Edit category
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveCategory()" [ngClass]="{'save-button-active': this.inputChanged()}"
+        [disabled]="!this.inputChanged()">
+        <ion-icon name="save"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="container">
+    <ion-grid>
+      <ion-row id="data-row">
+        <ion-input [(ngModel)]="name" placeholder="Enter category name"></ion-input>
+      </ion-row>
+      <!-- <ion-row id="data-row">
+        <ion-label>Manage tasks</ion-label>
+        <ion-icon name="pencil"></ion-icon>
+      </ion-row> -->
+      <ion-row id="data-row" *ngIf="this.editingCategory()">
+        <ion-label>Manage suggestions</ion-label>
+        <ion-icon name="pencil"></ion-icon>
+      </ion-row>
+      <ion-row id="data-row">
+        <ion-label>Save suggestions:</ion-label>
+        <ion-toggle [(ngModel)]="saveSuggestions" [checked]="true"></ion-toggle>
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>

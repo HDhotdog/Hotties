@@ -1,17 +1,28 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button">
+        <ion-icon name="chevron-down-circle"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-title>
-      Shopping List
+      {{this.selectedCategory.name}}
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="back-button" (click)="changeSort()">
+        <ion-icon name="{{this.sortIncreasing ? 'arrow-up' : 'arrow-down'}}"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
     <div class="container-elements">
-      <div class="upper-container">
+      <div class="upper-container" *ngIf="!this.isLoading">
         <ion-button
         class="todo"
-        *ngFor="let todo of this.todoService.todos"
+        *ngFor="let todo of this.categoryService.categories[this.currentCategoryIndex].elements"
         [ngClass]="{'fade-out': todo.done}"
        (click)="markAsDone(todo)">{{todo.task}}</ion-button>
       </div>

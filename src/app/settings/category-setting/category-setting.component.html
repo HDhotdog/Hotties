@@ -1,0 +1,30 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Manage categories
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-button class="add-button" (click)="addNewCategory()">
+        <ion-icon aria-hidden="true" name="add" slot="end"></ion-icon>
+        <ion-label>Add new category</ion-label>
+      </ion-button>
+    </ion-item>
+    <ion-item *ngFor="let category of this.categoryService.categories; index as i">
+      <ion-icon aria-hidden="true" name="pencil" slot="start" class="edit-button" (click)="editCategory(i)"></ion-icon>
+      <ion-icon *ngIf="this.categoryService.categories.length > 1" aria-hidden="true" name="trash" slot="end"
+        (click)="deleteCategory(i)"
+        class="delete-button"></ion-icon>
+      <ion-label>{{category.name}}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

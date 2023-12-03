@@ -1,76 +1,88 @@
-import { Component } from '@angular/core';
-import { TodoService } from './todo.service';
-import { ToDo } from './todo.service';
-import { Suggestion, SuggestionService } from '../suggestion/suggestion.service';
+import { Component, OnInit } from '@angular/core';
+import { Category } from '../category/category';
+import { CategoryService } from '../category/category.service';
+import { Suggestion } from '../suggestion/suggestion.service';
+import { ToDo } from './todo';
 
 @Component({
   selector: 'app-todo',
   templateUrl: 'todo.component.html',
   styleUrls: ['todo.component.scss']
 })
-export class TodoComponent {
+export class TodoComponent implements OnInit {
 
-  private _currentText = "";
   public inputField: string = "";
-  public currentSuggestion: Suggestion = {suggestion: "Cookies", suffix: "! :D"};
-  public todoService: TodoService;
-  private suggestionService: SuggestionService;
+  public currentSuggestion: Suggestion = { suggestion: "Cookies", suffix: "! :D" };
+  public sortIncreasing: boolean = false;
+  public categoryService: CategoryService;
+  public currentCategoryIndex: number = 0;
+  public selectedCategory: Category = {} as Category;
   private suggestion_suffixes: string[] = [
     "?", "!", " :O", " O:", " owo", " c:", " OwO", " uwu", " :o", " o:", " :D"
   ]
+  public isLoading: boolean = true;
 
-  constructor(todoService: TodoService, suggestionService: SuggestionService) {
-    this.todoService = todoService;
-    this.suggestionService = suggestionService;
+  constructor(categoryService: CategoryService) {
+    this.categoryService = categoryService;
   }
 
-  async ngOnInit() {
-    await this.todoService.loadTodos();
-    await this.suggestionService.loadSuggestions();
+   async ngOnInit() {
+    await this.categoryService.loadCategories().then(() => {
+      this.currentCategoryIndex = this.categoryService.lastCategory;
+      this.selectedCategory = this.categoryService.categories[this.currentCategoryIndex];
+      this.isLoading = false;
+    });
+  }
+
+  async ionViewWillEnter() {
+    await this.categoryService.loadCategories().then(() => {
+      this.selectedCategory = this.categoryService.categories[0];
+    });
+
+    this.generateSuggestion();
   }
 
   public addTodo(task: string) {
     if (task.trim()) {
-      this.todoService.todos.push({
+      this.categoryService.categories[this.currentCategoryIndex].elements.push({
         task: task,
         done: false
       });
       this.saveSuggestion(task);
     } else if (!task) {
-      this.todoService.todos.push({
+      this.categoryService.categories[this.currentCategoryIndex].elements.push({
         task: this.currentSuggestion.suggestion,
         done: false
       });
     }
     this.inputField = "";
-    this.todoService.saveTodos();
+    this.categoryService.saveCategories();
     this.generateSuggestion();
   }
 
   public clearTodos() {
-    this.todoService.todos.forEach(todo => todo.done = true)
+    this.categoryService.categories[this.currentCategoryIndex].elements.forEach(todo => todo.done = true);
     setTimeout(() => {
-      this.todoService.todos = [];
-      this.todoService.saveTodos();
+      this.categoryService.categories[this.currentCategoryIndex].elements.length = 0;
+      this.categoryService.saveCategories();
     }, 1100);
   }
 
   public markAsDone(todo: ToDo) {
-    const index = this.todoService.todos.indexOf(todo);
-    this.todoService.todos[index].done = true;
+    const todoIndex = this.categoryService.categories[this.currentCategoryIndex].elements.indexOf(todo);
+    this.categoryService.categories[this.currentCategoryIndex].elements[todoIndex].done = true;
     setTimeout(() => {
-      this.todoService.todos.splice(index, 1);
-      this.todoService.saveTodos();
+      this.categoryService.categories[this.currentCategoryIndex].elements.splice(todoIndex, 1);
+      this.categoryService.saveCategories();
     }, 1100);
   }
 
   public generateSuggestion(): void {
-
-    if (this.suggestionService.suggestions.length == 0) {
-      this.suggestionService.suggestions.push("Cookies");
+    if (this.selectedCategory.suggestions.length == 0) {
+      this.selectedCategory.suggestions.push("Cookies");
     }
 
-    const suggestion = this.suggestionService.suggestions[Math.floor(Math.random() * this.suggestionService.suggestions.length)];
+    const suggestion = this.selectedCategory.suggestions[Math.floor(Math.random() * this.selectedCategory.suggestions.length)];
     const suffix = this.suggestion_suffixes[Math.floor(Math.random() * this.suggestion_suffixes.length)];
     this.currentSuggestion = {
       suggestion: suggestion,
@@ -79,26 +91,41 @@ export class TodoComponent {
   }
 
   private saveSuggestion(text: string) {
-    const included: boolean = this.suggestionService.suggestions
+    if (this.selectedCategory.saveSuggestions) {
+      const included: boolean = this.selectedCategory.suggestions
       .filter((sugg) => sugg.toLowerCase() == text.trim().toLowerCase()).length > 0
 
     if (!included) {
-      this.suggestionService.suggestions.push(text);
-      this.suggestionService.saveSuggestions();
+      this.selectedCategory.suggestions.push(text);
+      this.categoryService.saveCategories();
     }
-  }
-
-
-
-  public set currentText(text: string) {
-    this.currentText = text;
-  }
-
-  public get currentText() {
-    return this._currentText;
+    }
   }
 
   public get getCurrentSuggestion() {
     return this.currentSuggestion.suggestion + this.currentSuggestion.suffix;
+  }
+
+  public changeSort() {
+    if (this.sortIncreasing) {
+      this.sortIncreasing = false;
+      this.categoryService.categories.forEach(category => category.elements.sort(function (a, b) {
+        return a.task.localeCompare(b.task);
+      }));
+    } else {
+      this.sortIncreasing = true;
+      this.categoryService.categories.forEach(category => category.elements.sort(function (a, b) {
+        return b.task.localeCompare(a.task);
+      }));
+    }
+
+    this.categoryService.saveCategories();
+  }
+
+  public mockData(): ToDo[] {
+    return [{
+      task: "something",
+      done: false
+    }]
   }
 }

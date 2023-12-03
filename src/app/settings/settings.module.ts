@@ -6,6 +6,9 @@ import { SettingsComponent } from './settings.component';
 
 import { SettingsRoutingModule } from './settings-routing.module';
 import { CacheSettingComponent } from './cache-setting/cache-setting.component';
+import { SuggestionSettingComponent } from './suggestion-setting/suggestion-setting.component';
+import { CategorySettingComponent } from './category-setting/category-setting.component';
+import { AddCategorySettingComponent } from './category-setting/add-category-setting/add-category-setting.component';
 
 @NgModule({
   imports: [
@@ -14,6 +17,7 @@ import { CacheSettingComponent } from './cache-setting/cache-setting.component';
     FormsModule,
     SettingsRoutingModule
   ],
-  declarations: [SettingsComponent, CacheSettingComponent]
+  declarations: [SettingsComponent, CacheSettingComponent, SuggestionSettingComponent,
+    CategorySettingComponent, AddCategorySettingComponent]
 })
 export class SettingsComponentModule { }

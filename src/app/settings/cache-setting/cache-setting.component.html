@@ -14,14 +14,8 @@
 <ion-content>
   <ion-list>
     <ion-item>
-      <ion-button id="open-todo-toast" class="clear-button" (click)="clearTodoCache()">Clear todos</ion-button>
-    </ion-item>
-    <ion-item>
-      <ion-button id="open-suggestion-toast" class="clear-button" (click)="clearSuggestionCache()">Clear
-        suggestions</ion-button>
+      <ion-button id="open-category-toast" class="clear-button" (click)="clearCategoryCache()">Clear categories</ion-button>
     </ion-item>
   </ion-list>
-  <ion-toast position="top" trigger="open-todo-toast" message="Todos have been cleared." [duration]="1500"></ion-toast>
-  <ion-toast position="top" trigger="open-suggestion-toast" message="Suggestions have been cleared."
-    [duration]="1500"></ion-toast>
+  <ion-toast position="top" trigger="open-category-toast" message="Categories have been reset." [duration]="1500"></ion-toast>
 </ion-content>

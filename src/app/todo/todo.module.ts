@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { Storage } from '@ionic/storage'
 import { TodoService } from './todo.service';
 import { SuggestionService } from '../suggestion/suggestion.service';
+import { CategoryService } from '../category/category.service';
 
 
 @NgModule({
@@ -27,7 +28,8 @@ import { SuggestionService } from '../suggestion/suggestion.service';
   providers: [
     Storage,
     TodoService,
-    SuggestionService
+    SuggestionService,
+    CategoryService
   ]
 })
 export class TodoModule { }
