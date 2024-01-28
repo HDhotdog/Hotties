@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ItemReorderEventDetail } from '@ionic/angular';
 import { CategoryService } from 'src/app/category/category.service';
 
 @Component({
@@ -35,5 +36,12 @@ export class CategorySettingComponent {
   public deleteCategory(index: number) {
     this.categoryService.categories.splice(index, 1);
     this.categoryService.saveCategories();
+  }
+
+  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
+    [this.categoryService.categories[ev.detail.from], this.categoryService.categories[ev.detail.to]]
+      = [this.categoryService.categories[ev.detail.to], this.categoryService.categories[ev.detail.from]];
+    this.categoryService.saveCategories();
+    ev.detail.complete();
   }
 }

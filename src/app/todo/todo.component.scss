@@ -36,8 +36,9 @@ ion-grid {
 
 .input-container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
     gap: 3px;
 }
 
@@ -51,7 +52,6 @@ ion-grid {
 
 .todo {
     text-transform: none;
-    --ion-color-primary: #203D6A;
     padding: 0 10px 0;
 }
 
@@ -67,4 +67,28 @@ ion-grid {
 
 .add-button {
     margin-right: 5px;
+}
+
+.color-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    height: 25px;
+    width: 80%;
+    gap: 5px;
+}
+
+.lower-input-fields {
+    display: flex;
+    flex-direction: row;
+}
+
+.color-circle {
+    width: 25px;
+    height: 100%;
+    border-radius: 100%;
+}
+
+.circle-border {
+    border: solid 3px white;
 }

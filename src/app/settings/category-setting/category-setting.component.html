@@ -19,12 +19,15 @@
         <ion-label>Add new category</ion-label>
       </ion-button>
     </ion-item>
-    <ion-item *ngFor="let category of this.categoryService.categories; index as i">
-      <ion-icon aria-hidden="true" name="pencil" slot="start" class="edit-button" (click)="editCategory(i)"></ion-icon>
-      <ion-icon *ngIf="this.categoryService.categories.length > 1" aria-hidden="true" name="trash" slot="end"
-        (click)="deleteCategory(i)"
-        class="delete-button"></ion-icon>
-      <ion-label>{{category.name}}</ion-label>
-    </ion-item>
+
+    <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorder($any($event))">
+      <ion-item *ngFor="let category of this.categoryService.categories; index as i">
+        <ion-reorder slot="start"></ion-reorder>
+        <ion-label>{{category.name}}</ion-label>
+        <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button" (click)="editCategory(i)"></ion-icon>
+        <ion-icon *ngIf="this.categoryService.categories.length > 1" aria-hidden="true" name="trash" slot="end"
+          (click)="deleteCategory(i)" class="delete-button"></ion-icon>
+      </ion-item>
+    </ion-reorder-group>
   </ion-list>
 </ion-content>

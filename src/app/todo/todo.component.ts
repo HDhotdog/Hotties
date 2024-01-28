@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Category } from '../category/category';
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from '../suggestion/suggestion.service';
-import { ToDo } from './todo';
+import { ToDo, ImportanceLevel } from './todo';
 
 @Component({
   selector: 'app-todo',
@@ -14,14 +14,17 @@ export class TodoComponent implements OnInit {
   public inputField: string = "";
   public categoryInputField: string = "";
   public currentSuggestion: Suggestion = { suggestion: "Cookies", suffix: "! :D" };
-  public sortIncreasing: boolean = false;
+  public sortIncreasing: boolean = true;
   public categoryService: CategoryService;
   public currentCategoryIndex: number = 0;
   public selectedCategory: Category = {} as Category;
+  public showColorBar: boolean = true;
+  public currentImportanceLevel: ImportanceLevel = ImportanceLevel.NORMAL;
   private suggestion_suffixes: string[] = [
     "?", "!", " :O", " O:", " owo", " c:", " OwO", " uwu", " :o", " o:", " :D"
   ]
   public isLoading: boolean = true;
+  public importanceLevels = Object.keys(ImportanceLevel);
 
   constructor(categoryService: CategoryService) {
     this.categoryService = categoryService;
@@ -49,13 +52,15 @@ export class TodoComponent implements OnInit {
     if (task.trim()) {
       this.categoryService.categories[this.currentCategoryIndex].elements.push({
         task: task,
-        done: false
+        done: false,
+        importance: this.currentImportanceLevel
       });
       this.saveSuggestion(task);
     } else if (!task) {
       this.categoryService.categories[this.currentCategoryIndex].elements.push({
         task: this.currentSuggestion.suggestion,
-        done: false
+        done: false,
+        importance: this.currentImportanceLevel
       });
     }
     this.inputField = "";
@@ -133,5 +138,31 @@ export class TodoComponent implements OnInit {
       this.currentCategoryIndex = index;
     }
     this.generateSuggestion();
+  }
+
+  public toggleColorBar() {
+    this.showColorBar = !this.showColorBar;
+  }
+
+  public getCircleColorBackground(color: string) {
+    // console.log(color)
+    return {'background-color': this.getCircleColor(color)};   
+  }
+
+  public getTodoBackgroundColor(color: string) {
+    return {'--ion-color-primary': this.getCircleColor(color)}
+  }
+
+  public getCircleColor(color: string): ImportanceLevel {
+    const enumEntries = Object.entries(ImportanceLevel);
+    return enumEntries.filter(entry => entry.includes(color))[0][1]
+  }
+
+  public isCurrentLevel(color: string) {
+    return this.currentImportanceLevel === this.getCircleColor(color)
+  }
+
+  public setCurrentImportanceLevel(level: string) {
+    this.currentImportanceLevel = this.getCircleColor(level);
   }
 }
