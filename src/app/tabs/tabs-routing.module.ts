@@ -12,8 +12,8 @@ const routes: Routes = [
         loadChildren: () => import('../todo/todo.module').then(m => m.TodoModule)
       },
       {
-        path: 'tab2',
-        loadChildren: () => import('../photos/tab2.module').then(m => m.Tab2PageModule)
+        path: 'recipe',
+        loadChildren: () => import('../recipe/recipe.module').then(m => m.RecipeModule)
       },
       {
         path: 'settings',

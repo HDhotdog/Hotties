@@ -1,0 +1,57 @@
+<ion-menu contentId="filter-menu">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Select filters</ion-title>
+    </ion-toolbar>
+  </ion-header>
+<ion-content>
+  <div class="filter-container">
+    <ion-checkbox labelPlacement="end">Frühstück</ion-checkbox>
+    <ion-checkbox labelPlacement="end">Mittag</ion-checkbox>
+    <ion-checkbox labelPlacement="end">Abendessen</ion-checkbox>
+  </div>
+</ion-content>
+</ion-menu>
+
+<div id="filter-menu">
+  <ion-header [translucent]="true">
+    <ion-toolbar class="toolbar">
+  
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+  
+      <ion-title>
+        Recipes
+      </ion-title>
+  
+      <ion-buttons slot="end">
+        <ion-button class="add-button">
+          <ion-icon name="add"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+  
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content class="content-wrapper">
+    <ion-searchbar></ion-searchbar>
+    <div class="recipes-list-container">
+      <div class="recipe-preview-container">
+        <div class="recipe-preview-title">
+          <p>Pizza</p>
+          <p>1h 20m</p>
+        </div>
+        <div class="recipe-preview-image">
+          <ion-img src="https://www.zauberdergewuerze.de/magazin/wp-content/uploads/2023/03/05_oregano_istock-1174701047.jpg"></ion-img>
+        </div>
+        <div class="recipe-preview-labels">
+          <div class="recipe-preview-label">Scharf</div>
+          <div class="recipe-preview-label">Mittag</div>
+        </div>
+        
+      </div>
+    </div>
+  </ion-content>
+</div>
+
