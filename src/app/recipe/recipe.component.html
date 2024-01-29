@@ -26,7 +26,7 @@
       </ion-title>
   
       <ion-buttons slot="end">
-        <ion-button class="add-button">
+        <ion-button class="add-button" (click)="newRecipe()">
           <ion-icon name="add"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -35,19 +35,18 @@
   </ion-header>
   
   <ion-content class="content-wrapper">
-    <ion-searchbar></ion-searchbar>
+    <ion-searchbar [(ngModel)]="search"></ion-searchbar>
     <div class="recipes-list-container">
-      <div class="recipe-preview-container">
+      <div class="recipe-preview-container" *ngFor="let recipe of this.results">
         <div class="recipe-preview-title">
-          <p>Pizza</p>
-          <p>1h 20m</p>
+          <p>{{recipe.name}}</p>
+          <p>{{this.parseDate(recipe)}}</p>
         </div>
         <div class="recipe-preview-image">
           <ion-img src="https://www.zauberdergewuerze.de/magazin/wp-content/uploads/2023/03/05_oregano_istock-1174701047.jpg"></ion-img>
         </div>
         <div class="recipe-preview-labels">
-          <div class="recipe-preview-label">Scharf</div>
-          <div class="recipe-preview-label">Mittag</div>
+          <div class="recipe-preview-label" *ngFor="let label of recipe.labels">{{label.name}}</div>
         </div>
         
       </div>

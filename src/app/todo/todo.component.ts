@@ -145,7 +145,6 @@ export class TodoComponent implements OnInit {
   }
 
   public getCircleColorBackground(color: string) {
-    // console.log(color)
     return {'background-color': this.getCircleColor(color)};   
   }
 

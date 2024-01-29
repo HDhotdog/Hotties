@@ -1,9 +1,10 @@
 export interface Recipe {
     name: string,
     description: string,
-    prepTime: string,
+    prepTimeHour: number,
+    prepTimeMinutes: number,
     ingridients: Ingridient[],
-    lastEaten: Date,
+    lastEaten?: Date,
     labels: Label[]
 }
 

@@ -1,0 +1,62 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Edit recipe
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveCategory()" [ngClass]="{'save-button-active': this.inputChanged()}"
+        [disabled]="!this.inputChanged()">
+        <ion-icon name="save"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="container">
+    <ion-grid>
+      <ion-row id="data-row">
+        <ion-input [(ngModel)]="name" placeholder="Enter recipe name"></ion-input>
+      </ion-row>
+      <ion-row class="textarea-input">
+        <ion-textarea placeholder="Enter description"></ion-textarea>
+      </ion-row>
+      <ion-row class="time-input">
+
+        <div class="time-input-section">
+          <ion-label>Hours: </ion-label>
+          <ion-input [(ngModel)]="hours" type="number" min="0" value="0"></ion-input>
+        </div>
+        <div class="time-input-section">
+          <ion-label>Minutes: </ion-label>
+          <ion-input [(ngModel)]="minutes" type="number" min="0" max="59" value="0"></ion-input>
+        </div>
+      </ion-row>
+      <ion-row class="ingridient-section">
+        <div class="ingridient-input">
+          <ion-input placeholder="Enter ingridient" [(ngModel)]="ingridient" (keyup.enter)="addIngridient()"></ion-input>
+          <ion-button shape="round" (click)="addIngridient()">
+            <ion-icon name="add"></ion-icon>
+          </ion-button>
+        </div>
+        <hr>
+          <div *ngFor="let ingridient of this.ingridients" class="ingridient">
+            <ion-label>{{ingridient.name}}</ion-label>
+            <ion-button (click)="removeIngridient(ingridient)" color="danger" shape="round">
+              <ion-icon name="trash"></ion-icon>
+            </ion-button>
+          </div>
+      </ion-row>
+      <ion-row class="label-row">
+        <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
+          <ion-select-option *ngFor="let label of this.availableLabels" value="{{label}}">{{label}}</ion-select-option>
+        </ion-select>
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>

@@ -23,10 +23,6 @@
       <ion-row id="data-row">
         <ion-input [(ngModel)]="name" placeholder="Enter category name"></ion-input>
       </ion-row>
-      <!-- <ion-row id="data-row">
-        <ion-label>Manage tasks</ion-label>
-        <ion-icon name="pencil"></ion-icon>
-      </ion-row> -->
       <ion-row id="data-row" *ngIf="this.editingCategory()">
         <ion-label>Manage suggestions</ion-label>
         <ion-icon name="pencil"></ion-icon>

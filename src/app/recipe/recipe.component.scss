@@ -22,12 +22,16 @@
 
 .recipes-list-container {
     padding: 10px;
-    height: 100%;
+    flex-grow: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: auto;
+    padding-bottom: 20%;
 }
 
 .recipe-preview-container {
     height: fit-content;
-    // border: white solid 1px;
     background-color: #1e1e1e;
     padding: 5px;
     border-radius: 10px;
@@ -43,20 +47,19 @@
     margin-bottom: 10px;
 }
 
-ion-img {
-    aspect-ratio: keep;
-}
 
 .recipe-preview-labels {
     display: flex;
     flex-direction: row;
     gap: 5px;
+    overflow: auto;
 }
 
 .recipe-preview-label {
     padding: 4px;
     background-color: #1f1f1f;
     border-radius: 50%;
+    width: fit-content;
 }
 ion-checkbox {
     align-self: start;

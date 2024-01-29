@@ -3,7 +3,7 @@ import { IonicModule } from '@ionic/angular';
 
 import { RecipeComponent } from './recipe.component';
 
-describe('Tab2Page', () => {
+describe('RecipeComponent', () => {
   let component: RecipeComponent;
   let fixture: ComponentFixture<RecipeComponent>;
 

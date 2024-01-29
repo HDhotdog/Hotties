@@ -9,7 +9,10 @@
 <ion-content>
   <div class="settings-container">
     <ion-list class="settings-list">
-
+      <ion-item (click)="openLabelSetting()">
+        <ion-icon aria-hidden="true" name="leaf" slot="start"></ion-icon>
+        <ion-label>Manage labels</ion-label>
+      </ion-item>
       <ion-item (click)="openCategorySetting()">
         <ion-icon aria-hidden="true" name="list" slot="start"></ion-icon>
         <ion-label>Manage categories</ion-label>
