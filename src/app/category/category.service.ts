@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { Category } from './category';
-import { Ingridient, Recipe } from '../recipe/recipe';
+import { Ingredient, Recipe } from '../recipe/recipe';
 import { ImportanceLevel, ToDo } from '../todo/todo';
 
 @Injectable({
@@ -40,7 +40,7 @@ export class CategoryService {
 
      public async createCategory(recipe: Recipe) {
         await this.loadCategories().then(() => {
-            const toDos: ToDo[] = recipe.ingridients.map((item) => this.ingridientToTodo(item))
+            const toDos: ToDo[] = recipe.ingredients.map((item) => this.ingridientToTodo(item))
             const category: Category = {
                 name: recipe.name,
                 elements: toDos,
@@ -52,7 +52,7 @@ export class CategoryService {
         })
     }
 
-    private ingridientToTodo(ingridient: Ingridient): ToDo {
+    private ingridientToTodo(ingridient: Ingredient): ToDo {
         return {
             task: ingridient.name,
             done: false,
