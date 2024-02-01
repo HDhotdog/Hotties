@@ -11,7 +11,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class RecipeComponent implements OnInit {
 
   private _recipes: Recipe[] = [];
-  private _results: Recipe[] = [];
   public search: string = "";
 
   constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute) {}
@@ -19,17 +18,11 @@ export class RecipeComponent implements OnInit {
   ngOnInit(): void {
       this.recipeService.loadRecipes();
       this._recipes = this.recipeService.recipes;
-      this._results = this._recipes;
   }
 
   async ionViewWillEnter() {
     this.recipeService.loadRecipes();
     this._recipes = this.recipeService.recipes;
-    this._results = this._recipes;
-  }
-
-  public newRecipe() {
-    this.router.navigate(['new'], {relativeTo: this.route})
   }
 
   public parseDate(recipe: Recipe): string {
@@ -45,5 +38,13 @@ export class RecipeComponent implements OnInit {
 
   get results(): Recipe[] {
     return this._recipes.filter((recipe) => recipe.name.toLowerCase().includes(this.search.toLowerCase()));
+  }
+
+  public openRecipe(recipe: Recipe): void {
+    this.router.navigate(['display', recipe.uuid], {relativeTo: this.route})
+  }
+
+  public newRecipe() {
+    this.router.navigate(['new'], {relativeTo: this.route})
   }
 }

@@ -37,7 +37,7 @@
   <ion-content class="content-wrapper">
     <ion-searchbar [(ngModel)]="search"></ion-searchbar>
     <div class="recipes-list-container">
-      <div class="recipe-preview-container" *ngFor="let recipe of this.results">
+      <div class="recipe-preview-container" *ngFor="let recipe of this.results" (click)="openRecipe(recipe)">
         <div class="recipe-preview-title">
           <p>{{recipe.name}}</p>
           <p>{{this.parseDate(recipe)}}</p>

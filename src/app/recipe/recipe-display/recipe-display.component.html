@@ -1,0 +1,56 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Rezept
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon name="pencil"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="recipe-wrapper" *ngIf="!isLoading">
+    <div class="recipe-header">
+      <h2>{{recipe.name}}</h2>
+      <h3>{{this.parseDate()}}</h3>
+    </div>
+
+    <ion-img
+      src="https://www.zauberdergewuerze.de/magazin/wp-content/uploads/2023/03/05_oregano_istock-1174701047.jpg"></ion-img>
+
+    <div class="ingridients">
+      <p class="ingridients-title">Zutaten</p>
+      <ul class="ingridients-items">
+        <li *ngFor="let item of recipe?.ingridients">
+          {{item.name}}
+        </li>
+      </ul>
+      <div class="export-items">
+        <p>Zutaten auf ToDo-Liste setzen</p>
+        <ion-button color="success" (click)="exportIngridients()">
+          <ion-icon name="arrow-redo"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="recipe-description">
+      <p class="recipe-descirption-title">Zubereitung</p>
+      <p class="recipe-description-content">{{recipe.description}}</p>
+    </div>
+
+    <div class="recipe-labels">
+      <p class="recipe-label" *ngFor="let recipeLabel of recipe?.labels">
+        {{recipeLabel.name}}
+      </p>
+    </div>
+  </div>
+
+</ion-content>

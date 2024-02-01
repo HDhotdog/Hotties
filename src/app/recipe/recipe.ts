@@ -1,4 +1,5 @@
 export interface Recipe {
+    uuid: any,
     name: string,
     description: string,
     prepTimeHour: number,

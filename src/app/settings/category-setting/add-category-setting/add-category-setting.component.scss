@@ -5,7 +5,6 @@ ion-input {
 
 ion-label {
     text-align: center;
-    // min-height: 44px;
     align-items: center;
     justify-content: center;
 }
@@ -16,16 +15,9 @@ ion-row {
     border-bottom: solid 5px #121212;
 }
 
-ion-title {
-    margin-left: calc(15%);
-}
-
 ion-grid {
     margin: 0;
 }
-
-
-
 
 .container {
     min-width: 100%;
@@ -33,7 +25,6 @@ ion-grid {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    // align-content: center;
     padding-bottom: 10px;
 }
 

@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Ingridient, Label, Recipe } from '../recipe';
 import { RecipeService } from '../recipe.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-add-category',
@@ -41,6 +42,7 @@ export class AddRecipeComponent implements OnInit {
       this.stringLabels = this.previousInputs.labels.map(label => label.name);
     } else {
       this.previousInputs = {
+        uuid: uuidv4(),
         name: this.name,
         description: this.description,
         prepTimeHour: this.hours,
@@ -72,6 +74,7 @@ export class AddRecipeComponent implements OnInit {
         this.recipeService.recipes[parseInt(index)].name = this.name;
       } else {
         const recipe: Recipe = {
+          uuid: uuidv4(),
           name: this.name,
           description: this.description,
           prepTimeHour: this.hours,

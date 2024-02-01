@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { Category } from './category';
+import { Ingridient, Recipe } from '../recipe/recipe';
+import { ImportanceLevel, ToDo } from '../todo/todo';
 
 @Injectable({
     providedIn: 'root'
@@ -18,7 +20,6 @@ export class CategoryService {
     public async saveCategories() {
         Preferences.set({ key: this.CATEGORY_STORAGE, value: JSON.stringify(this.categories) });
         Preferences.set({ key: this.LAST_CATEGORY_INDEX, value: JSON.stringify(this.lastCategory) });
-
     }
 
     public async loadCategories() {
@@ -35,5 +36,27 @@ export class CategoryService {
     public async loadLastCategory() {
         const { value } = await Preferences.get({ key: this.LAST_CATEGORY_INDEX })
         this.lastCategory = (value ? JSON.parse(value) : 0) as number;
+    }
+
+     public async createCategory(recipe: Recipe) {
+        await this.loadCategories().then(() => {
+            const toDos: ToDo[] = recipe.ingridients.map((item) => this.ingridientToTodo(item))
+            const category: Category = {
+                name: recipe.name,
+                elements: toDos,
+                suggestions: [],
+                saveSuggestions: false
+            };
+            this.categories.push(category);
+            this.saveCategories();
+        })
+    }
+
+    private ingridientToTodo(ingridient: Ingridient): ToDo {
+        return {
+            task: ingridient.name,
+            done: false,
+            importance: ImportanceLevel.NORMAL
+        }
     }
 }

@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { RecipeComponent } from './recipe.component';
 import { AddRecipeComponent } from './add-recipe/add-recipe.component';
+import { RecipeDisplayComponent } from './recipe-display/recipe-display.component';
 
 const routes: Routes = [
   {
@@ -15,6 +16,10 @@ const routes: Routes = [
   {
     path: 'new/:id',
     component: AddRecipeComponent
+  },
+  {
+    path: 'display/:id',
+    component: RecipeDisplayComponent
   }
 ];
 
