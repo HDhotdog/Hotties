@@ -4,12 +4,12 @@ export interface Recipe {
     description: string,
     prepTimeHour: number,
     prepTimeMinutes: number,
-    ingridients: Ingridient[],
+    ingredients: Ingredient[],
     lastEaten?: Date,
     labels: Label[]
 }
 
-export interface Ingridient {
+export interface Ingredient {
     name: string,
     shouldBuy: boolean,
 }

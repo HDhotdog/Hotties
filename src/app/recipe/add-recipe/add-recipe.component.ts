@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ToastController } from '@ionic/angular';
-import { Ingridient, Label, Recipe } from '../recipe';
+import { Ingredient, Label, Recipe } from '../recipe';
 import { RecipeService } from '../recipe.service';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,7 +18,7 @@ export class AddRecipeComponent implements OnInit {
   public hours: number = 0;
   public minutes: number = 0;
   public ingridient: string = "";
-  public ingridients: Ingridient[] = [];
+  public ingridients: Ingredient[] = [];
   public previousInputs: Recipe = {} as Recipe;
   public stringLabels: string[] = [];
   public availableLabels = ["Frühstück", "Mittagessen", "Abendessen", "Snack", "Süß", "Scharf"];
@@ -38,7 +38,7 @@ export class AddRecipeComponent implements OnInit {
       this.description = this.previousInputs.description;
       this.hours = this.previousInputs.prepTimeHour;
       this.minutes = this.previousInputs.prepTimeMinutes;
-      this.ingridients = this.previousInputs.ingridients;
+      this.ingridients = this.previousInputs.ingredients;
       this.stringLabels = this.previousInputs.labels.map(label => label.name);
     } else {
       this.previousInputs = {
@@ -47,7 +47,7 @@ export class AddRecipeComponent implements OnInit {
         description: this.description,
         prepTimeHour: this.hours,
         prepTimeMinutes: this.minutes,
-        ingridients: this.ingridients,
+        ingredients: this.ingridients,
         labels: this.labels
       } as Recipe;
     }
@@ -79,7 +79,7 @@ export class AddRecipeComponent implements OnInit {
           description: this.description,
           prepTimeHour: this.hours,
           prepTimeMinutes: this.minutes,
-          ingridients: this.ingridients,
+          ingredients: this.ingridients,
           labels: this.labels,
         }
         this.recipeService.recipes.push(recipe);
@@ -95,7 +95,7 @@ export class AddRecipeComponent implements OnInit {
     || this.previousInputs.description !== this.description
     || this.previousInputs.prepTimeHour !== this.hours
     || this.previousInputs.prepTimeMinutes !== this.minutes
-    || this.previousInputs.ingridients !== this.ingridients
+    || this.previousInputs.ingredients !== this.ingridients
     || this.previousInputs.labels !==  this.labels;
   }
 
@@ -111,7 +111,7 @@ export class AddRecipeComponent implements OnInit {
     this.ingridient = "";
   }
 
-  public removeIngridient(ingridient: Ingridient) {
+  public removeIngridient(ingridient: Ingredient) {
     const index = this.ingridients.indexOf(ingridient)
     this.ingridients.splice(index, 1)
   }
