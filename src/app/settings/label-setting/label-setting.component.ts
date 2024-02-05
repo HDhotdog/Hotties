@@ -18,17 +18,19 @@ export class LabelSettingComponent implements OnInit {
     }
 
   handleReorderOfLabelGroups(ev: CustomEvent<ItemReorderEventDetail>) {
-    [this.labelService.labelGroups[ev.detail.from], this.labelService.labelGroups[ev.detail.to]]
-      = [this.labelService.labelGroups[ev.detail.to], this.labelService.labelGroups[ev.detail.from]];
-    //this.labelService.saveLabels();
+    this.labelService.labelGroups.splice(ev.detail.to, 0, this.labelService.labelGroups.splice(ev.detail.from, 1)[0]);
+    this.labelService.saveLabels();
+    
     ev.detail.complete();
+    ev.stopPropagation();
   }
 
   handleReorderOfLabels(ev: CustomEvent<ItemReorderEventDetail>, labelGroup: LabelGroup) {
-    [labelGroup.labels[ev.detail.from], labelGroup.labels[ev.detail.to]]
-      = [labelGroup.labels[ev.detail.to], labelGroup.labels[ev.detail.from]];
-    //this.labelService.saveLabels();
+    labelGroup.labels.splice(ev.detail.to, 0, labelGroup.labels.splice(ev.detail.from, 1)[0]);
+    this.labelService.saveLabels();
+
     ev.detail.complete();
+    ev.stopPropagation();
   }
 
   public navigateBack() {
