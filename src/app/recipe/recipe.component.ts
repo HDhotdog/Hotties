@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { RecipeService } from './recipe.service';
-import { Recipe } from './recipe';
-import { ActivatedRoute, Router } from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {RecipeService} from './recipe.service';
+import {Label, Recipe} from './recipe';
+import {ActivatedRoute, Router} from '@angular/router';
+import {LabelService} from "../settings/label-setting/label-service.service";
 
 @Component({
   selector: 'app-recipe',
@@ -11,13 +12,21 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class RecipeComponent implements OnInit {
 
   private _recipes: Recipe[] = [];
+  private _labels: Label[] = [];
   public search: string = "";
 
-  constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute,
+              public labelService: LabelService) {
+  }
 
   ngOnInit(): void {
-      this.recipeService.loadRecipes();
+    this.recipeService.loadRecipes().then(() => {
       this._recipes = this.recipeService.recipes;
+    })
+    this.labelService.loadLabels().then(() => {
+      const labels = this.labelService.labelGroups.map((labelGroup) => labelGroup.labels);
+      this._labels = labels.reduce((acc, val) => acc.concat(val), []);
+    })
   }
 
   async ionViewWillEnter() {
@@ -38,6 +47,10 @@ export class RecipeComponent implements OnInit {
 
   get results(): Recipe[] {
     return this._recipes.filter((recipe) => recipe.name.toLowerCase().includes(this.search.toLowerCase()));
+  }
+
+  get labels(): Label[] {
+    return this._labels;
   }
 
   public openRecipe(recipe: Recipe): void {

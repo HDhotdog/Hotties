@@ -39,22 +39,22 @@
       </ion-row>
       <ion-row class="ingridient-section">
         <div class="ingridient-input">
-          <ion-input placeholder="Enter ingridient" [(ngModel)]="ingridient" (keyup.enter)="addIngridient()"></ion-input>
-          <ion-button shape="round" (click)="addIngridient()">
+          <ion-input placeholder="Enter ingridient" [(ngModel)]="ingridient" (keyup.enter)="addIngredient()"></ion-input>
+          <ion-button shape="round" (click)="addIngredient()">
             <ion-icon name="add"></ion-icon>
           </ion-button>
         </div>
         <hr>
           <div *ngFor="let ingridient of this.ingridients" class="ingridient">
             <ion-label>{{ingridient.name}}</ion-label>
-            <ion-button (click)="removeIngridient(ingridient)" color="danger" shape="round">
+            <ion-button (click)="removeIngredient(ingridient)" color="danger" shape="round">
               <ion-icon name="trash"></ion-icon>
             </ion-button>
           </div>
       </ion-row>
       <ion-row class="label-row">
         <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
-          <ion-select-option *ngFor="let label of this.availableLabels" value="{{label}}">{{label}}</ion-select-option>
+          <ion-select-option *ngFor="let label of this.availableLabels" value="{{label.name}}">{{label.name}}</ion-select-option>
         </ion-select>
       </ion-row>
     </ion-grid>

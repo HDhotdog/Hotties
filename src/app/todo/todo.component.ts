@@ -145,7 +145,7 @@ export class TodoComponent implements OnInit {
   }
 
   public getCircleColorBackground(color: string) {
-    return {'background-color': this.getCircleColor(color)};   
+    return {'background-color': this.getCircleColor(color)};
   }
 
   public getTodoBackgroundColor(color: string) {
@@ -154,7 +154,7 @@ export class TodoComponent implements OnInit {
 
   public getCircleColor(color: string): ImportanceLevel {
     const enumEntries = Object.entries(ImportanceLevel);
-    return enumEntries.filter(entry => entry.includes(color))[0][1]
+    return enumEntries.filter(entry => entry.includes(color))[0][1];
   }
 
   public isCurrentLevel(color: string) {

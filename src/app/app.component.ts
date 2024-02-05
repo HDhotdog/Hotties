@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { AppService } from './app.service';
-import { CategoryService } from './category/category.service';
-import { Category } from './category/category';
+import {Component, OnInit} from '@angular/core';
+import {AppService} from './app.service';
+import {CategoryService} from './category/category.service';
+import {Category} from './category/category';
+import {LabelGroup} from "./recipe/recipe";
+import {LabelService} from "./settings/label-setting/label-service.service";
 
 @Component({
   selector: 'app-root',
@@ -9,7 +11,9 @@ import { Category } from './category/category';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  constructor(private appService: AppService, private categoryService: CategoryService) { }
+  constructor(private appService: AppService, private categoryService: CategoryService,
+              private labelService: LabelService) {
+  }
 
   async ngOnInit() {
     await this.appService.loadInitialValues();
@@ -25,6 +29,43 @@ export class AppComponent implements OnInit {
       suggestions: [],
       saveSuggestions: true
     }
+
+    const kindLabels: LabelGroup = {
+      name: "Art",
+      labels: [{
+        name: "Frühstück"
+      },
+        {
+          name: "Mittagessen"
+        },
+        {
+          name: "Abendessen"
+        },
+        {
+          name: "Snack"
+        }
+      ]
+    }
+
+    const tasteLabels: LabelGroup = {
+      name: "Geschmack",
+      labels: [
+        {
+          name: "Süß"
+        },
+        {
+          name: "Scharf"
+        },
+        {
+          name: "Salzig"
+        },
+        {
+          name: "Sauer"
+        }
+      ]
+    }
+    this.labelService.labelGroups.push(kindLabels, tasteLabels);
+    this.labelService.saveLabels();
     this.categoryService.categories.push(category);
     this.categoryService.saveCategories();
     this.appService.firstTime = false;

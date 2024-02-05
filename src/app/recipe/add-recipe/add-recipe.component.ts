@@ -1,10 +1,10 @@
-import { Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { ToastController } from '@ionic/angular';
-import { Ingredient, Label, Recipe } from '../recipe';
-import { RecipeService } from '../recipe.service';
-import { v4 as uuidv4 } from 'uuid';
+import {Location} from '@angular/common';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
+import {Ingredient, Label, Recipe} from '../recipe';
+import {RecipeService} from '../recipe.service';
+import {v4 as uuidv4} from 'uuid';
+import {LabelService} from "../../settings/label-setting/label-service.service";
 
 @Component({
   selector: 'app-add-category',
@@ -21,19 +21,24 @@ export class AddRecipeComponent implements OnInit {
   public ingridients: Ingredient[] = [];
   public previousInputs: Recipe = {} as Recipe;
   public stringLabels: string[] = [];
-  public availableLabels = ["Frühstück", "Mittagessen", "Abendessen", "Snack", "Süß", "Scharf"];
+  public availableLabels: Label[] = [];
   private labels: Label[] = [];
 
   constructor(private location: Location,
-    private recipeService: RecipeService,
-    private toastCtrl: ToastController,
-    private route: ActivatedRoute) { }
+              private recipeService: RecipeService,
+              private route: ActivatedRoute,
+              private labelService: LabelService) {
+  }
 
   ngOnInit(): void {
+    this.labelService.loadLabels().then(() => {
+        this.setAllLabels();
+      }
+    )
     const index = this.route.snapshot.paramMap.get('id');
     if (index) {
-      const i = parseInt(index);
-      this.previousInputs = this.recipeService.recipes[i];
+
+      this.previousInputs = this.recipeService.recipes.find((recipe) => recipe.uuid === index)!;
       this.name = this.previousInputs.name;
       this.description = this.previousInputs.description;
       this.hours = this.previousInputs.prepTimeHour;
@@ -58,52 +63,43 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public saveCategory() {
-    if (this.recipeService.recipes.filter(recipe => recipe.name == this.name).length > 0) {
-      let toast = this.toastCtrl.create({
-        message: "There already exists a category with this name",
-        duration: 2000,
-        position: "bottom",
-        color: "danger"
-      });
-      toast.then(toast => {
-        toast.present();
-      })
+    const index = this.route.snapshot.paramMap.get('id');
+    if (index) {
+      const i = this.recipeService.recipes.findIndex((recipe) => recipe.uuid === index);
+      this.recipeService.recipes[i].name = this.name;
+      this.recipeService.recipes[i].description = this.description;
+      this.recipeService.recipes[i].prepTimeHour = this.hours;
+      this.recipeService.recipes[i].prepTimeMinutes = this.minutes;
+      this.recipeService.recipes[i].ingredients = this.ingridients;
+      this.recipeService.recipes[i].labels = this.labels;
     } else {
-      const index = this.route.snapshot.paramMap.get('id');
-      if (index) {
-        this.recipeService.recipes[parseInt(index)].name = this.name;
-      } else {
-        const recipe: Recipe = {
-          uuid: uuidv4(),
-          name: this.name,
-          description: this.description,
-          prepTimeHour: this.hours,
-          prepTimeMinutes: this.minutes,
-          ingredients: this.ingridients,
-          labels: this.labels,
-        }
-        this.recipeService.recipes.push(recipe);
-        this.recipeService.saveRecipes();
+      const recipe: Recipe = {
+        uuid: uuidv4(),
+        name: this.name,
+        description: this.description,
+        prepTimeHour: this.hours,
+        prepTimeMinutes: this.minutes,
+        ingredients: this.ingridients,
+        labels: this.labels,
       }
+      this.recipeService.recipes.push(recipe);
       this.recipeService.saveRecipes();
-      this.navigateBack();
     }
+    this.recipeService.saveRecipes().then(() => {
+      this.navigateBack();
+    });
   }
 
   public inputChanged(): boolean {
     return this.previousInputs.name !== this.name
-    || this.previousInputs.description !== this.description
-    || this.previousInputs.prepTimeHour !== this.hours
-    || this.previousInputs.prepTimeMinutes !== this.minutes
-    || this.previousInputs.ingredients !== this.ingridients
-    || this.previousInputs.labels !==  this.labels;
+      || this.previousInputs.description !== this.description
+      || this.previousInputs.prepTimeHour !== this.hours
+      || this.previousInputs.prepTimeMinutes !== this.minutes
+      || this.previousInputs.ingredients !== this.ingridients
+      || this.previousInputs.labels !== this.labels;
   }
 
-  public editingCategory(): boolean {
-    return this.route.snapshot.paramMap.get("id") != null;
-  }
-
-  public addIngridient(): void {
+  public addIngredient(): void {
     this.ingridients.push({
       name: this.ingridient,
       shouldBuy: true
@@ -111,8 +107,8 @@ export class AddRecipeComponent implements OnInit {
     this.ingridient = "";
   }
 
-  public removeIngridient(ingridient: Ingredient) {
-    const index = this.ingridients.indexOf(ingridient)
+  public removeIngredient(ingredient: Ingredient) {
+    const index = this.ingridients.indexOf(ingredient)
     this.ingridients.splice(index, 1)
   }
 
@@ -121,6 +117,14 @@ export class AddRecipeComponent implements OnInit {
       return {
         name: label
       } as Label
+    })
+  }
+
+  private setAllLabels() {
+    this.labelService.labelGroups.map((labelGroup) => {
+      labelGroup.labels.map((label) => {
+        this.availableLabels.push(label);
+      })
     })
   }
 }

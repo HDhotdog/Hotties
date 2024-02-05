@@ -1,3 +1,40 @@
-<p>
-  label-component works!
-</p>
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Manage labels
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabelGroups($any($event))">
+      <ion-item class="groupReorder" *ngFor="let labelGroup of labelService.labelGroups">
+        <div>
+          <ion-reorder slot="start"></ion-reorder>
+          <ion-label>{{ labelGroup.name }}</ion-label>
+        </div>
+        <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabels($any($event), labelGroup)">
+          <ion-item *ngFor="let label of labelGroup.labels">
+            <ion-reorder slot="start"></ion-reorder>
+            <ion-label>{{ label.name }}</ion-label>
+          </ion-item>
+        </ion-reorder-group>
+      </ion-item>
+    </ion-reorder-group>
+  </ion-list>
+</ion-content>
+
+
+<!--<ion-item *ngFor="let labelGroup of this.labelService.labelGroups; index as i">
+  <ion-reorder slot="start"></ion-reorder>
+  <ion-label>{{labelGroup.name}}</ion-label>
+  <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button" (click)="editCategory(i)"></ion-icon>
+  <ion-icon *ngIf="this.categoryService.categories.length > 1" aria-hidden="true" name="trash" slot="end"
+            (click)="deleteCategory(i)" class="delete-button"></ion-icon>
+</ion-item>-->

@@ -6,9 +6,7 @@
   </ion-header>
 <ion-content>
   <div class="filter-container">
-    <ion-checkbox labelPlacement="end">Frühstück</ion-checkbox>
-    <ion-checkbox labelPlacement="end">Mittag</ion-checkbox>
-    <ion-checkbox labelPlacement="end">Abendessen</ion-checkbox>
+    <ion-checkbox *ngFor="let label of labels" labelPlacement="end">{{label.name}}</ion-checkbox>
   </div>
 </ion-content>
 </ion-menu>
@@ -16,24 +14,24 @@
 <div id="filter-menu">
   <ion-header [translucent]="true">
     <ion-toolbar class="toolbar">
-  
+
       <ion-buttons slot="start">
         <ion-menu-button></ion-menu-button>
       </ion-buttons>
-  
+
       <ion-title>
         Recipes
       </ion-title>
-  
+
       <ion-buttons slot="end">
         <ion-button class="add-button" (click)="newRecipe()">
           <ion-icon name="add"></ion-icon>
         </ion-button>
       </ion-buttons>
-  
+
     </ion-toolbar>
   </ion-header>
-  
+
   <ion-content class="content-wrapper">
     <ion-searchbar [(ngModel)]="search"></ion-searchbar>
     <div class="recipes-list-container">
@@ -48,7 +46,7 @@
         <div class="recipe-preview-labels">
           <div class="recipe-preview-label" *ngFor="let label of recipe.labels">{{label.name}}</div>
         </div>
-        
+
       </div>
     </div>
   </ion-content>
