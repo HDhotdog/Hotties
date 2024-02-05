@@ -24,18 +24,18 @@
     </div>
 
     <ion-img
-      src="https://www.zauberdergewuerze.de/magazin/wp-content/uploads/2023/03/05_oregano_istock-1174701047.jpg"></ion-img>
+      src={{recipe.imgSrc}}></ion-img>
 
-    <div class="ingridients">
-      <p class="ingridients-title">Zutaten</p>
-      <ul class="ingridients-items">
+    <div class="ingredients">
+      <p class="ingredients-title">Zutaten</p>
+      <ul class="ingredients-items">
         <li *ngFor="let item of recipe?.ingredients">
           {{item.name}}
         </li>
       </ul>
       <div class="export-items">
         <p>Zutaten auf ToDo-Liste setzen</p>
-        <ion-button color="success" (click)="exportIngridients()">
+        <ion-button color="success" (click)="exportIngredients()">
           <ion-icon name="arrow-redo"></ion-icon>
         </ion-button>
       </div>

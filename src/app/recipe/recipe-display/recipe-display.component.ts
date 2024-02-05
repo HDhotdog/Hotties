@@ -50,8 +50,7 @@ export class RecipeDisplayComponent implements OnInit {
     return date.trim();
   }
 
-  public exportIngridients() {
-    // this.categoryService.loadCategories();
+  public exportIngredients() {
     this.categoryService.createCategory(this._recipe);
   }
 
@@ -61,7 +60,6 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   public editRecipe(): void {
-    console.log(this.route.snapshot.parent!.url)
     this.router.navigate(['../../new', this._recipeUuid], {relativeTo: this.route});
   }
 

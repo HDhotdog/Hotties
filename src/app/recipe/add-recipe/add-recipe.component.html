@@ -23,6 +23,22 @@
       <ion-row id="data-row">
         <ion-input [(ngModel)]="name" placeholder="Enter recipe name"></ion-input>
       </ion-row>
+      <ion-row class="img-input">
+        <ion-img id="recipe-image" src="{{this.imgSrc}}"></ion-img>
+        <div class="custom-file-upload" *ngIf="!this.imageSelected;else delete_button">
+          <div>
+            {{"Upload image"}}
+          </div>
+          <ion-fab-button size="small" color="primary" class="upload-btn" (click)="uploadFile()">
+            <ion-icon name="attach"></ion-icon>
+          </ion-fab-button>
+        </div>
+        <ng-template #delete_button class="custom-file-upload">
+          <ion-fab-button size="small" color="danger" class="upload-btn" (click)="deleteImage()">
+            <ion-icon name="trash"></ion-icon>
+          </ion-fab-button>
+        </ng-template>
+      </ion-row>
       <ion-row class="textarea-input">
         <ion-textarea [(ngModel)]="description" placeholder="Enter description"></ion-textarea>
       </ion-row>
@@ -37,17 +53,17 @@
           <ion-input [(ngModel)]="minutes" type="number" min="0" max="59" value="0"></ion-input>
         </div>
       </ion-row>
-      <ion-row class="ingridient-section">
-        <div class="ingridient-input">
-          <ion-input placeholder="Enter ingridient" [(ngModel)]="ingridient" (keyup.enter)="addIngredient()"></ion-input>
+      <ion-row class="ingredient-section">
+        <div class="ingredient-input">
+          <ion-input placeholder="Enter ingredient" [(ngModel)]="ingredient" (keyup.enter)="addIngredient()"></ion-input>
           <ion-button shape="round" (click)="addIngredient()">
             <ion-icon name="add"></ion-icon>
           </ion-button>
         </div>
         <hr>
-          <div *ngFor="let ingridient of this.ingridients" class="ingridient">
-            <ion-label>{{ingridient.name}}</ion-label>
-            <ion-button (click)="removeIngredient(ingridient)" color="danger" shape="round">
+          <div *ngFor="let ingredient of this.ingredients" class="ingredient">
+            <ion-label>{{ingredient.name}}</ion-label>
+            <ion-button (click)="removeIngredient(ingredient)" color="danger" shape="round">
               <ion-icon name="trash"></ion-icon>
             </ion-button>
           </div>

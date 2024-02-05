@@ -40,7 +40,7 @@ export class CategoryService {
 
      public async createCategory(recipe: Recipe) {
         await this.loadCategories().then(() => {
-            const toDos: ToDo[] = recipe.ingredients.map((item) => this.ingridientToTodo(item))
+            const toDos: ToDo[] = recipe.ingredients.map((item) => this.ingredientToTodo(item))
             const category: Category = {
                 name: recipe.name,
                 elements: toDos,
@@ -52,9 +52,9 @@ export class CategoryService {
         })
     }
 
-    private ingridientToTodo(ingridient: Ingredient): ToDo {
+    private ingredientToTodo(ingredient: Ingredient): ToDo {
         return {
-            task: ingridient.name,
+            task: ingredient.name,
             done: false,
             importance: ImportanceLevel.NORMAL
         }

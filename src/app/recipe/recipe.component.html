@@ -41,12 +41,11 @@
           <p>{{this.parseDate(recipe)}}</p>
         </div>
         <div class="recipe-preview-image">
-          <ion-img src="https://www.zauberdergewuerze.de/magazin/wp-content/uploads/2023/03/05_oregano_istock-1174701047.jpg"></ion-img>
+          <ion-img [src]="recipe.imgSrc"></ion-img>
         </div>
         <div class="recipe-preview-labels">
           <div class="recipe-preview-label" *ngFor="let label of recipe.labels">{{label.name}}</div>
         </div>
-
       </div>
     </div>
   </ion-content>

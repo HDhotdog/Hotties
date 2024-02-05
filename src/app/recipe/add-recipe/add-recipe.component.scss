@@ -45,6 +45,22 @@ ion-grid {
     color: rgb(52, 216, 52);
 }
 
+.img-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.custom-file-upload {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
 ion-textarea {
     text-align: center;
     height: 100%;
@@ -73,13 +89,13 @@ ion-textarea {
     }
 }
 
-.ingridient-input {
+.ingredient-input {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-.ingridient-section {
+.ingredient-section {
     padding: 5px;
     display: flex;
     flex-direction: column;
@@ -87,11 +103,11 @@ ion-textarea {
     height: fit-content;
 }
 
-.ingridient-list {
+.ingredient-list {
     height: fit-content;
 }
 
-.ingridient {
+.ingredient {
     display: flex;
     flex-direction: row;
     align-items: center;
