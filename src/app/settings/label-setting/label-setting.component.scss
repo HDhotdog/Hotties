@@ -1,5 +1,36 @@
+ .groupReorder ion-item::part(native) {
+  display: flex;
+  flex-direction: column;
+}
+
+.label-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  padding-left: 10%;
+  width: 100%;
+}
+
+.group-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  width: 100%;
+}
+
  ion-item::part(native) {
   display: flex;
   flex-direction: column;
-  color: red
+}
+
+.groupReorder {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+}
+
+ion-reorder-group {
+  width: 100%;
 }

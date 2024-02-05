@@ -15,14 +15,16 @@
   <ion-list>
     <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabelGroups($any($event))">
       <ion-item class="groupReorder" *ngFor="let labelGroup of labelService.labelGroups">
-        <div>
+        <div class="group-item">
           <ion-reorder slot="start"></ion-reorder>
           <ion-label>{{ labelGroup.name }}</ion-label>
         </div>
-        <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabels($any($event), labelGroup)">
+        <ion-reorder-group  [disabled]="false" (ionItemReorder)="handleReorderOfLabels($any($event), labelGroup)">
           <ion-item *ngFor="let label of labelGroup.labels">
-            <ion-reorder slot="start"></ion-reorder>
-            <ion-label>{{ label.name }}</ion-label>
+            <div class="label-item">
+              <ion-reorder slot="start"></ion-reorder>
+              <ion-label>{{ label.name }}</ion-label>
+            </div>
           </ion-item>
         </ion-reorder-group>
       </ion-item>
