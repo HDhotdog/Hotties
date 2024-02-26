@@ -6,7 +6,7 @@
   </ion-header>
 <ion-content>
   <div class="filter-container">
-    <ion-checkbox *ngFor="let label of labels" labelPlacement="end">{{label.name}}</ion-checkbox>
+    <ion-checkbox *ngFor="let label of labels" labelPlacement="end" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
   </div>
 </ion-content>
 </ion-menu>

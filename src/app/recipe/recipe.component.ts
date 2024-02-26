@@ -12,7 +12,9 @@ import {LabelService} from "../settings/label-setting/label-service.service";
 export class RecipeComponent implements OnInit {
 
   private _recipes: Recipe[] = [];
+  private _resultSet: Recipe[] = [];
   private _labels: Label[] = [];
+  private _setFilters: Label[] = [];
   public search: string = "";
 
   constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute,
@@ -22,6 +24,7 @@ export class RecipeComponent implements OnInit {
   ngOnInit(): void {
     this.recipeService.loadRecipes().then(() => {
       this._recipes = this.recipeService.recipes;
+      this._resultSet = this._recipes;
     })
     this.labelService.loadLabels().then(() => {
       const labels = this.labelService.labelGroups.map((labelGroup) => labelGroup.labels);
@@ -30,8 +33,10 @@ export class RecipeComponent implements OnInit {
   }
 
   async ionViewWillEnter() {
-    this.recipeService.loadRecipes();
-    this._recipes = this.recipeService.recipes;
+    await this.recipeService.loadRecipes().then(() => {
+      this._recipes = this.recipeService.recipes;
+      this._resultSet = this._recipes;
+    });
   }
 
   public parseDate(recipe: Recipe): string {
@@ -45,8 +50,19 @@ export class RecipeComponent implements OnInit {
     return date.trim();
   }
 
+  public changeFilter(event: Event, label: Label) {
+    if((event.target as HTMLIonCheckboxElement).checked) {
+      this._setFilters.push(label);
+    } else {
+      this._setFilters.splice(this._setFilters.indexOf(label), 1);
+    }
+    this._resultSet = this._recipes.filter((recipe) =>
+      this._setFilters.every(filter => recipe.labels.map(label => label.name).includes(filter.name))
+    );
+  }
+
   get results(): Recipe[] {
-    return this._recipes.filter((recipe) => recipe.name.toLowerCase().includes(this.search.toLowerCase()));
+    return this._resultSet.filter((recipe) => recipe.name.toLowerCase().includes(this.search.toLowerCase()));
   }
 
   get labels(): Label[] {

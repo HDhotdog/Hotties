@@ -59,6 +59,14 @@ export class RecipeDisplayComponent implements OnInit {
     this.location.back();
   }
 
+  public deleteRecipe(): void {
+    const index = this.recipeService.recipes.findIndex((recipe) => recipe.uuid === this._recipeUuid);
+    this.recipeService.recipes.splice(index, 1);
+    this.recipeService.saveRecipes().then(() => {
+      this.router.navigate(['../../'], {relativeTo: this.route});
+    });
+}
+
   public editRecipe(): void {
     this.router.navigate(['../../new', this._recipeUuid], {relativeTo: this.route});
   }
