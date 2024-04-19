@@ -1,9 +1,11 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {RecipeService} from '../recipe.service';
 import {Recipe} from '../recipe';
 import {CategoryService} from 'src/app/category/category.service';
+import {IonSelect} from "@ionic/angular";
+import {Category} from "../../category/category";
 
 
 @Component({
@@ -20,14 +22,20 @@ export class RecipeDisplayComponent implements OnInit {
   private _recipeUuid!: string;
   private _recipe!: Recipe;
   private _isLoading: boolean = true;
+  public selectedCategoryName!: string;
 
-  ngOnInit(): void {
+  @ViewChild("selectionList", { static: false })
+  public selectionList!: IonSelect;
+
+  async ngOnInit()  {
     if (this.route.snapshot.paramMap.has('id')) {
       this._recipeUuid = this.route.snapshot.paramMap.get('id')!;
       this.recipeService.loadRecipes();
       this._recipe = this.recipeService.recipes.find((recipe) => recipe.uuid === this._recipeUuid)!;
       this._isLoading = false;
     }
+
+    await this.categoryService.loadCategories();
   }
 
   async ionViewWillEnter() {
@@ -50,8 +58,11 @@ export class RecipeDisplayComponent implements OnInit {
     return date.trim();
   }
 
+  public async ok() {
+    await this.categoryService.addIngredientsToCategory(this.selectedCategoryName, this._recipe!);
+  }
   public exportIngredients() {
-    this.categoryService.createCategory(this._recipe);
+    this.selectionList.open();
   }
 
 
@@ -77,5 +88,9 @@ export class RecipeDisplayComponent implements OnInit {
 
   get isLoading(): boolean {
     return this._isLoading;
+  }
+
+  get categories(): Category[] {
+    return this.categoryService.categories;
   }
 }

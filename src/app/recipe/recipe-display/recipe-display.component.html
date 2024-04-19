@@ -56,4 +56,8 @@
     </div>
   </div>
 
+  <ion-select #selectionList [(ngModel)]="selectedCategoryName" (ionChange)="ok()" class="selection-list">
+    <ion-select-option *ngFor="let category of categories" [value]="category.name">{{category.name}}</ion-select-option>
+  </ion-select>
+
 </ion-content>
