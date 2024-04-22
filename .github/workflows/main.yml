@@ -20,36 +20,36 @@ jobs:
         with:
           node-version: 13.x
 
-      - name: Install Cordova
-        run: npm install -g cordova
-
       - name: Install Ionic
         run: npm install -g @ionic/cli
 
       - name: Install app dependencies
         run: npm install
 
-      - name: Add Android platform
-        run: ionic cordova platform add android@latest
+      - name: Build Ionic App
+        run: ionic build
+
+      - name: Copy Android
+        run: ionic capacitor copy android
 
       - name: Build Android Dev APK
-        run: ionic cordova build android
+        run: ionic capacitor build android
 
       - name: Build Android Release APK
-        run: ionic cordova build android --release --prod
+        run: ionic capacitor build android --release --prod
 
       - name: Generate the Android App Bundle
-        working-directory: ./platforms/android/
+        working-directory: ./android/
         run: ./gradlew bundle
 
       - name: Upload dev APK
         uses: actions/upload-artifact@v1
         with:
           name: app-dev
-          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          path: apk/app-debug.apk
 
       - name: Upload release bundle
         uses: actions/upload-artifact@v1
         with:
           name: app-release
-          path: platforms/android/app/build/outputs/bundle/release/app.aab
+          path: apk/app.aab
