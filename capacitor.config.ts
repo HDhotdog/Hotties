@@ -1,11 +1,17 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'io.ionic.hotties',
   appName: 'Hotties',
   webDir: 'www',
   server: {
     androidScheme: 'https'
+  },
+  plugins: {
+    Keyboard: {
+      resize: 'ionic' as any,
+      resizeOnFullScreen: true
+    }
   }
 };
 
