@@ -84,3 +84,18 @@ ion-button {
     margin-left: 4px;
   }
 }
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+
+  > div {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+}

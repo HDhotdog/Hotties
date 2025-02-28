@@ -82,24 +82,22 @@
               
               <!-- Label Actions -->
               <ion-buttons slot="end">
-                <!-- Edit Mode Actions -->
-                <ng-container *ngIf="editingLabel?.label === label">
+                <div [style.display]="editingLabel?.label === label ? 'flex' : 'none'" class="button-group">
                   <ion-button (click)="saveEdit()">
                     <ion-icon name="checkmark"></ion-icon>
                   </ion-button>
                   <ion-button (click)="cancelEdit()">
                     <ion-icon name="close"></ion-icon>
                   </ion-button>
-                </ng-container>
-                <!-- Display Mode Actions -->
-                <ng-container *ngIf="editingLabel?.label !== label">
+                </div>
+                <div [style.display]="editingLabel?.label !== label ? 'flex' : 'none'" class="button-group">
                   <ion-button (click)="startEditingLabel(group, label)">
                     <ion-icon name="pencil"></ion-icon>
                   </ion-button>
                   <ion-button color="danger" (click)="removeLabel(group, label)">
                     <ion-icon name="trash"></ion-icon>
                   </ion-button>
-                </ng-container>
+                </div>
               </ion-buttons>
             </ion-item>
           </ion-reorder-group>

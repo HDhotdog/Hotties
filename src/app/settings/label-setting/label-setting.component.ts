@@ -41,6 +41,8 @@ export class LabelSettingComponent implements OnInit {
     ev.stopPropagation();
     labelGroup.labels.splice(ev.detail.to, 0, labelGroup.labels.splice(ev.detail.from, 1)[0]);
     this.labelService.saveLabels();
+    this.editingLabel = null;
+    this.editName = '';
     ev.detail.complete();
   }
 
