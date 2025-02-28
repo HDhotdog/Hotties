@@ -1,36 +1,86 @@
- .groupReorder ion-item::part(native) {
-  display: flex;
-  flex-direction: column;
+// Layout and Structure
+.group-container {
+  margin-bottom: 24px;
 }
 
-.label-item {
-  display: flex;
-  flex-direction: row;
-  justify-content: start;
-  align-items: center;
-  padding-left: 10%;
-  width: 100%;
-}
-
-.group-item {
-  display: flex;
-  flex-direction: row;
-  justify-content: start;
-  align-items: center;
-  width: 100%;
-}
-
- ion-item::part(native) {
-  display: flex;
-  flex-direction: column;
-}
-
-.groupReorder {
-  display: flex;
-  flex-direction: row;
-  justify-content: start;
+.labels-container {
+  padding-left: 24px;
 }
 
 ion-reorder-group {
   width: 100%;
+}
+
+// Item Styling
+ion-item-divider {
+  --background: var(--ion-color-light);
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+ion-item {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --min-height: 48px;
+  margin-bottom: 4px;
+
+  &::part(native) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+ion-reorder {
+  margin-right: 8px;
+}
+
+// Input Styling
+ion-input {
+  --padding-start: 16px;
+  text-align: center;
+  border-radius: 4px;
+  border: 1px solid;
+  margin: 4px 0;
+  max-width: 200px;
+  //background: var(--ion-background-color);
+  //color: var(--ion-color-light);
+
+  &::part(placeholder) {
+    text-align: center;
+    color: var(--ion-color-medium);
+  }
+}
+
+// New Label Group Input
+ion-item:first-of-type ion-input {
+  margin: 16px auto;
+  width: 200px;
+}
+
+// Label Group Input
+ion-item-divider ion-input {
+  background: var(--ion-color-light-shade);
+}
+
+// Label Input
+ion-item:not(:first-of-type) ion-input {
+  background: var(--ion-color-medium-shade);
+}
+
+// Button Styling
+ion-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+ion-button {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 36px;
+
+  &[color="danger"] {
+    margin-left: 4px;
+  }
 }

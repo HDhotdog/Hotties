@@ -10,7 +10,6 @@ import { SuggestionSettingComponent } from './suggestion-setting/suggestion-sett
 import { CategorySettingComponent } from './category-setting/category-setting.component';
 import { AddCategorySettingComponent } from './category-setting/add-category-setting/add-category-setting.component';
 import { LabelSettingComponent } from './label-setting/label-setting.component';
-import { LabelManagerComponent } from './label-setting/label-manager/label-manager.component';
 
 @NgModule({
   imports: [
@@ -19,7 +18,13 @@ import { LabelManagerComponent } from './label-setting/label-manager/label-manag
     FormsModule,
     SettingsRoutingModule
   ],
-  declarations: [SettingsComponent, CacheSettingComponent, SuggestionSettingComponent,
-    CategorySettingComponent, AddCategorySettingComponent, LabelSettingComponent, LabelManagerComponent]
+  declarations: [
+    SettingsComponent, 
+    CacheSettingComponent, 
+    SuggestionSettingComponent,
+    CategorySettingComponent, 
+    AddCategorySettingComponent, 
+    LabelSettingComponent
+  ]
 })
 export class SettingsComponentModule { }

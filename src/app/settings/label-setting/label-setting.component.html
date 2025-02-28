@@ -8,31 +8,110 @@
     <ion-title>
       Manage labels
     </ion-title>
-    <ion-buttons slot="end">
-      <ion-button class="add-button" (click)="openLabelManager()">
-        <ion-icon name="add"></ion-icon>
-      </ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ion-list>
+    <!-- Add Label Group -->
+    <ion-item>
+      <ion-input [(ngModel)]="newGroupName" placeholder="New Label Group"></ion-input>
+      <ion-button slot="end" (click)="addLabelGroup()" [disabled]="!newGroupName.trim()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    <!-- Label Groups with Reordering -->
     <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabelGroups($any($event))">
-      <ion-item class="groupReorder" *ngFor="let labelGroup of labelService.labelGroups">
-        <div class="group-item">
+      <div *ngFor="let group of labelService.labelGroups" class="group-container">
+        <ion-item-divider>
           <ion-reorder slot="start"></ion-reorder>
-          <ion-label>{{ labelGroup.name }}</ion-label>
-        </div>
-        <ion-reorder-group  [disabled]="false" (ionItemReorder)="handleReorderOfLabels($any($event), labelGroup)">
-          <ion-item *ngFor="let label of labelGroup.labels">
-            <div class="label-item">
-              <ion-reorder slot="start"></ion-reorder>
-              <ion-label>{{ label.name }}</ion-label>
-            </div>
+          <!-- Group Name (Edit Mode) -->
+          <ion-input *ngIf="editingGroup === group" 
+                    [(ngModel)]="editName" 
+                    placeholder="Group name"
+                    (keyup.enter)="saveEdit()">
+          </ion-input>
+          <!-- Group Name (Display Mode) -->
+          <ion-label *ngIf="editingGroup !== group">{{ group.name }}</ion-label>
+          
+          <!-- Group Actions -->
+          <ion-buttons slot="end">
+            <!-- Edit Mode Actions -->
+            <ng-container *ngIf="editingGroup === group">
+              <ion-button (click)="saveEdit()">
+                <ion-icon name="checkmark"></ion-icon>
+              </ion-button>
+              <ion-button (click)="cancelEdit()">
+                <ion-icon name="close"></ion-icon>
+              </ion-button>
+            </ng-container>
+            <!-- Display Mode Actions -->
+            <ng-container *ngIf="editingGroup !== group">
+              <ion-button (click)="startEditingGroup(group)">
+                <ion-icon name="pencil"></ion-icon>
+              </ion-button>
+              <ion-button color="danger" (click)="removeLabelGroup(group)">
+                <ion-icon name="trash"></ion-icon>
+              </ion-button>
+            </ng-container>
+          </ion-buttons>
+        </ion-item-divider>
+
+        <div class="labels-container">
+          <!-- Add Label to Group -->
+          <ion-item *ngIf="selectedGroup === group">
+            <ion-input [(ngModel)]="newLabelName" placeholder="New Label"></ion-input>
+            <ion-button slot="end" (click)="addLabel()" [disabled]="!newLabelName.trim()">
+              <ion-icon name="add"></ion-icon>
+            </ion-button>
           </ion-item>
-        </ion-reorder-group>
-      </ion-item>
+
+          <!-- Labels with Reordering -->
+          <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabels($any($event), group)">
+            <ion-item *ngFor="let label of group.labels">
+              <ion-reorder slot="start"></ion-reorder>
+              <!-- Label Name (Edit Mode) -->
+              <ion-input *ngIf="editingLabel?.label === label" 
+                        [(ngModel)]="editName" 
+                        placeholder="Label name"
+                        (keyup.enter)="saveEdit()">
+              </ion-input>
+              <!-- Label Name (Display Mode) -->
+              <ion-label *ngIf="editingLabel?.label !== label">{{ label.name }}</ion-label>
+              
+              <!-- Label Actions -->
+              <ion-buttons slot="end">
+                <!-- Edit Mode Actions -->
+                <ng-container *ngIf="editingLabel?.label === label">
+                  <ion-button (click)="saveEdit()">
+                    <ion-icon name="checkmark"></ion-icon>
+                  </ion-button>
+                  <ion-button (click)="cancelEdit()">
+                    <ion-icon name="close"></ion-icon>
+                  </ion-button>
+                </ng-container>
+                <!-- Display Mode Actions -->
+                <ng-container *ngIf="editingLabel?.label !== label">
+                  <ion-button (click)="startEditingLabel(group, label)">
+                    <ion-icon name="pencil"></ion-icon>
+                  </ion-button>
+                  <ion-button color="danger" (click)="removeLabel(group, label)">
+                    <ion-icon name="trash"></ion-icon>
+                  </ion-button>
+                </ng-container>
+              </ion-buttons>
+            </ion-item>
+          </ion-reorder-group>
+
+          <!-- Add Label Button -->
+          <ion-item *ngIf="selectedGroup !== group">
+            <ion-button expand="block" (click)="selectedGroup = group">
+              Add Label to {{ group.name }}
+            </ion-button>
+          </ion-item>
+        </div>
+      </div>
     </ion-reorder-group>
   </ion-list>
 </ion-content>
