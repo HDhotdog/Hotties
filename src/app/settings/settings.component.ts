@@ -1,11 +1,15 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Preferences } from '@capacitor/preferences';
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-settings',
   templateUrl: 'settings.component.html',
-  styleUrls: ['settings.component.scss']
+  styleUrls: ['settings.component.scss'],
+  standalone: true,
+  imports: [IonicModule, CommonModule, RouterModule]
 })
 export class SettingsComponent {
 

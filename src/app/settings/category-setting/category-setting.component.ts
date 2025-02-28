@@ -1,13 +1,15 @@
-import { Location } from '@angular/common';
+import { Location, CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ItemReorderEventDetail } from '@ionic/angular';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
 import { CategoryService } from 'src/app/category/category.service';
 
 @Component({
   selector: 'app-category-setting',
   templateUrl: './category-setting.component.html',
   styleUrls: ['./category-setting.component.scss'],
+  standalone: true,
+  imports: [CommonModule, IonicModule, RouterModule]
 })
 export class CategorySettingComponent {
 

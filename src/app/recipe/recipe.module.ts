@@ -14,8 +14,11 @@ import { SettingsComponentModule } from '../settings/settings.module';
     CommonModule,
     FormsModule,
     RecipeRoutingModule,
-    SettingsComponentModule
+    SettingsComponentModule,
+    RecipeComponent,
+    AddRecipeComponent,
+    RecipeDisplayComponent
   ],
-  declarations: [RecipeComponent, AddRecipeComponent, RecipeDisplayComponent]
+  declarations: []
 })
 export class RecipeModule {}

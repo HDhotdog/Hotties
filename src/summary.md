@@ -23,16 +23,17 @@ This Android application was made to help the user to store and manage cooking r
 
 
 # Tech Stack
-- Angular 17
-- Angular Ionic 7
-- Typescript 5.2
+- Angular 19.2
+- Angular Ionic 8.4
+- Typescript 5.7.2
 - HTML/SCSS
-- Capacitor 5.5 for native mobile features
-- Angular Material 17
-- RxJS 7.8
-- Testing: Jasmine/Karma
-- ESLint for code quality
-- PWA support via @ionic/pwa-elements
+- Capacitor 7.0 for native mobile features
+- Angular Material 19.2
+- RxJS 7.8.2
+- Testing: Jasmine 5.6/Karma 6.4
+- ESLint 9.21 for code quality
+- PWA support via @ionic/pwa-elements 3.3
+- All components are standalone components
 
 # Important values
 - The app should be usable without any internet connection

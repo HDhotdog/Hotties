@@ -1,17 +1,20 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {Location, CommonModule} from '@angular/common';
 import {RecipeService} from '../recipe.service';
 import {Recipe} from '../models/recipe.interface';
 import {CategoryService} from 'src/app/category/category.service';
-import {IonSelect} from "@ionic/angular";
+import {IonSelect, IonicModule} from "@ionic/angular";
 import {Category} from "../../category/category";
+import {FormsModule} from '@angular/forms';
 
 
 @Component({
   selector: 'app-recipe-display',
   templateUrl: './recipe-display.component.html',
   styleUrls: ['./recipe-display.component.scss'],
+  standalone: true,
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
 })
 export class RecipeDisplayComponent implements OnInit {
 

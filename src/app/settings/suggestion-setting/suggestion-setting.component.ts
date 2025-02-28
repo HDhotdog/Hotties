@@ -1,11 +1,16 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-suggestion-setting',
   templateUrl: './suggestion-setting.component.html',
   styleUrls: ['./suggestion-setting.component.scss'],
+  standalone: true,
+  imports: [IonicModule, CommonModule, FormsModule]
 })
 export class SuggestionSettingComponent {
 

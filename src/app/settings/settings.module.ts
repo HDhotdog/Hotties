@@ -1,5 +1,5 @@
 import { IonicModule } from '@ionic/angular';
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SettingsComponent } from './settings.component';
@@ -13,18 +13,17 @@ import { LabelSettingComponent } from './label-setting/label-setting.component';
 
 @NgModule({
   imports: [
-    IonicModule,
+    IonicModule.forRoot(),
     CommonModule,
     FormsModule,
-    SettingsRoutingModule
-  ],
-  declarations: [
-    SettingsComponent, 
-    CacheSettingComponent, 
+    SettingsRoutingModule,
+    SettingsComponent,
+    CacheSettingComponent,
     SuggestionSettingComponent,
-    CategorySettingComponent, 
-    AddCategorySettingComponent, 
+    CategorySettingComponent,
+    AddCategorySettingComponent,
     LabelSettingComponent
-  ]
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class SettingsComponentModule { }

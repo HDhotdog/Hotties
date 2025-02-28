@@ -1,7 +1,8 @@
-import { Location } from '@angular/common';
+import { Location, CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ToastController, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
 import { Category } from 'src/app/category/category';
 import { CategoryService } from 'src/app/category/category.service';
 
@@ -9,6 +10,8 @@ import { CategoryService } from 'src/app/category/category.service';
   selector: 'app-add-category-setting',
   templateUrl: './add-category-setting.component.html',
   styleUrls: ['./add-category-setting.component.scss'],
+  standalone: true,
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
 })
 export class AddCategorySettingComponent implements OnInit {
 

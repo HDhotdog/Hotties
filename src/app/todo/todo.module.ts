@@ -1,5 +1,5 @@
 import { IonicModule } from '@ionic/angular';
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TodoComponent } from './todo.component';
@@ -16,20 +16,21 @@ import { CategoryService } from '../category/category.service';
 
 @NgModule({
   imports: [
-    IonicModule,
+    IonicModule.forRoot(),
     CommonModule,
     FormsModule,
     TodoRoutingModule,
     MatButtonModule,
     MatCheckboxModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    TodoComponent
   ],
-  declarations: [TodoComponent],
   providers: [
     Storage,
     TodoService,
     SuggestionService,
     CategoryService
-  ]
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class TodoModule { }

@@ -2,13 +2,18 @@ import {Component, OnInit} from '@angular/core';
 import {RecipeService} from './recipe.service';
 import {Recipe} from './models/recipe.interface';
 import {Label} from '../label/models/label.interface';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {LabelService} from "../settings/label-setting/label-service.service";
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {IonicModule} from '@ionic/angular';
 
 @Component({
   selector: 'app-recipe',
   templateUrl: 'recipe.component.html',
-  styleUrls: ['recipe.component.scss']
+  styleUrls: ['recipe.component.scss'],
+  standalone: true,
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
 })
 export class RecipeComponent implements OnInit {
 

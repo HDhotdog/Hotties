@@ -4,11 +4,16 @@ import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion';
 import { ToDo, ImportanceLevel } from './todo';
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-todo',
   templateUrl: 'todo.component.html',
   styleUrls: ['todo.component.scss'],
+  standalone: true,
+  imports: [IonicModule, CommonModule, FormsModule],
   animations: [
     trigger('todoState', [
       state('active', style({
@@ -20,7 +25,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
         visibility: 'hidden'
       })),
       transition('active => done', [
-        animate('1s')
+        animate('0.5s')
       ])
     ])
   ]

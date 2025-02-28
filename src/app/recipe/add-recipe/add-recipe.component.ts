@@ -1,6 +1,8 @@
-import { Location } from '@angular/common';
+import { Location, CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
 import { Ingredient } from '../models/ingredient.interface';
 import { Label } from '../../label/models/label.interface';
 import { Recipe } from '../models/recipe.interface';
@@ -13,6 +15,8 @@ import { NgxImageCompressService } from 'ngx-image-compress';
   selector: 'app-add-category',
   templateUrl: './add-recipe.component.html',
   styleUrls: ['./add-recipe.component.scss'],
+  standalone: true,
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
 })
 export class AddRecipeComponent implements OnInit {
 

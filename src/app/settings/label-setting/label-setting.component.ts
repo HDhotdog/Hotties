@@ -3,11 +3,16 @@ import { Location } from '@angular/common';
 import { ItemReorderEventDetail } from '@ionic/angular';
 import { Label, LabelGroup } from 'src/app/label/models/label.interface';
 import { LabelService } from './label-service.service';
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-label-setting-component',
   templateUrl: './label-setting.component.html',
   styleUrls: ['./label-setting.component.scss'],
+  standalone: true,
+  imports: [IonicModule, CommonModule, FormsModule]
 })
 export class LabelSettingComponent implements OnInit {
   newGroupName: string = '';
