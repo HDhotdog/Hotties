@@ -9,7 +9,9 @@
     display: flex;
     flex-direction:column;
     gap: 8px;
+    padding: 16px;
 }
+
 .content-wrapper {
     height: 100%;
     width: 100%;
@@ -61,10 +63,29 @@
     border-radius: 50%;
     width: fit-content;
 }
+
 ion-checkbox {
     align-self: start;
 }
 
 ion-title {
     text-align: center;
+}
+
+.label-group {
+    margin-bottom: 16px;
+    
+    .group-name {
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: var(--ion-color-primary);
+    }
+    
+    ion-checkbox {
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        --padding-start: 0;
+    }
 }
