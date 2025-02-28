@@ -3,11 +3,27 @@ import { Category } from '../category/category';
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion';
 import { ToDo, ImportanceLevel } from './todo';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-todo',
   templateUrl: 'todo.component.html',
-  styleUrls: ['todo.component.scss']
+  styleUrls: ['todo.component.scss'],
+  animations: [
+    trigger('todoState', [
+      state('active', style({
+        opacity: 1,
+        visibility: 'visible'
+      })),
+      state('done', style({
+        opacity: 0,
+        visibility: 'hidden'
+      })),
+      transition('active => done', [
+        animate('1s')
+      ])
+    ])
+  ]
 })
 export class TodoComponent implements OnInit {
 
@@ -49,20 +65,18 @@ export class TodoComponent implements OnInit {
   }
 
   public addTodo(task: string) {
+    const newTodo = {
+      task: task.trim() ? task : this.currentSuggestion.suggestion,
+      done: false,
+      importance: this.currentImportanceLevel || ImportanceLevel.NORMAL
+    };
+
+    this.categoryService.categories[this.currentCategoryIndex].elements.push(newTodo);
+    
     if (task.trim()) {
-      this.categoryService.categories[this.currentCategoryIndex].elements.push({
-        task: task,
-        done: false,
-        importance: this.currentImportanceLevel
-      });
       this.saveSuggestion(task);
-    } else if (!task) {
-      this.categoryService.categories[this.currentCategoryIndex].elements.push({
-        task: this.currentSuggestion.suggestion,
-        done: false,
-        importance: this.currentImportanceLevel
-      });
     }
+    
     this.inputField = "";
     this.categoryService.saveCategories();
     this.generateSuggestion();
@@ -77,12 +91,21 @@ export class TodoComponent implements OnInit {
   }
 
   public markAsDone(todo: ToDo) {
+    if (todo.done) return; // Prevent multiple clicks during animation
+    
     const todoIndex = this.categoryService.categories[this.currentCategoryIndex].elements.indexOf(todo);
-    this.categoryService.categories[this.currentCategoryIndex].elements[todoIndex].done = true;
+    if (todoIndex === -1) return; // Todo not found
+    
+    todo.done = true;
+    
+    // Use animationDone event in template instead of setTimeout
     setTimeout(() => {
-      this.categoryService.categories[this.currentCategoryIndex].elements.splice(todoIndex, 1);
-      this.categoryService.saveCategories();
-    }, 1100);
+      const currentIndex = this.categoryService.categories[this.currentCategoryIndex].elements.indexOf(todo);
+      if (currentIndex !== -1) {
+        this.categoryService.categories[this.currentCategoryIndex].elements.splice(currentIndex, 1);
+        this.categoryService.saveCategories();
+      }
+    }, 1000);
   }
 
   public generateSuggestion(): void {
@@ -144,12 +167,17 @@ export class TodoComponent implements OnInit {
     this.showColorBar = !this.showColorBar;
   }
 
-  public getCircleColorBackground(color: string) {
-    return {'background-color': this.getCircleColor(color)};
+  public getTodoBackgroundColor(importance: ImportanceLevel) {
+    const color = this.getColorFromImportance(importance || ImportanceLevel.NORMAL);
+    return {'--ion-color-primary': color};
   }
 
-  public getTodoBackgroundColor(color: string) {
-    return {'--ion-color-primary': this.getCircleColor(color)}
+  private getColorFromImportance(importance: ImportanceLevel): string {
+    return importance;
+  }
+
+  public getCircleColorBackground(color: string) {
+    return {'background-color': this.getColorFromImportance(this.getCircleColor(color))};
   }
 
   public getCircleColor(color: string): ImportanceLevel {
@@ -163,5 +191,9 @@ export class TodoComponent implements OnInit {
 
   public setCurrentImportanceLevel(level: string) {
     this.currentImportanceLevel = this.getCircleColor(level);
+  }
+
+  public getTodoState(todo: ToDo): string {
+    return todo.done ? 'done' : 'active';
   }
 }

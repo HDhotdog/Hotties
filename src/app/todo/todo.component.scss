@@ -55,12 +55,6 @@ ion-grid {
     padding: 0 10px 0;
 }
 
-.fade-out {
-    visibility: hidden;
-    opacity: 0;
-    transition: visibility 0s 1s, opacity 1s linear;
-}
-
 .delete-button {
     margin-left: 5px;
 }
