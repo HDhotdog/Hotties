@@ -46,6 +46,12 @@ export class TodoComponent implements OnInit {
   ]
   public isLoading: boolean = true;
   public importanceLevels = Object.keys(ImportanceLevel);
+  public importanceColors: { [key: string]: string } = {
+    [ImportanceLevel.LOW]: '#ffd700',
+    [ImportanceLevel.NORMAL]: '#007bff',
+    [ImportanceLevel.HIGH]: '#ff0000',
+    [ImportanceLevel.VERY_HIGH]: '#ff00ff'
+  };
 
   constructor(categoryService: CategoryService) {
     this.categoryService = categoryService;
@@ -173,16 +179,18 @@ export class TodoComponent implements OnInit {
   }
 
   public getTodoBackgroundColor(importance: ImportanceLevel) {
-    const color = this.getColorFromImportance(importance || ImportanceLevel.NORMAL);
-    return {'--ion-color-primary': color};
+    return {
+      '--indicator-color': this.importanceColors[importance] || this.importanceColors[ImportanceLevel.NORMAL]
+    };
   }
 
-  private getColorFromImportance(importance: ImportanceLevel): string {
-    return importance;
+  private getContrastColor(importance: ImportanceLevel): string {
+    return [ImportanceLevel.HIGH, ImportanceLevel.VERY_HIGH].includes(importance) ? '#ffffff' : '#212529';
   }
 
   public getCircleColorBackground(color: string) {
-    return {'background-color': this.getColorFromImportance(this.getCircleColor(color))};
+    const importanceLevel = this.getCircleColor(color);
+    return {'background-color': this.importanceColors[importanceLevel]};
   }
 
   public getCircleColor(color: string): ImportanceLevel {
