@@ -28,13 +28,14 @@
 <ion-content>
   <div class="container-elements">
     <div class="upper-container" *ngIf="!this.isLoading">
-      <div 
-        class="todo" 
-        *ngFor="let todo of this.selectedCategory.elements"
-        [@todoState]="getTodoState(todo)"
-        [ngStyle]="getTodoBackgroundColor(todo.importance)" 
-        (click)="markAsDone(todo)">
-        {{todo.task}}
+      <div *ngFor="let todo of this.selectedCategory.elements" 
+           class="todo-wrapper">
+        <div class="todo" 
+             [ngStyle]="getTodoBackgroundColor(todo.importance)"
+             (ionSwipe)="markAsDone(todo)"
+             #todoItem>
+          {{todo.task}}
+        </div>
       </div>
     </div>
 

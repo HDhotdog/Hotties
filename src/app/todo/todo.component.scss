@@ -23,15 +23,31 @@ ion-grid {
     justify-content: center;
 }
 
+.todo-wrapper {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 2px;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    height: auto;
+    opacity: 1;
+    
+    &.removing {
+        height: 0;
+        opacity: 0;
+        margin: 0;
+    }
+}
+
 .upper-container {
     flex-direction: column;
     display: flex;
-    gap: 3px;
-    overflow: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
     margin-top: 20px;
     margin-bottom: 10px;
     justify-content: center;
+    gap: 2px;
 }
 
 .input-container {
@@ -53,9 +69,7 @@ ion-grid {
 .todo {
     text-transform: none;
     padding: 8px 16px 8px 24px;
-    margin: 4px 0;
     border-radius: 4px;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -68,6 +82,7 @@ ion-grid {
     text-align: center;
     background-color: #2a2a2a;
     position: relative;
+    transform: translateX(0);
     
     &::before {
         content: '';
@@ -83,10 +98,6 @@ ion-grid {
     
     &:hover {
         background-color: #333333;
-    }
-    
-    &:active {
-        transform: scale(0.98);
     }
 }
 
@@ -120,4 +131,18 @@ ion-grid {
 
 .circle-border {
     border: solid 3px white;
+}
+
+ion-item-sliding {
+    background: transparent;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+ion-item-option {
+    --background: #28a745;
+    
+    ion-icon {
+        font-size: 1.2rem;
+    }
 }

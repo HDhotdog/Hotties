@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChildren, QueryList, ElementRef, AfterViewInit } from '@angular/core';
 import { Category } from '../category/category';
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion';
 import { ToDo, ImportanceLevel } from './todo';
-import { trigger, state, style, transition, animate } from '@angular/animations';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, GestureController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -13,24 +12,10 @@ import { FormsModule } from '@angular/forms';
   templateUrl: 'todo.component.html',
   styleUrls: ['todo.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule],
-  animations: [
-    trigger('todoState', [
-      state('active', style({
-        opacity: 1,
-        visibility: 'visible'
-      })),
-      state('done', style({
-        opacity: 0,
-        visibility: 'hidden'
-      })),
-      transition('active => done', [
-        animate('0.5s')
-      ])
-    ])
-  ]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
-export class TodoComponent implements OnInit {
+export class TodoComponent implements OnInit, AfterViewInit {
+  @ViewChildren('todoItem', { read: ElementRef }) todoItems!: QueryList<ElementRef>;
 
   public inputField: string = "";
   public categoryInputField: string = "";
@@ -53,7 +38,10 @@ export class TodoComponent implements OnInit {
     [ImportanceLevel.VERY_HIGH]: '#ff00ff'
   };
 
-  constructor(categoryService: CategoryService) {
+  constructor(
+    categoryService: CategoryService,
+    private gestureCtrl: GestureController
+  ) {
     this.categoryService = categoryService;
   }
 
@@ -102,21 +90,12 @@ export class TodoComponent implements OnInit {
   }
 
   public markAsDone(todo: ToDo) {
-    if (todo.done) return; // Prevent multiple clicks during animation
-    
+    console.log(this.categoryService.categories[this.currentCategoryIndex].elements)
     const todoIndex = this.categoryService.categories[this.currentCategoryIndex].elements.indexOf(todo);
     if (todoIndex === -1) return; // Todo not found
     
-    todo.done = true;
-    
-    // Use animationDone event in template instead of setTimeout
-    setTimeout(() => {
-      const currentIndex = this.categoryService.categories[this.currentCategoryIndex].elements.indexOf(todo);
-      if (currentIndex !== -1) {
-        this.categoryService.categories[this.currentCategoryIndex].elements.splice(currentIndex, 1);
-        this.categoryService.saveCategories();
-      }
-    }, 1000);
+    this.categoryService.categories[this.currentCategoryIndex].elements.splice(todoIndex, 1);
+    this.categoryService.saveCategories();
   }
 
   public generateSuggestion(): void {
@@ -208,5 +187,41 @@ export class TodoComponent implements OnInit {
 
   public getTodoState(todo: ToDo): string {
     return todo.done ? 'done' : 'active';
+  }
+
+  ngAfterViewInit() {
+    this.todoItems.changes.subscribe(() => {
+      this.todoItems.forEach(item => {
+        const gesture = this.gestureCtrl.create({
+          el: item.nativeElement,
+          threshold: 15,
+          gestureName: 'swipe',
+          onMove: ev => {
+            if (ev.deltaX > 0) {
+              item.nativeElement.style.transform = `translateX(${ev.deltaX}px)`;
+            }
+          },
+          onEnd: ev => {
+            item.nativeElement.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            if (ev.deltaX > 50) {
+              item.nativeElement.style.transform = 'translateX(100vw)';
+              const wrapper = item.nativeElement.closest('.todo-wrapper');
+              if (wrapper) {
+                wrapper.classList.add('removing');
+              }
+              const todo = this.categoryService.categories[this.currentCategoryIndex].elements.find(
+                t => t.task === item.nativeElement.textContent?.trim()
+              );
+              if (todo) {
+                setTimeout(() => this.markAsDone(todo), 600);
+              }
+            } else {
+              item.nativeElement.style.transform = 'translateX(0)';
+            }
+          }
+        });
+        gesture.enable();
+      });
+    });
   }
 }
