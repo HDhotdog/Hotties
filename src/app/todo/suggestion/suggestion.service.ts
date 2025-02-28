@@ -30,9 +30,3 @@ export class SuggestionService {
         Preferences.remove({ key: this.SUGGESTION_STORAGE });
     }
 }
-
-
-export interface Suggestion {
-    suggestion: string,
-    suffix: string
-}

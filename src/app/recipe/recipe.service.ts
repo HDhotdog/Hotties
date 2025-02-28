@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { Recipe } from './recipe';
+import { Recipe } from './models/recipe.interface';
 
 @Injectable({
     providedIn: 'root'

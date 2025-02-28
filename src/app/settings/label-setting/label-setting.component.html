@@ -8,6 +8,11 @@
     <ion-title>
       Manage labels
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="add-button" (click)="openLabelManager()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -31,12 +36,3 @@
     </ion-reorder-group>
   </ion-list>
 </ion-content>
-
-
-<!--<ion-item *ngFor="let labelGroup of this.labelService.labelGroups; index as i">
-  <ion-reorder slot="start"></ion-reorder>
-  <ion-label>{{labelGroup.name}}</ion-label>
-  <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button" (click)="editCategory(i)"></ion-icon>
-  <ion-icon *ngIf="this.categoryService.categories.length > 1" aria-hidden="true" name="trash" slot="end"
-            (click)="deleteCategory(i)" class="delete-button"></ion-icon>
-</ion-item>-->

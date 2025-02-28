@@ -1,7 +1,9 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Ingredient, Label, Recipe } from '../recipe';
+import { Ingredient } from '../models/ingredient.interface';
+import { Label } from '../../label/models/label.interface';
+import { Recipe } from '../models/recipe.interface';
 import { RecipeService } from '../recipe.service';
 import { v4 as uuidv4 } from 'uuid';
 import { LabelService } from "../../settings/label-setting/label-service.service";

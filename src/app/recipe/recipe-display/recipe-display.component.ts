@@ -2,7 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {RecipeService} from '../recipe.service';
-import {Recipe} from '../recipe';
+import {Recipe} from '../models/recipe.interface';
 import {CategoryService} from 'src/app/category/category.service';
 import {IonSelect} from "@ionic/angular";
 import {Category} from "../../category/category";

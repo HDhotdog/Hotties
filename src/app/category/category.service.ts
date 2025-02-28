@@ -1,7 +1,8 @@
 import {Injectable} from '@angular/core';
 import {Preferences} from '@capacitor/preferences';
 import {Category} from './category';
-import {Ingredient, Recipe} from '../recipe/recipe';
+import {Ingredient} from '../recipe/models/ingredient.interface';
+import {Recipe} from '../recipe/models/recipe.interface';
 import {ImportanceLevel, ToDo} from '../todo/todo';
 
 @Injectable({

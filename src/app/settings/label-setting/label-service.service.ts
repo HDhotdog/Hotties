@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import {Label, LabelGroup} from "../../recipe/recipe";
+import { LabelGroup } from 'src/app/label/models/label.interface';
 
 @Injectable({
   providedIn: 'root'

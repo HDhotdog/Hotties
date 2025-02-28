@@ -10,7 +10,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Storage } from '@ionic/storage'
 import { TodoService } from './todo.service';
-import { SuggestionService } from '../suggestion/suggestion.service';
+import { SuggestionService } from './suggestion/suggestion.service';
 import { CategoryService } from '../category/category.service';
 
 

@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import { Location } from '@angular/common';
-import {ItemReorderEventDetail} from "@ionic/angular";
+import {ItemReorderEventDetail, ModalController} from "@ionic/angular";
 import {LabelService} from "./label-service.service";
-import {LabelGroup} from "../../recipe/recipe";
+import { LabelGroup } from 'src/app/label/models/label.interface';
+import { LabelManagerComponent } from './label-manager/label-manager.component';
 
 @Component({
   selector: 'app-label-setting-component',
@@ -11,11 +12,22 @@ import {LabelGroup} from "../../recipe/recipe";
 })
 export class LabelSettingComponent implements OnInit {
 
-  constructor(public labelService: LabelService, private location: Location) { }
+  constructor(
+    public labelService: LabelService, 
+    private location: Location,
+    private modalCtrl: ModalController
+  ) { }
 
   ngOnInit(): void {
-        this.labelService.loadLabels();
-    }
+    this.labelService.loadLabels();
+  }
+
+  async openLabelManager() {
+    const modal = await this.modalCtrl.create({
+      component: LabelManagerComponent
+    });
+    return await modal.present();
+  }
 
   handleReorderOfLabelGroups(ev: CustomEvent<ItemReorderEventDetail>) {
     this.labelService.labelGroups.splice(ev.detail.to, 0, this.labelService.labelGroups.splice(ev.detail.from, 1)[0]);
@@ -36,5 +48,4 @@ export class LabelSettingComponent implements OnInit {
   public navigateBack() {
     this.location.back()
   }
-
 }

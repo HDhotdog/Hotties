@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {AppService} from './app.service';
 import {CategoryService} from './category/category.service';
 import {Category} from './category/category';
-import {LabelGroup} from "./recipe/recipe";
+import {LabelGroup} from "./label/models/label.interface";
 import {LabelService} from "./settings/label-setting/label-service.service";
 
 @Component({

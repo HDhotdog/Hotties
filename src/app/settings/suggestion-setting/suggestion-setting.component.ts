@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { SuggestionService } from 'src/app/suggestion/suggestion.service';
+import { SuggestionService } from '../../todo/suggestion/suggestion.service';
 
 @Component({
   selector: 'app-suggestion-setting',

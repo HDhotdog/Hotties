@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Category } from '../category/category';
 import { CategoryService } from '../category/category.service';
-import { Suggestion } from '../suggestion/suggestion.service';
+import { Suggestion } from './suggestion/suggestion';
 import { ToDo, ImportanceLevel } from './todo';
 
 @Component({

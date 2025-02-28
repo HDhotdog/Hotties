@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {RecipeService} from './recipe.service';
-import {Label, Recipe} from './recipe';
+import {Recipe} from './models/recipe.interface';
+import {Label} from '../label/models/label.interface';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LabelService} from "../settings/label-setting/label-service.service";
 
