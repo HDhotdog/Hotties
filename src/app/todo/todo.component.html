@@ -32,7 +32,10 @@
              [ngStyle]="getTodoBackgroundColor(todo.importance)"
              (ionSwipe)="markAsDone(todo)"
              #todoItem>
-          {{todo.task}}
+          <span class="todo-text">{{todo.task}}</span>
+          <ion-button fill="clear" class="check-button" (click)="markAsDone(todo)">
+            <ion-icon name="checkmark-outline"></ion-icon>
+          </ion-button>
         </div>
       </div>
     </div>
@@ -48,13 +51,13 @@
         </div>
       </div>
       <div class="lower-input-fields">
-        <ion-button class="delete-button" color="danger" shape="round" (click)="clearTodos()">
-          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        <ion-button class="delete-button" fill="clear" (click)="clearTodos()">
+          <ion-icon slot="icon-only" name="trash" color="danger"></ion-icon>
         </ion-button>
         <ion-input placeholder="{{getCurrentSuggestion}}" [(ngModel)]="inputField"
           (keyup.enter)="addTodo(inputField)"></ion-input>
-        <ion-button class="add-button" color="primary" shape="round" (click)="addTodo(inputField)">
-          <ion-icon slot="icon-only" name="add"></ion-icon>
+        <ion-button class="add-button" fill="clear" (click)="addTodo(inputField)">
+          <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
         </ion-button>
       </div>
     </div>

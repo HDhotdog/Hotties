@@ -71,18 +71,17 @@ ion-grid {
     padding: 8px 16px 8px 24px;
     border-radius: 4px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
     min-height: 36px;
     transition: all 0.2s ease;
     color: #ffffff;
     font-size: 16px;
     width: 100%;
     box-sizing: border-box;
-    text-align: center;
-    background-color: #2a2a2a;
     position: relative;
     transform: translateX(0);
+    background-color: #2a2a2a;
     
     &::before {
         content: '';
@@ -101,12 +100,43 @@ ion-grid {
     }
 }
 
+.todo-text {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.check-button {
+    --padding-start: 5px;
+    --padding-end: 5px;
+    height: 30px;
+    margin: 0;
+
+    ion-icon {
+        font-size: 1.2em;
+        color: var(--ion-color-success);
+    }
+}
+
+.delete-button, .add-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 40px;
+    margin: 0;
+    background-color: #2a2a2a;
+    border-radius: 10px;
+ 
+
+    ion-icon {
+        font-size: 1.4em;
+    }
+}
+
 .delete-button {
-    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .add-button {
-    margin-right: 5px;
+    margin-left: 5px;
 }
 
 .color-buttons {
@@ -121,6 +151,8 @@ ion-grid {
 .lower-input-fields {
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .color-circle {

@@ -90,7 +90,6 @@ export class TodoComponent implements OnInit, AfterViewInit {
   }
 
   public markAsDone(todo: ToDo) {
-    console.log(this.categoryService.categories[this.currentCategoryIndex].elements)
     const todoIndex = this.categoryService.categories[this.currentCategoryIndex].elements.indexOf(todo);
     if (todoIndex === -1) return; // Todo not found
     
