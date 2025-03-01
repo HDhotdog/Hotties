@@ -1,3 +1,28 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar" *ngIf="!this.isLoading">
+    <ion-buttons slot="start">
+      <ion-button (click)="toggleColorBar()">
+        <ion-icon name="{{this.showColorBar ? 'eye' : 'eye-off'}}"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-grid>
+      <ion-row>
+        <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()">
+          <div slot="label"></div>
+          <ion-select-option *ngFor="let category of this.categoryService.categories">{{category.name}}</ion-select-option>
+        </ion-select>
+      </ion-row>
+    </ion-grid>
+
+    <ion-buttons slot="end">
+      <ion-button class="back-button" (click)="changeSort()">
+        <ion-icon name="{{this.sortIncreasing ? 'arrow-up' : 'arrow-down'}}"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
 <ion-content>
   <div class="container-elements">
     <div class="upper-container" *ngIf="!this.isLoading">

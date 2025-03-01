@@ -7,6 +7,7 @@ import {LabelService} from "../settings/label-setting/label-service.service";
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
+import {MenuController} from '@ionic/angular';
 
 @Component({
   selector: 'app-recipe',
@@ -24,7 +25,7 @@ export class RecipeComponent implements OnInit {
   public search: string = "";
 
   constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute,
-              public labelService: LabelService) {
+              public labelService: LabelService, private menuController: MenuController) {
   }
 
   ngOnInit(): void {
@@ -81,5 +82,9 @@ export class RecipeComponent implements OnInit {
 
   public newRecipe() {
     this.router.navigate(['new'], {relativeTo: this.route})
+  }
+
+  async openFilterMenu() {
+    await this.menuController.open('filter-menu');
   }
 }

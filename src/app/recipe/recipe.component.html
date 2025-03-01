@@ -1,4 +1,4 @@
-<ion-menu contentId="filter-menu">
+<ion-menu menuId="filter-menu" side="end" contentId="main">
   <ion-header>
     <ion-toolbar>
       <ion-title>Select filters</ion-title>
@@ -14,7 +14,27 @@
 </ion-content>
 </ion-menu>
 
-<div id="filter-menu">
+<div class="ion-page" id="main">
+  <ion-header [translucent]="true">
+    <ion-toolbar class="toolbar">
+      <ion-buttons slot="start">
+        <ion-button class="add-button" (click)="newRecipe()">
+          <ion-icon name="add"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+
+      <ion-title>
+        Recipes
+      </ion-title>
+
+      <ion-buttons slot="end">
+        <ion-button (click)="openFilterMenu()">
+          <ion-icon name="filter"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
   <ion-content class="content-wrapper">
     <ion-searchbar [(ngModel)]="search"></ion-searchbar>
     <div class="recipes-list-container">

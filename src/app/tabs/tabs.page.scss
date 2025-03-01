@@ -1,10 +1,6 @@
 ion-menu {
   --width: 250px;
   
-  ion-toolbar {
-    --background: var(--ion-color-primary);
-    --color: var(--ion-color-primary-contrast);
-  }
 
   ion-item {
     --padding-start: 16px;
@@ -18,7 +14,6 @@ ion-menu {
 
   ion-icon {
     margin-right: 12px;
-    color: var(--ion-color-primary);
   }
 }
 
