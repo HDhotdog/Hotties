@@ -19,10 +19,10 @@ import {MenuController} from '@ionic/angular';
 export class RecipeComponent implements OnInit {
 
   private _recipes: Recipe[] = [];
-  private _resultSet: Recipe[] = [];
-  private _labels: Label[] = [];
   private _setFilters: Label[] = [];
   public search: string = "";
+  public selectedTime: number | null = null;
+  public results: Recipe[] = [];
 
   constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute,
               public labelService: LabelService, private menuController: MenuController) {
@@ -31,18 +31,15 @@ export class RecipeComponent implements OnInit {
   ngOnInit(): void {
     this.recipeService.loadRecipes().then(() => {
       this._recipes = this.recipeService.recipes;
-      this._resultSet = this._recipes;
-    })
-    this.labelService.loadLabels().then(() => {
-      const labels = this.labelService.labelGroups.map((labelGroup) => labelGroup.labels);
-      this._labels = labels.reduce((acc, val) => acc.concat(val), []);
-    })
+      this.filterRecipes();
+    });
+    this.labelService.loadLabels();
   }
 
   async ionViewWillEnter() {
     await this.recipeService.loadRecipes().then(() => {
       this._recipes = this.recipeService.recipes;
-      this._resultSet = this._recipes;
+      this.filterRecipes();
     });
   }
 
@@ -63,17 +60,19 @@ export class RecipeComponent implements OnInit {
     } else {
       this._setFilters.splice(this._setFilters.indexOf(label), 1);
     }
-    this._resultSet = this._recipes.filter((recipe) =>
-      this._setFilters.every(filter => recipe.labels.map(label => label.name).includes(filter.name))
-    );
+    this.filterRecipes();
   }
 
-  get results(): Recipe[] {
-    return this._resultSet.filter((recipe) => recipe.name.toLowerCase().includes(this.search.toLowerCase()));
-  }
-
-  get labels(): Label[] {
-    return this._labels;
+  public filterRecipes(): void {
+    this.results = this._recipes.filter((recipe) => {
+      const matchesSearch = recipe.name.toLowerCase().includes(this.search.toLowerCase());
+      const matchesLabels = this._setFilters.length === 0 || 
+        this._setFilters.every((label: Label) => recipe.labels.some(recipeLabel => recipeLabel.name === label.name));
+      const matchesTime = !this.selectedTime || 
+        (recipe.prepTimeHour * 60 + recipe.prepTimeMinutes) <= this.selectedTime;
+      
+      return matchesSearch && matchesLabels && matchesTime;
+    });
   }
 
   public openRecipe(recipe: Recipe): void {

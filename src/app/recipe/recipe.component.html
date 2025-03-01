@@ -4,14 +4,27 @@
       <ion-title>Select filters</ion-title>
     </ion-toolbar>
   </ion-header>
-<ion-content>
-  <div class="filter-container">
-    <div *ngFor="let group of labelService.labelGroups" class="label-group">
-      <div class="group-name">{{ group.name }}</div>
-      <ion-checkbox *ngFor="let label of group.labels" labelPlacement="start" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
+  <ion-content>
+    <div class="filter-container">
+      <div class="time-filter">
+        <ion-label>Preparation time: {{ selectedTime ? selectedTime + ' min' : 'No limit' }}</ion-label>
+        <ion-range
+          [min]="0"
+          [max]="180"
+          [step]="15"
+          [(ngModel)]="selectedTime"
+          (ionChange)="filterRecipes()"
+          [pin]="true"
+          [snaps]="true"
+          [ticks]="true">
+        </ion-range>
+      </div>
+      <div *ngFor="let group of labelService.labelGroups" class="label-group">
+        <div class="group-name">{{ group.name }}</div>
+        <ion-checkbox *ngFor="let label of group.labels" labelPlacement="start" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
+      </div>
     </div>
-  </div>
-</ion-content>
+  </ion-content>
 </ion-menu>
 
 <div class="ion-page" id="main">
@@ -36,7 +49,7 @@
   </ion-header>
 
   <ion-content class="content-wrapper">
-    <ion-searchbar [(ngModel)]="search"></ion-searchbar>
+    <ion-searchbar [(ngModel)]="search" (ngModelChange)="filterRecipes()"></ion-searchbar>
     <div class="recipes-list-container">
       <div class="recipe-preview-container" *ngFor="let recipe of this.results" (click)="openRecipe(recipe)">
         <div class="recipe-preview-title">

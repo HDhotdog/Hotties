@@ -105,3 +105,21 @@ ion-title {
   display: flex;
   align-items: center;
 }
+
+.time-filter {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+
+  ion-label {
+    display: block;
+    margin-bottom: 5px;
+    text-align: center;
+  }
+
+  ion-range {
+    --bar-height: 3px;
+    padding-top: 0;
+  }
+}
