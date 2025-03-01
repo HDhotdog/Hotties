@@ -9,7 +9,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "export": "ionic build && ionic cap copy && npx cap sync android && ionic cap open android"
   },
   "private": true,
   "dependencies": {
@@ -23,7 +24,7 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
-    "@capacitor/android": "^7.0.1",
+    "@capacitor/android": "7.0.1",
     "@capacitor/app": "^7.0.0",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/camera": "^7.0.0",
@@ -36,6 +37,7 @@
     "@capacitor/status-bar": "^7.0.0",
     "@ctrl/ngx-emoji-mart": "^9.2.0",
     "@ionic/angular": "^8.4.3",
+    "@ionic/cordova-builders": "^12.1.2",
     "@ionic/pwa-elements": "^3.3.0",
     "@ionic/storage": "^4.0.0",
     "ionicons": "^7.0.0",
@@ -61,6 +63,12 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.25.0",
+    "cordova-android": "^13.0.0",
+    "cordova-plugin-device": "2.0.2",
+    "cordova-plugin-ionic-keyboard": "^2.0.5",
+    "cordova-plugin-ionic-webview": "^5.0.0",
+    "cordova-plugin-splashscreen": "5.0.2",
+    "cordova-plugin-statusbar": "^2.4.2",
     "eslint": "^9.21.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsdoc": "^50.6.3",
@@ -76,5 +84,5 @@
     "ts-node": "^10.9.2",
     "typescript": "5.7.2"
   },
-  "description": "An Ionic project"
+  "description": "Hot cooking for hot people!"
 }
