@@ -39,6 +39,11 @@ ion-grid {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    position: relative;
+
+    ion-input {
+        flex: 1;
+    }
 }
 
 .save-button-active {
@@ -135,4 +140,56 @@ ion-textarea {
     width: fit-content;
     overflow: scroll;
     max-width: 90%;
+}
+
+.emoji-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+}
+
+.emoji-button {
+  height: 40px;
+  width: 40px;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.emoji-display {
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.emoji-picker {
+  position: absolute;
+  top: 45px;
+  left: 0;
+  z-index: 9999;
+}
+
+:host ::ng-deep {
+  .emoji-mart {
+    border: none !important;
+    background: var(--ion-background-color) !important;
+    
+    .emoji-mart-bar {
+      border: none !important;
+    }
+    
+    .emoji-mart-search {
+      margin: 5px !important;
+      
+      input {
+        background: var(--ion-item-background) !important;
+        border: none !important;
+        color: var(--ion-text-color) !important;
+      }
+    }
+    
+    .emoji-mart-category-label {
+      background: var(--ion-background-color) !important;
+      color: var(--ion-text-color) !important;
+    }
+  }
 }

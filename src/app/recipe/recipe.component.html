@@ -40,7 +40,10 @@
     <div class="recipes-list-container">
       <div class="recipe-preview-container" *ngFor="let recipe of this.results" (click)="openRecipe(recipe)">
         <div class="recipe-preview-title">
-          <p>{{recipe.name}}</p>
+          <div class="title-container">
+            <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>
+            <p>{{recipe.name}}</p>
+          </div>
           <p>{{this.parseDate(recipe)}}</p>
         </div>
         <div class="recipe-preview-image">

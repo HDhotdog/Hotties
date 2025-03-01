@@ -34,6 +34,7 @@
     "@capacitor/keyboard": "^7.0.0",
     "@capacitor/preferences": "^7.0.0",
     "@capacitor/status-bar": "^7.0.0",
+    "@ctrl/ngx-emoji-mart": "^9.2.0",
     "@ionic/angular": "^8.4.3",
     "@ionic/pwa-elements": "^3.3.0",
     "@ionic/storage": "^4.0.0",

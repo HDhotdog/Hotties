@@ -10,13 +10,15 @@ import { RecipeService } from '../recipe.service';
 import { v4 as uuidv4 } from 'uuid';
 import { LabelService } from "../../settings/label-setting/label-service.service";
 import { NgxImageCompressService } from 'ngx-image-compress';
+import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
 
 @Component({
   selector: 'app-add-category',
   templateUrl: './add-recipe.component.html',
   styleUrls: ['./add-recipe.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule, EmojiModule, PickerModule]
 })
 export class AddRecipeComponent implements OnInit {
 
@@ -32,6 +34,8 @@ export class AddRecipeComponent implements OnInit {
   private labels: Label[] = [];
   public imgSrc: string = "";
   public imageSelected: boolean = false;
+  public showEmojiPicker: boolean = false;
+  public selectedEmoji: string | null = null;
 
   constructor(private location: Location,
     private recipeService: RecipeService,
@@ -57,6 +61,7 @@ export class AddRecipeComponent implements OnInit {
       this.stringLabels = this.previousInputs.labels.map(label => label.name);
       this.imageSelected = !!this.imgSrc;
       this.labels = this.previousInputs.labels;
+      this.selectedEmoji = this.previousInputs.emoji || null;
     } else {
       this.previousInputs = {
         uuid: uuidv4(),
@@ -66,7 +71,8 @@ export class AddRecipeComponent implements OnInit {
         prepTimeHour: this.hours,
         prepTimeMinutes: this.minutes,
         ingredients: this.ingredients,
-        labels: this.labels
+        labels: this.labels,
+        emoji: this.selectedEmoji
       } as Recipe;
     }
   }
@@ -86,6 +92,7 @@ export class AddRecipeComponent implements OnInit {
       this.recipeService.recipes[i].prepTimeMinutes = this.minutes;
       this.recipeService.recipes[i].ingredients = this.ingredients;
       this.recipeService.recipes[i].labels = this.labels;
+      this.recipeService.recipes[i].emoji = this.selectedEmoji;
     } else {
       const recipe: Recipe = {
         uuid: uuidv4(),
@@ -96,6 +103,7 @@ export class AddRecipeComponent implements OnInit {
         prepTimeMinutes: this.minutes,
         ingredients: this.ingredients,
         labels: this.labels,
+        emoji: this.selectedEmoji
       }
       this.recipeService.recipes.push(recipe);
       this.recipeService.saveRecipes();
@@ -112,7 +120,8 @@ export class AddRecipeComponent implements OnInit {
       || this.previousInputs.prepTimeMinutes !== this.minutes
       || this.previousInputs.ingredients !== this.ingredients
       || this.previousInputs.labels !== this.labels
-      || this.previousInputs.imgSrc !== this.imgSrc;
+      || this.previousInputs.imgSrc !== this.imgSrc
+      || this.previousInputs.emoji !== this.selectedEmoji;
   }
 
   public addIngredient(): void {
@@ -166,4 +175,13 @@ export class AddRecipeComponent implements OnInit {
             }
         );
 }
+
+  public toggleEmojiPicker() {
+    this.showEmojiPicker = !this.showEmojiPicker;
+  }
+
+  public addEmoji(event: any) {
+    this.selectedEmoji = event.emoji.native;
+    this.showEmojiPicker = false;
+  }
 }

@@ -86,3 +86,19 @@ ul {
 .selection-list {
   display: none;
 }
+
+.title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.emoji-display {
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+}

@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Rezept
+      Recipe
     </ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="deleteRecipe()">
@@ -22,7 +22,10 @@
 <ion-content>
   <div class="recipe-wrapper" *ngIf="!isLoading">
     <div class="recipe-header">
-      <h2>{{recipe.name}}</h2>
+      <div class="title-container">
+        <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>
+        <h2>{{recipe.name}}</h2>
+      </div>
       <h3>{{this.parseDate()}}</h3>
     </div>
 
@@ -30,14 +33,14 @@
       src={{recipe.imgSrc}}></ion-img>
 
     <div class="ingredients">
-      <p class="ingredients-title">Zutaten</p>
+      <p class="ingredients-title">Ingredients</p>
       <ul class="ingredients-items">
         <li *ngFor="let item of recipe?.ingredients">
           {{item.name}}
         </li>
       </ul>
       <div class="export-items">
-        <p>Zutaten auf ToDo-Liste setzen</p>
+        <p>Add ingredients to shopping list</p>
         <ion-button color="success" (click)="exportIngredients()">
           <ion-icon name="arrow-redo"></ion-icon>
         </ion-button>
@@ -45,7 +48,7 @@
     </div>
 
     <div class="recipe-description">
-      <p class="recipe-descirption-title">Zubereitung</p>
+      <p class="recipe-descirption-title">Instructions</p>
       <p class="recipe-description-content">{{recipe.description}}</p>
     </div>
 

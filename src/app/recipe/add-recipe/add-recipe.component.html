@@ -21,6 +21,15 @@
   <div class="container">
     <ion-grid>
       <ion-row id="data-row">
+        <div class="emoji-container">
+          <ion-button class="emoji-button" (click)="toggleEmojiPicker()">
+            <span *ngIf="selectedEmoji" class="emoji-display">{{ selectedEmoji }}</span>
+            <ion-icon *ngIf="!selectedEmoji" name="happy-outline"></ion-icon>
+          </ion-button>
+          <div *ngIf="showEmojiPicker" class="emoji-picker">
+            <emoji-mart (emojiSelect)="addEmoji($event)" [darkMode]="true"></emoji-mart>
+          </div>
+        </div>
         <ion-input [(ngModel)]="name" placeholder="Enter recipe name"></ion-input>
       </ion-row>
       <ion-row class="img-input">

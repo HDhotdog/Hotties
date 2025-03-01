@@ -11,4 +11,5 @@ export interface Recipe {
   ingredients: Ingredient[];
   lastEaten?: Date;
   labels: Label[];
+  emoji?: string | null;
 } 
