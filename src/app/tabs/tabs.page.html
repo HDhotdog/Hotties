@@ -1,20 +1,48 @@
-<ion-tabs>
+<!-- Main Menu -->
+<ion-menu menuId="main-menu" contentId="main-content">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Hotties</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-list>
+      <ion-item button routerLink="/tabs/todo" routerDirection="root" (click)="closeMenu()">
+        <ion-icon slot="start" name="cart"></ion-icon>
+        <ion-label>ToDo's</ion-label>
+      </ion-item>
 
-  <ion-tab-bar slot="bottom">
-    <ion-tab-button tab="todo" href="/tabs/todo">
-      <ion-icon aria-hidden="true" name="cart"></ion-icon>
-      <ion-label>ToDo's</ion-label>
-    </ion-tab-button>
+      <ion-item button routerLink="/tabs/recipe" routerDirection="root" (click)="closeMenu()">
+        <ion-icon slot="start" name="pizza"></ion-icon>
+        <ion-label>Recipes</ion-label>
+      </ion-item>
 
-    <ion-tab-button tab="recipe" href="/tabs/recipe">
-      <ion-icon aria-hidden="true" name="pizza"></ion-icon>
-      <ion-label>Recipes</ion-label>
-    </ion-tab-button>
+      <ion-item button routerLink="/tabs/settings" routerDirection="root" (click)="closeMenu()">
+        <ion-icon slot="start" name="settings"></ion-icon>
+        <ion-label>Settings</ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-menu>
 
-    <ion-tab-button tab="settings" href="/tabs/settings">
-      <ion-icon aria-hidden="true" name="settings"></ion-icon>
-      <ion-label>Settings</ion-label>
-    </ion-tab-button>
-  </ion-tab-bar>
+<!-- Main Content -->
+<div class="ion-page" id="main-content">
+  <ion-header class="toolbar">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button menu="main-menu"></ion-menu-button>
+      </ion-buttons>
+      <ion-title>{{getTitle()}}</ion-title>
+      <ion-buttons slot="end">
+        <ion-button *ngIf="isRecipeRoute()" class="add-button" (click)="addRecipe()">
+          <ion-icon name="add"></ion-icon>
+        </ion-button>
+        <div *ngIf="!isRecipeRoute()" class="menu-spacer"></div>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
 
-</ion-tabs>
+  <ion-content>
+    <ion-router-outlet></ion-router-outlet>
+  </ion-content>
+</div>

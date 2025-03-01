@@ -1,1 +1,48 @@
+ion-menu {
+  --width: 250px;
+  
+  ion-toolbar {
+    --background: var(--ion-color-primary);
+    --color: var(--ion-color-primary-contrast);
+  }
 
+  ion-item {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --min-height: 48px;
+
+    &:hover {
+      --background: var(--ion-color-light);
+    }
+  }
+
+  ion-icon {
+    margin-right: 12px;
+    color: var(--ion-color-primary);
+  }
+}
+
+.toolbar {
+  ion-toolbar {
+    --background: #1a1a1a;
+    --color: white;
+
+    .menu-spacer {
+      width: 36px;
+      pointer-events: none;
+    }
+  }
+
+  .add-button {
+    --color: white;
+  }
+}
+
+#main-content {
+  ion-header {
+    ion-toolbar {
+      --background: #1a1a1a;
+      --color: white;
+    }
+  }
+}
