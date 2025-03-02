@@ -9,12 +9,8 @@ export class RecipeService {
 
     constructor(private recipeRepository: RecipeRepository) {}
 
-    public saveAll(recipes: Recipe[]) {
-        this.recipeRepository.saveAll(recipes);
-    }
-
-    public save(recipe: Recipe) {
-        this.recipeRepository.save(recipe);
+    public save(recipe: Recipe): Observable<void> {
+        return this.recipeRepository.save(recipe);
     }
 
     public findAll(): Observable<Recipe[]> {
@@ -29,7 +25,7 @@ export class RecipeService {
         this.recipeRepository.clearRecipes();
     }
 
-    public deleteRecipe(id: string) {
-        this.recipeRepository.deleteRecipe(id);
+    public deleteRecipe(id: string): Observable<void> {
+        return this.recipeRepository.deleteRecipe(id);
     }
 }

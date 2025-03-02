@@ -90,20 +90,21 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public saveCategory() {
+    let recipe: Recipe;
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this._recipe.id = id;
-      this._recipe.name = this._name;
-      this._recipe.description = this._description;
-      this._recipe.imgSrc = this._imgSrc;
-      this._recipe.prepTimeHour = this._hours;
-      this._recipe.prepTimeMinutes = this._minutes;
-      this._recipe.ingredients = this._ingredients;
-      this._recipe.labels = this._labels;
-      this._recipe.emoji = this._selectedEmoji;
-      this.recipeService.save(this._recipe);
+      recipe = this._recipe;
+      recipe.id = id;
+      recipe.name = this._name;
+      recipe.description = this._description;
+      recipe.imgSrc = this._imgSrc;
+      recipe.prepTimeHour = this._hours;
+      recipe.prepTimeMinutes = this._minutes;
+      recipe.ingredients = this._ingredients;
+      recipe.labels = this._labels;
+      recipe.emoji = this._selectedEmoji;
     } else {
-      const recipe: Recipe = {
+      recipe = {
         id: uuidv4(),
         name: this._name,
         imgSrc: this._imgSrc,
@@ -114,9 +115,10 @@ export class AddRecipeComponent implements OnInit {
         labels: this._labels,
         emoji: this._selectedEmoji
       }
-      this.recipeService.save(recipe);
+      this.recipeService.save(recipe).subscribe(() => {
+        this.navigateBack();
+      });
     }
-    this.navigateBack();
   }
 
   public inputChanged(): boolean {

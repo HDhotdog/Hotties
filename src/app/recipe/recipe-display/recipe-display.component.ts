@@ -80,8 +80,9 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   public deleteRecipe(): void {
-    this.recipeService.deleteRecipe(this._recipe.id);
-    this.router.navigate(['../../'], {relativeTo: this.route});
+    this.recipeService.deleteRecipe(this._recipe.id).subscribe(() => {
+      this.router.navigate(['../../'], {relativeTo: this.route});
+    });
 }
 
   public editRecipe(): void {
