@@ -7,6 +7,7 @@ import {CategoryService} from 'src/app/category/category.service';
 import {IonSelect, IonicModule} from "@ionic/angular";
 import {Category} from "../../category/category";
 import {FormsModule} from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 
 @Component({
@@ -22,8 +23,7 @@ export class RecipeDisplayComponent implements OnInit {
               private recipeService: RecipeService, private categoryService: CategoryService) {
   }
 
-  private _recipeUuid!: string;
-  private _recipe!: Recipe;
+  private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
   private _selectedCategoryId!: string;
   private _categories: Category[] = [];
@@ -31,25 +31,25 @@ export class RecipeDisplayComponent implements OnInit {
   @ViewChild("selectionList", { static: false })
   public selectionList!: IonSelect;
 
-  async ngOnInit()  {
+  public ngOnInit(): void {
     if (this.route.snapshot.paramMap.has('id')) {
-      this._recipeUuid = this.route.snapshot.paramMap.get('id')!;
-      this.recipeService.loadRecipes();
-      this._recipe = this.recipeService.recipes.find((recipe) => recipe.uuid === this._recipeUuid)!;
-      this._isLoading = false;
-    }
+      const recipeId: string =  this.route.snapshot.paramMap.get('id')!;
+      const recipe = this.recipeService.findById(recipeId);
+      const categories = this.categoryService.getCategories();
 
-    this.categoryService.getCategories().subscribe((categories) => {
-      this._categories = categories;
-    });
+      forkJoin([recipe, categories]).subscribe(([recipe, categories]) => {
+        this._recipe = recipe;
+        this._categories = categories;
+        if(this.categories.length > 0) {
+          this.selectedCategoryId = this.categories[0].id;
+        }
+        this._isLoading = false;
+      });
+    }
   }
 
-  async ionViewWillEnter() {
-    if (this.route.snapshot.paramMap.has('id')) {
-      this._recipeUuid = this.route.snapshot.paramMap.get('id')!;
-      this.recipeService.loadRecipes();
-      this._recipe = this.recipeService.recipes.find((recipe) => recipe.uuid === this._recipeUuid)!;
-    }
+  public ionViewWillEnter(): void {
+    this.ngOnInit();
   }
 
 
@@ -64,9 +64,12 @@ export class RecipeDisplayComponent implements OnInit {
     return date.trim();
   }
 
-  public async ok() {
-    await this.categoryService.addIngredientsToCategory(this._selectedCategoryId, this._recipe!);
+  public saveIngredients() {
+    if(this._selectedCategoryId) {
+      this.categoryService.addIngredientsToCategory(this._selectedCategoryId, this._recipe!);
+    }
   }
+
   public exportIngredients() {
     this.selectionList.open();
   }
@@ -77,15 +80,12 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   public deleteRecipe(): void {
-    const index = this.recipeService.recipes.findIndex((recipe) => recipe.uuid === this._recipeUuid);
-    this.recipeService.recipes.splice(index, 1);
-    this.recipeService.saveRecipes().then(() => {
-      this.router.navigate(['../../'], {relativeTo: this.route});
-    });
+    this.recipeService.deleteRecipe(this._recipe.id);
+    this.router.navigate(['../../'], {relativeTo: this.route});
 }
 
   public editRecipe(): void {
-    this.router.navigate(['../../new', this._recipeUuid], {relativeTo: this.route});
+    this.router.navigate(['../../new', this._recipe.id], {relativeTo: this.route});
   }
 
   get recipe(): Recipe {

@@ -30,10 +30,10 @@
             <emoji-mart (emojiSelect)="addEmoji($event)" [darkMode]="true"></emoji-mart>
           </div>
         </div>
-        <ion-input [(ngModel)]="name" placeholder="Enter recipe name"></ion-input>
+        <ion-input [(ngModel)]="this.name" placeholder="Enter recipe name"></ion-input>
       </ion-row>
       <ion-row class="img-input">
-        <ion-img id="recipe-image" src="{{this.imgSrc}}"></ion-img>
+        <ion-img id="recipe-image" src="{{this.imgSrc}}" alt=""></ion-img>
         <div class="custom-file-upload" *ngIf="!this.imageSelected;else delete_button">
           <div>
             {{"Upload image"}}
@@ -64,7 +64,7 @@
       </ion-row>
       <ion-row class="ingredient-section">
         <div class="ingredient-input">
-          <ion-input placeholder="Enter ingredient" [(ngModel)]="ingredient" (keyup.enter)="addIngredient()"></ion-input>
+          <ion-input placeholder="Enter ingredient" [(ngModel)]="this.ingredient" (keyup.enter)="addIngredient()"></ion-input>
           <ion-button shape="round" (click)="addIngredient()">
             <ion-icon name="add"></ion-icon>
           </ion-button>

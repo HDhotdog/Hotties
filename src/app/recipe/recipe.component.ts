@@ -29,17 +29,18 @@ export class RecipeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.recipeService.loadRecipes().then(() => {
-      this._recipes = this.recipeService.recipes;
+    this.recipeService.findAll().subscribe((recipes) => {
+      this._recipes = recipes;
       this.filterRecipes();
+      this.labelService.loadLabels();
     });
-    this.labelService.loadLabels();
   }
 
   async ionViewWillEnter() {
-    await this.recipeService.loadRecipes().then(() => {
-      this._recipes = this.recipeService.recipes;
+    this.recipeService.findAll().subscribe((recipes) => {
+      this._recipes = recipes;
       this.filterRecipes();
+      this.labelService.loadLabels();
     });
   }
 
@@ -76,7 +77,7 @@ export class RecipeComponent implements OnInit {
   }
 
   public openRecipe(recipe: Recipe): void {
-    this.router.navigate(['display', recipe.uuid], {relativeTo: this.route})
+    this.router.navigate(['display', recipe.id], {relativeTo: this.route})
   }
 
   public newRecipe() {

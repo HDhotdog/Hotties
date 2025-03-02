@@ -1,29 +1,35 @@
 import { Injectable } from '@angular/core';
-import { Preferences } from '@capacitor/preferences';
 import { Recipe } from './models/recipe.interface';
-
+import { RecipeRepository } from './recipe.repository';
+import { map, Observable } from 'rxjs';
 @Injectable({
     providedIn: 'root'
 })
 export class RecipeService {
 
-    private RECIPE_STORAGE: string = 'recipes';
-    public recipes: Recipe[] = [];
+    constructor(private recipeRepository: RecipeRepository) {}
 
-    constructor() {
+    public saveAll(recipes: Recipe[]) {
+        this.recipeRepository.saveAll(recipes);
     }
 
-    public async saveRecipes() {
-        Preferences.set({ key: this.RECIPE_STORAGE, value: JSON.stringify(this.recipes) });
+    public save(recipe: Recipe) {
+        this.recipeRepository.save(recipe);
     }
 
-    public async loadRecipes() {
-        const { value } = await Preferences.get({ key: this.RECIPE_STORAGE })
-        this.recipes = (value ? JSON.parse(value) : []) as Recipe[];
+    public findAll(): Observable<Recipe[]> {
+        return this.recipeRepository.findAll();
     }
 
-    public async clearRecipes() {
-        this.recipes.length = 0;
-        Preferences.remove({ key: this.RECIPE_STORAGE })
+    public findById(id: string): Observable<Recipe> {
+        return this.recipeRepository.findById(id);
+    }
+
+    public clearRecipes() {
+        this.recipeRepository.clearRecipes();
+    }
+
+    public deleteRecipe(id: string) {
+        this.recipeRepository.deleteRecipe(id);
     }
 }
