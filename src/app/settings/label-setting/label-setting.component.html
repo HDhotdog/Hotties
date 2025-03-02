@@ -23,7 +23,7 @@
 
     <!-- Label Groups with Reordering -->
     <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabelGroups($any($event))">
-      <div *ngFor="let group of labelService.labelGroups" class="group-container">
+      <div *ngFor="let group of this.labelGroups" class="group-container">
         <ion-item-divider>
           <ion-reorder slot="start"></ion-reorder>
           <!-- Group Name (Edit Mode) -->

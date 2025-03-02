@@ -55,6 +55,7 @@ export class AppComponent implements OnInit {
     }
 
     const kindLabels: LabelGroup = {
+      id: uuidv4(),
       name: "Art",
       labels: [{
         name: "Frühstück"
@@ -72,6 +73,7 @@ export class AppComponent implements OnInit {
     }
 
     const tasteLabels: LabelGroup = {
+      id: uuidv4(),
       name: "Geschmack",
       labels: [
         {
@@ -88,8 +90,7 @@ export class AppComponent implements OnInit {
         }
       ]
     }
-    this.labelService.labelGroups.push(kindLabels, tasteLabels);
-    this.labelService.saveLabels();
+    this.labelService.saveLabels([kindLabels, tasteLabels]);
     this.categoryService.save(category);
     this.categoryService.saveLastCategory(0);
     this.appService.firstTime = false;

@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Ingredient } from '../models/ingredient.interface';
-import { Label } from '../../label/models/label.interface';
+import { Label, LabelGroup } from '../../label/models/label.interface';
 import { Recipe } from '../models/recipe.interface';
 import { RecipeService } from '../recipe.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -47,8 +47,12 @@ export class AddRecipeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.labelService.loadLabels().then(() => {
-      this.setAllLabels();
+    this.labelService.loadLabels().subscribe((labelGroups) => {
+      labelGroups.map((labelGroup) => {
+        labelGroup.labels.map((label) => {
+          this._availableLabels.push(label);
+        })
+      })
     })
     const index = this.route.snapshot.paramMap.get('id');
     if (index) {
@@ -144,14 +148,6 @@ export class AddRecipeComponent implements OnInit {
       return {
         name: label
       } as Label
-    })
-  }
-
-  private setAllLabels() {
-    this.labelService.labelGroups.map((labelGroup) => {
-      labelGroup.labels.map((label) => {
-        this._availableLabels.push(label);
-      })
     })
   }
 

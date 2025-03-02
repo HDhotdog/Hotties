@@ -1,14 +1,14 @@
 import {Component, OnInit} from '@angular/core';
 import {RecipeService} from './recipe.service';
 import {Recipe} from './models/recipe.interface';
-import {Label} from '../label/models/label.interface';
+import {Label, LabelGroup} from '../label/models/label.interface';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {LabelService} from "../settings/label-setting/label-service.service";
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
 import {MenuController} from '@ionic/angular';
-
+import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-recipe',
   templateUrl: 'recipe.component.html',
@@ -23,25 +23,23 @@ export class RecipeComponent implements OnInit {
   public search: string = "";
   public selectedTime: number | null = null;
   public results: Recipe[] = [];
-
+  private _labelGroups: LabelGroup[] = [];
   constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute,
               public labelService: LabelService, private menuController: MenuController) {
   }
 
   ngOnInit(): void {
-    this.recipeService.findAll().subscribe((recipes) => {
+    const recipes = this.recipeService.findAll();
+    const labels = this.labelService.loadLabels();
+    forkJoin([recipes, labels]).subscribe(([recipes, labels]) => {
       this._recipes = recipes;
+      this._labelGroups = labels;
       this.filterRecipes();
-      this.labelService.loadLabels();
     });
   }
 
-  async ionViewWillEnter() {
-    this.recipeService.findAll().subscribe((recipes) => {
-      this._recipes = recipes;
-      this.filterRecipes();
-      this.labelService.loadLabels();
-    });
+   ionViewWillEnter(): void {
+    this.ngOnInit();
   }
 
   public parseDate(recipe: Recipe): string {
@@ -86,5 +84,9 @@ export class RecipeComponent implements OnInit {
 
   async openFilterMenu() {
     await this.menuController.open('filter-menu');
+  }
+
+  get labelGroups(): LabelGroup[] {
+    return this._labelGroups;
   }
 }

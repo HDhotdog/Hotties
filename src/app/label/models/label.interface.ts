@@ -3,6 +3,7 @@ export interface Label {
 }
 
 export interface LabelGroup {
+  id: string;
   name: string;
   labels: Label[];
 } 

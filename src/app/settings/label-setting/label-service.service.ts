@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Preferences } from '@capacitor/preferences';
+import { Observable } from 'rxjs';
+import { LabelRepository } from 'src/app/label/label.repository';
 import { LabelGroup } from 'src/app/label/models/label.interface';
 
 @Injectable({
@@ -7,23 +8,18 @@ import { LabelGroup } from 'src/app/label/models/label.interface';
 })
 export class LabelService {
 
-  private LABEL_STORAGE: string = 'labels';
-  public labelGroups: LabelGroup[] = [];
-
-  constructor() {
+  constructor(private labelRepository: LabelRepository) {
   }
 
-  public async saveLabels() {
-    Preferences.set({ key: this.LABEL_STORAGE, value: JSON.stringify(this.labelGroups) });
+  public saveLabels(labelGroups: LabelGroup[]) {
+    this.labelRepository.saveAll(labelGroups);
   }
 
-  public async loadLabels() {
-    const { value } = await Preferences.get({ key: this.LABEL_STORAGE })
-    this.labelGroups = (value ? JSON.parse(value) : []) as LabelGroup[];
+  public loadLabels(): Observable<LabelGroup[]> {
+    return this.labelRepository.findAll();
   }
 
-  public async clearLabels() {
-    this.labelGroups.length = 0;
-    Preferences.remove({ key: this.LABEL_STORAGE })
+  public clearLabels() {
+    this.labelRepository.deleteAll();
   }
 }
