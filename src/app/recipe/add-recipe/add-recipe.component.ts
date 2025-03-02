@@ -89,7 +89,7 @@ export class AddRecipeComponent implements OnInit {
     this.location.back();
   }
 
-  public saveCategory() {
+  public saveRecipe() {
     let recipe: Recipe;
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -115,10 +115,10 @@ export class AddRecipeComponent implements OnInit {
         labels: this._labels,
         emoji: this._selectedEmoji
       }
-      this.recipeService.save(recipe).subscribe(() => {
-        this.navigateBack();
-      });
     }
+    this.recipeService.save(recipe).subscribe(() => {
+      this.navigateBack();
+    });
   }
 
   public inputChanged(): boolean {
