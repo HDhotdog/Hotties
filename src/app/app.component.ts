@@ -10,7 +10,7 @@ import { RouterModule } from '@angular/router';
 import { Keyboard } from '@capacitor/keyboard';
 import { Platform } from '@ionic/angular';
 import { v4 as uuidv4 } from 'uuid';
-
+import { SafeArea } from '@aashu-dubey/capacitor-statusbar-safe-area';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -36,6 +36,17 @@ export class AppComponent implements OnInit {
         Keyboard.setScroll({ isDisabled: false });
       }
     });
+
+    this.adjustSafeArea().then((height) => {
+      console.log(height);
+    });
+  }
+  
+
+  async adjustSafeArea() {
+    const {height} = await SafeArea.getStatusBarHeight();
+    document.documentElement.style.setProperty('--ion-safe-area-top', `${height}px`);  
+    return height;
   }
 
   async ngOnInit() {

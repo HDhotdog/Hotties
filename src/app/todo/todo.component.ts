@@ -38,7 +38,6 @@ export class TodoComponent implements OnInit {
   };
 
   private _categories: Category[] = [];
-  // private _lastCategory: number = 0;
 
   constructor(private categoryService: CategoryService) {
   }
@@ -46,7 +45,7 @@ export class TodoComponent implements OnInit {
   async ngOnInit() {
     const categories = this.categoryService.getCategories();
     const lastCategory = this.categoryService.getLastCategory();
-
+    
     forkJoin([categories, lastCategory]).subscribe(([categories, lastCategory]) => {
       this._categories = categories;
       this._currentCategoryIndex = lastCategory;
