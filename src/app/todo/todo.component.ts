@@ -1,11 +1,12 @@
-import { Component, OnInit, ViewChildren, QueryList, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Category } from '../category/category';
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion';
 import { ToDo, ImportanceLevel } from './todo';
-import { IonicModule, GestureController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-todo',
@@ -14,161 +15,166 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule]
 })
-export class TodoComponent implements OnInit, AfterViewInit {
-  @ViewChildren('todoItem', { read: ElementRef }) todoItems!: QueryList<ElementRef>;
+export class TodoComponent implements OnInit {
 
-  public inputField: string = "";
-  public categoryInputField: string = "";
-  public currentSuggestion: Suggestion = { suggestion: "Cookies", suffix: "! :D" };
-  public sortIncreasing: boolean = true;
-  public categoryService: CategoryService;
-  public currentCategoryIndex: number = 0;
-  public selectedCategory: Category = {} as Category;
-  public showColorBar: boolean = true;
-  public currentImportanceLevel: ImportanceLevel = ImportanceLevel.NORMAL;
+  private _inputField: string = "";
+  private _categoryInputField: string = "";
+  private _currentSuggestion: Suggestion = { suggestion: "Cookies", suffix: "! :D" };
+  private _sortIncreasing: boolean = true;
+  private _currentCategoryIndex: number = 0;
+  private _selectedCategory: Category = {} as Category;
+  private _showColorBar: boolean = true;
+  private _currentImportanceLevel: ImportanceLevel = ImportanceLevel.NORMAL;
   private suggestion_suffixes: string[] = [
     "?", "!", " :O", " O:", " owo", " c:", " OwO", " uwu", " :o", " o:", " :D"
   ]
-  public isLoading: boolean = true;
-  public importanceLevels = Object.keys(ImportanceLevel);
-  public importanceColors: { [key: string]: string } = {
+  private _isLoading: boolean = true;
+  private _importanceLevels = Object.keys(ImportanceLevel);
+  private _importanceColors: { [key: string]: string } = {
     [ImportanceLevel.LOW]: '#ffd700',
     [ImportanceLevel.NORMAL]: '#007bff',
     [ImportanceLevel.HIGH]: '#ff0000',
     [ImportanceLevel.VERY_HIGH]: '#ff00ff'
   };
 
-  constructor(
-    categoryService: CategoryService,
-    private gestureCtrl: GestureController
-  ) {
-    this.categoryService = categoryService;
+  private _categories: Category[] = [];
+  // private _lastCategory: number = 0;
+
+  constructor(private categoryService: CategoryService) {
   }
 
   async ngOnInit() {
-    await this.categoryService.loadCategories().then(() => {
-      this.currentCategoryIndex = this.categoryService.lastCategory;
-      this.selectedCategory = this.categoryService.categories[this.currentCategoryIndex];
-      this.categoryInputField = this.selectedCategory.name;
-      this.isLoading = false;
+    const categories = this.categoryService.getCategories();
+    const lastCategory = this.categoryService.getLastCategory();
+
+    forkJoin([categories, lastCategory]).subscribe(([categories, lastCategory]) => {
+      this._categories = categories;
+      this._currentCategoryIndex = lastCategory;
+      this._selectedCategory = categories[this._currentCategoryIndex];
+      this._categoryInputField = this._selectedCategory.name;
+      this._isLoading = false;
     });
   }
 
   async ionViewWillEnter() {
-    await this.categoryService.loadCategories().then(() => {
-      this.selectedCategory = this.categoryService.categories[0];
-      this.categoryInputField = this.selectedCategory.name;
+    const categories = this.categoryService.getCategories();
+    const lastCategory = this.categoryService.getLastCategory();
+
+    forkJoin([categories, lastCategory]).subscribe(([categories, lastCategory]) => {
+      this._categories = categories;
+      this._currentCategoryIndex = lastCategory;
+      this._selectedCategory = categories[this._currentCategoryIndex];
+      this._categoryInputField = this._selectedCategory.name;
+      this._isLoading = false;
     });
 
     this.generateSuggestion();
   }
 
   public addTodo(task: string) {
-    const newTodo = {
-      task: task.trim() ? task : this.currentSuggestion.suggestion,
+    const newTodo: ToDo = {
+      task: task.trim() ? task : this._currentSuggestion.suggestion,
       done: false,
-      importance: this.currentImportanceLevel || ImportanceLevel.NORMAL
+      importance: this._currentImportanceLevel || ImportanceLevel.NORMAL
     };
 
-    this.categoryService.categories[this.currentCategoryIndex].elements.push(newTodo);
+    this._selectedCategory.elements.push(newTodo);
     
     if (task.trim()) {
       this.saveSuggestion(task);
     }
     
-    this.inputField = "";
-    this.categoryService.saveCategories();
+    this._inputField = "";
+    this.categoryService.save(this._selectedCategory);
     this.generateSuggestion();
   }
 
   public clearTodos() {
-    this.categoryService.categories[this.currentCategoryIndex].elements.forEach(todo => todo.done = true);
+    this._selectedCategory.elements.forEach(todo => todo.done = true);
     setTimeout(() => {
-      this.categoryService.categories[this.currentCategoryIndex].elements.length = 0;
-      this.categoryService.saveCategories();
+      this._selectedCategory.elements.length = 0;
+      this.categoryService.save(this._selectedCategory);
     }, 1100);
   }
 
   public markAsDone(todo: ToDo) {
-    const todoIndex = this.categoryService.categories[this.currentCategoryIndex].elements.indexOf(todo);
+    const todoIndex = this._selectedCategory.elements.indexOf(todo);
     if (todoIndex === -1) return; // Todo not found
     
-    this.categoryService.categories[this.currentCategoryIndex].elements.splice(todoIndex, 1);
-    this.categoryService.saveCategories();
+    this._selectedCategory.elements.splice(todoIndex, 1);
+    this.categoryService.save(this._selectedCategory);
   }
 
   public generateSuggestion(): void {
-    if (this.selectedCategory.suggestions.length == 0) {
-      this.selectedCategory.suggestions.push("Cookies");
+    if (this._selectedCategory.suggestions.length == 0) {
+      this._selectedCategory.suggestions.push("Cookies");
     }
 
-    const suggestion = this.selectedCategory.suggestions[Math.floor(Math.random() * this.selectedCategory.suggestions.length)];
+    const suggestion = this._selectedCategory.suggestions[Math.floor(Math.random() * this._selectedCategory.suggestions.length)];
     const suffix = this.suggestion_suffixes[Math.floor(Math.random() * this.suggestion_suffixes.length)];
-    this.currentSuggestion = {
+    this._currentSuggestion = {
       suggestion: suggestion,
       suffix: suffix
     }
   }
 
   private saveSuggestion(text: string) {
-    if (this.selectedCategory.saveSuggestions) {
-      const included: boolean = this.selectedCategory.suggestions
+    if (this._selectedCategory.saveSuggestions) {
+      const included: boolean = this._selectedCategory.suggestions
         .filter((sugg) => sugg.toLowerCase() == text.trim().toLowerCase()).length > 0
 
       if (!included) {
-        this.selectedCategory.suggestions.push(text);
-        this.categoryService.saveCategories();
+        this._selectedCategory.suggestions.push(text);
+        this.categoryService.save(this._selectedCategory);
       }
     }
   }
 
   public get getCurrentSuggestion() {
-    return this.currentSuggestion.suggestion + this.currentSuggestion.suffix;
+    return this._currentSuggestion.suggestion + this._currentSuggestion.suffix;
   }
 
   public changeSort() {
-    if (this.sortIncreasing) {
-      this.sortIncreasing = false;
-      this.categoryService.categories.forEach(category => category.elements.sort(function (a, b) {
+    if (this._sortIncreasing) {
+      this._sortIncreasing = false;
+      this._selectedCategory.elements.sort(function (a, b) {
         return a.task.localeCompare(b.task);
-      }));
+      });
     } else {
-      this.sortIncreasing = true;
-      this.categoryService.categories.forEach(category => category.elements.sort(function (a, b) {
+      this._sortIncreasing = true;
+      this._selectedCategory.elements.sort(function (a, b) {
         return b.task.localeCompare(a.task);
-      }));
+      });
     }
 
-    this.categoryService.saveCategories();
+    this.categoryService.save(this._selectedCategory);
   }
 
   public changeCategory() {
-    const index = this.categoryService.categories.map(function (e) { return e.name; }).indexOf(this.categoryInputField);
-
-    if (index >= 0) {
-      this.selectedCategory = this.categoryService.categories[index];
-      this.currentCategoryIndex = index;
-    }
-    this.generateSuggestion();
+    this.categoryService.getCategories().subscribe((categories) => {
+      const index = categories.map(function (e) { return e.name; }).indexOf(this._categoryInputField);
+      if (index >= 0) {
+        this._selectedCategory = categories[index];
+        this._currentCategoryIndex = index;
+        this.categoryService.saveLastCategory(this._currentCategoryIndex);
+      }
+      this.generateSuggestion();
+    });
   }
 
   public toggleColorBar() {
-    this.showColorBar = !this.showColorBar;
+    this._showColorBar = !this._showColorBar;
   }
 
   public getTodoBackgroundColor(importance: ImportanceLevel) {
     return {
-      '--indicator-color': this.importanceColors[importance] || this.importanceColors[ImportanceLevel.NORMAL]
+      '--indicator-color': this._importanceColors[importance] || this._importanceColors[ImportanceLevel.NORMAL]
     };
-  }
-
-  private getContrastColor(importance: ImportanceLevel): string {
-    return [ImportanceLevel.HIGH, ImportanceLevel.VERY_HIGH].includes(importance) ? '#ffffff' : '#212529';
   }
 
   public getCircleColorBackground(color: string) {
     const importanceLevel = this.getCircleColor(color);
-    return {'background-color': this.importanceColors[importanceLevel]};
+    return {'background-color': this._importanceColors[importanceLevel]};
   }
 
   public getCircleColor(color: string): ImportanceLevel {
@@ -177,50 +183,71 @@ export class TodoComponent implements OnInit, AfterViewInit {
   }
 
   public isCurrentLevel(color: string) {
-    return this.currentImportanceLevel === this.getCircleColor(color)
+    return this._currentImportanceLevel === this.getCircleColor(color)
   }
 
   public setCurrentImportanceLevel(level: string) {
-    this.currentImportanceLevel = this.getCircleColor(level);
+    this._currentImportanceLevel = this.getCircleColor(level);
   }
 
-  public getTodoState(todo: ToDo): string {
-    return todo.done ? 'done' : 'active';
+  get categories(): Category[] {
+    return this._categories;
   }
 
-  ngAfterViewInit() {
-    this.todoItems.changes.subscribe(() => {
-      this.todoItems.forEach(item => {
-        const gesture = this.gestureCtrl.create({
-          el: item.nativeElement,
-          threshold: 15,
-          gestureName: 'swipe',
-          onMove: ev => {
-            if (ev.deltaX > 0) {
-              item.nativeElement.style.transform = `translateX(${ev.deltaX}px)`;
-            }
-          },
-          onEnd: ev => {
-            item.nativeElement.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-            if (ev.deltaX > 50) {
-              item.nativeElement.style.transform = 'translateX(100vw)';
-              const wrapper = item.nativeElement.closest('.todo-wrapper');
-              if (wrapper) {
-                wrapper.classList.add('removing');
-              }
-              const todo = this.categoryService.categories[this.currentCategoryIndex].elements.find(
-                t => t.task === item.nativeElement.textContent?.trim()
-              );
-              if (todo) {
-                setTimeout(() => this.markAsDone(todo), 600);
-              }
-            } else {
-              item.nativeElement.style.transform = 'translateX(0)';
-            }
-          }
-        });
-        gesture.enable();
-      });
-    });
+  get lastCategory(): number {
+    return this.lastCategory;
   }
+
+  get inputField(): string {
+    return this._inputField;
+  }
+
+  set inputField(inputField: string) {
+    this._inputField = inputField;
+  }
+
+  get categoryInputField(): string {
+    return this._categoryInputField;
+  }
+
+  set categoryInputField(categoryInputField: string) {
+    this._categoryInputField = categoryInputField;
+  }
+
+  get currentSuggestion(): Suggestion {
+    return this._currentSuggestion;
+  }
+
+  get sortIncreasing(): boolean {
+    return this._sortIncreasing;
+  }
+
+  get currentCategoryIndex(): number {
+    return this._currentCategoryIndex;
+  }
+
+  get selectedCategory(): Category {
+    return this._selectedCategory;
+  }
+
+  get showColorBar(): boolean {
+    return this._showColorBar;
+  }
+
+  get currentImportanceLevel(): ImportanceLevel {
+    return this._currentImportanceLevel;
+  }
+
+  get importanceLevels(): string[] {
+    return this._importanceLevels;
+  }
+
+  get importanceColors(): { [key: string]: string } {
+    return this._importanceColors;
+  }
+
+  get isLoading(): boolean {
+    return this._isLoading;
+  }
+
 }

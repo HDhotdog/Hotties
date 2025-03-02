@@ -10,7 +10,7 @@
       <ion-row>
         <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()">
           <div slot="label"></div>
-          <ion-select-option *ngFor="let category of this.categoryService.categories">{{category.name}}</ion-select-option>
+          <ion-select-option *ngFor="let category of this.categories">{{category.name}}</ion-select-option>
         </ion-select>
       </ion-row>
     </ion-grid>
@@ -25,9 +25,8 @@
 
 <ion-content>
   <div class="container-elements">
-    <div class="upper-container" *ngIf="!this.isLoading">
-      <div *ngFor="let todo of this.selectedCategory.elements" 
-           class="todo-wrapper">
+    <div class="content-container" *ngIf="!this.isLoading">
+      <div *ngFor="let todo of this.selectedCategory.elements" class="todo-wrapper">
         <div class="todo" 
              [ngStyle]="getTodoBackgroundColor(todo.importance)"
              (ionSwipe)="markAsDone(todo)"

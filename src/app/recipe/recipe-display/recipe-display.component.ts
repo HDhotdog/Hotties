@@ -25,7 +25,8 @@ export class RecipeDisplayComponent implements OnInit {
   private _recipeUuid!: string;
   private _recipe!: Recipe;
   private _isLoading: boolean = true;
-  public selectedCategoryName!: string;
+  private _selectedCategoryName!: string;
+  private _categories: Category[] = [];
 
   @ViewChild("selectionList", { static: false })
   public selectionList!: IonSelect;
@@ -38,7 +39,9 @@ export class RecipeDisplayComponent implements OnInit {
       this._isLoading = false;
     }
 
-    await this.categoryService.loadCategories();
+    this.categoryService.getCategories().subscribe((categories) => {
+      this._categories = categories;
+    });
   }
 
   async ionViewWillEnter() {
@@ -62,7 +65,7 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   public async ok() {
-    await this.categoryService.addIngredientsToCategory(this.selectedCategoryName, this._recipe!);
+    await this.categoryService.addIngredientsToCategory(this._selectedCategoryName, this._recipe!);
   }
   public exportIngredients() {
     this.selectionList.open();
@@ -94,6 +97,14 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   get categories(): Category[] {
-    return this.categoryService.categories;
+    return this._categories;
+  }
+
+  set selectedCategoryName(selectedCategoryName: string) {
+    this._selectedCategoryName = selectedCategoryName;
+  }
+
+  get selectedCategoryName(): string {
+    return this._selectedCategoryName;
   }
 }

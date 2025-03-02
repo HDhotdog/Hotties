@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Keyboard } from '@capacitor/keyboard';
 import { Platform } from '@ionic/angular';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-root',
@@ -46,6 +47,7 @@ export class AppComponent implements OnInit {
 
   private initValues() {
     const category: Category = {
+      id: uuidv4(),
       name: "Shopping List",
       elements: [],
       suggestions: [],
@@ -88,8 +90,8 @@ export class AppComponent implements OnInit {
     }
     this.labelService.labelGroups.push(kindLabels, tasteLabels);
     this.labelService.saveLabels();
-    this.categoryService.categories.push(category);
-    this.categoryService.saveCategories();
+    this.categoryService.save(category);
+    this.categoryService.saveLastCategory(0);
     this.appService.firstTime = false;
     this.appService.saveInitalValues();
   }

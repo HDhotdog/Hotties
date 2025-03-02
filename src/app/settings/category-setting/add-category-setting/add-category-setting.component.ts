@@ -5,7 +5,8 @@ import { ToastController, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { Category } from 'src/app/category/category';
 import { CategoryService } from 'src/app/category/category.service';
-
+import { v4 as uuidv4 } from 'uuid';
+import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-add-category-setting',
   templateUrl: './add-category-setting.component.html',
@@ -15,9 +16,12 @@ import { CategoryService } from 'src/app/category/category.service';
 })
 export class AddCategorySettingComponent implements OnInit {
 
-  public name: string = "";
-  public saveSuggestions: boolean = true;
-  public previousInputs: Category = {} as Category
+  private _name: string = "";
+  private _saveSuggestions: boolean = true;
+  private _previousInputs: Category = {} as Category;
+  private _category: Category | null = null;
+  private _categories: Category[] = [];
+  private _id: string | null = null;
 
   constructor(private location: Location,
     private categoryService: CategoryService,
@@ -25,18 +29,23 @@ export class AddCategorySettingComponent implements OnInit {
     private route: ActivatedRoute) { }
 
   ngOnInit(): void {
-    const index = this.route.snapshot.paramMap.get('id');
-    if (index) {
-      const i = parseInt(index);
-      this.previousInputs = this.categoryService.categories[i];
-      this.name = this.previousInputs.name;
-      this.saveSuggestions = this.previousInputs.saveSuggestions;
-    } else {
-      this.previousInputs = {
-        name: this.name,
-        saveSuggestions: this.saveSuggestions
-      } as Category;
-    }
+    this._id = this.route.snapshot.paramMap.get('id');
+
+    const categoryObservable = this.categoryService.getCategoryById(this._id as string);
+    const categoriesObservable = this.categoryService.getCategories();
+
+    forkJoin([categoryObservable, categoriesObservable]).subscribe(([category, categories]) => {
+      this._category = category.getOrElse(null);
+      this._categories = categories;
+
+      if (this._category) {
+        this._name = this._category.name;
+        this._saveSuggestions = this._category.saveSuggestions;
+      } else {
+        this._name = "";
+        this._saveSuggestions = true;
+      }
+    });
   }
 
   public navigateBack() {
@@ -44,7 +53,7 @@ export class AddCategorySettingComponent implements OnInit {
   }
 
   public saveCategory() {
-    if (this.categoryService.categories.filter(category => category.name == this.name).length > 0) {
+    if (this._categories.filter(category => category.name == this._name).length > 0) {
       let toast = this.toastCtrl.create({
         message: "There already exists a category with this name",
         duration: 2000,
@@ -55,30 +64,62 @@ export class AddCategorySettingComponent implements OnInit {
         toast.present();
       })
     } else {
-      const index = this.route.snapshot.paramMap.get('id');
-      if (index) {
-        this.categoryService.categories[parseInt(index)].name = this.name;
-        this.categoryService.categories[parseInt(index)].saveSuggestions = this.saveSuggestions;
+      if (this._category) {
+        this._category.name = this._name;
+        this._category.saveSuggestions = this._saveSuggestions;
+        this.categoryService.save(this._category);
       } else {
         const category: Category = {
-          name: this.name,
+          id: uuidv4(),
+          name: this._name,
           elements: [],
           suggestions: [],
-          saveSuggestions: this.saveSuggestions
+          saveSuggestions: this._saveSuggestions
         }
-        this.categoryService.categories.push(category);
+        this.categoryService.save(category);
       }
-      this.categoryService.saveCategories();
       this.navigateBack();
     }
   }
 
   public inputChanged(): boolean {
-    const changed = this.name != this.previousInputs.name || this.saveSuggestions != this.previousInputs.saveSuggestions;
+    const changed = this._name != this._category?.name || this._saveSuggestions != this._category?.saveSuggestions;
     return changed;
   }
 
   public editingCategory(): boolean {
     return this.route.snapshot.paramMap.get("id") != null;
+  }
+
+  set categories(categories: Category[]) {
+    this._categories = categories;
+  }
+
+  get categories(): Category[] {
+    return this._categories;
+  } 
+
+  set name(name: string) {
+    this._name = name;
+  }
+
+  get name(): string {
+    return this._name;
+  }
+
+  set saveSuggestions(saveSuggestions: boolean) {
+    this._saveSuggestions = saveSuggestions;
+  }
+
+  get saveSuggestions(): boolean {
+    return this._saveSuggestions;
+  }
+
+  set previousInputs(previousInputs: Category) {
+    this._previousInputs = previousInputs;
+  }
+
+  get previousInputs(): Category {
+    return this._previousInputs;
   }
 }

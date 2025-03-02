@@ -1,57 +1,66 @@
 import {Injectable} from '@angular/core';
-import {Preferences} from '@capacitor/preferences';
 import {Category} from './category';
 import {Ingredient} from '../recipe/models/ingredient.interface';
 import {Recipe} from '../recipe/models/recipe.interface';
 import {ImportanceLevel, ToDo} from '../todo/todo';
-
+import { CategoryRepository } from './category.repository';
+import { map, Observable } from 'rxjs';
+import Optional from '../util/optional';
 @Injectable({
   providedIn: 'root'
 })
 export class CategoryService {
 
-  private CATEGORY_STORAGE: string = 'categories';
-  private LAST_CATEGORY_INDEX: string = 'last-category';
-  public categories: Category[] = [];
-  public lastCategory: number = 0;
-
-  constructor() {
+  constructor(private categoryRepository: CategoryRepository) {
   }
 
-  public async saveCategories() {
-    Preferences.set({key: this.CATEGORY_STORAGE, value: JSON.stringify(this.categories)});
-    Preferences.set({key: this.LAST_CATEGORY_INDEX, value: JSON.stringify(this.lastCategory)});
+  public async initCategories(categories: Category[]) {
+    this.categoryRepository.saveCategories(categories);
+    this.categoryRepository.saveLastCategory(0);
   }
 
-  public async loadCategories() {
-    const {value} = await Preferences.get({key: this.CATEGORY_STORAGE})
-    this.categories = (value ? JSON.parse(value) : []) as Category[];
-    this.loadLastCategory();
+  public async save(category: Category) {
+    this.categoryRepository.save(category);
   }
 
-  public async clearCategories() {
-    this.categories.length = 0;
-    Preferences.remove({key: this.CATEGORY_STORAGE})
+  public async saveCategories(categories: Category[]) {
+    this.categoryRepository.saveCategories(categories);
   }
 
-  public async loadLastCategory() {
-    const {value} = await Preferences.get({key: this.LAST_CATEGORY_INDEX})
-    this.lastCategory = (value ? JSON.parse(value) : 0) as number;
+  public async saveLastCategory(index: number) {
+    this.categoryRepository.saveLastCategory(index);
   }
 
-  public async addIngredientsToCategory(category: string, recipe: Recipe) {
-    await this.loadCategories().then(() => {
-      const cat = this.categories.find((cat) => cat.name === category);
-      if (cat) {
-        const index = this.categories.indexOf(cat);
+  public getCategories(): Observable<Category[]> {
+    return this.categoryRepository.getCategories();
+  }
+
+  public getCategoryById(id: string): Observable<Optional<Category>> {
+    return this.categoryRepository.findCategoryById(id);
+  }
+
+  public getLastCategory(): Observable<number> {
+    return this.categoryRepository.getLastCategory();
+  }
+
+  public deleteAllCategories(): Observable<void> {
+    return this.categoryRepository.deleteAllCategories();
+  }
+
+  public deleteCategory(id: string): void {
+    this.categoryRepository.deleteCategory(id);
+  }
+
+  public addIngredientsToCategory(categoryId: string, recipe: Recipe) {
+    this.categoryRepository.findCategoryById(categoryId).subscribe((category) => {
+      category.ifPresentOrElse((cat) => {
         const toDos: ToDo[] = recipe.ingredients.map((item) => this.ingredientToTodo(item))
-        toDos.forEach((toDo) => {
-          this.categories[index].elements.push(toDo);
-        });
-
-        this.saveCategories();
-      }
-    })
+        cat.elements.push(...toDos);
+        this.save(cat);
+      }, () => {
+        throw new Error('Category with id ' + categoryId + ' not found');
+      });
+    });
   }
 
   private ingredientToTodo(ingredient: Ingredient): ToDo {
