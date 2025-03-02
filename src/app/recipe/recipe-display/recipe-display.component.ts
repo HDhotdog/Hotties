@@ -25,7 +25,7 @@ export class RecipeDisplayComponent implements OnInit {
   private _recipeUuid!: string;
   private _recipe!: Recipe;
   private _isLoading: boolean = true;
-  private _selectedCategoryName!: string;
+  private _selectedCategoryId!: string;
   private _categories: Category[] = [];
 
   @ViewChild("selectionList", { static: false })
@@ -65,7 +65,7 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   public async ok() {
-    await this.categoryService.addIngredientsToCategory(this._selectedCategoryName, this._recipe!);
+    await this.categoryService.addIngredientsToCategory(this._selectedCategoryId, this._recipe!);
   }
   public exportIngredients() {
     this.selectionList.open();
@@ -100,11 +100,11 @@ export class RecipeDisplayComponent implements OnInit {
     return this._categories;
   }
 
-  set selectedCategoryName(selectedCategoryName: string) {
-    this._selectedCategoryName = selectedCategoryName;
+  set selectedCategoryId(selectedCategoryId: string) {
+    this._selectedCategoryId = selectedCategoryId;
   }
 
-  get selectedCategoryName(): string {
-    return this._selectedCategoryName;
+  get selectedCategoryId(): string {
+    return this._selectedCategoryId;
   }
 }
