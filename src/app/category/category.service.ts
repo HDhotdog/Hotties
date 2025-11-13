@@ -4,7 +4,7 @@ import {Ingredient} from '../recipe/models/ingredient.interface';
 import {Recipe} from '../recipe/models/recipe.interface';
 import {ImportanceLevel, ToDo} from '../todo/todo';
 import { CategoryRepository } from './category.repository';
-import { map, Observable } from 'rxjs';
+import { forkJoin, map, Observable } from 'rxjs';
 import Optional from '../util/optional';
 @Injectable({
   providedIn: 'root'
@@ -14,17 +14,22 @@ export class CategoryService {
   constructor(private categoryRepository: CategoryRepository) {
   }
 
-  public async initCategories(categories: Category[]) {
-    this.categoryRepository.saveCategories(categories);
-    this.categoryRepository.saveLastCategory(0);
+  public initCategories(categories: Category[]): Observable<void> {
+    const saveAll = this.categoryRepository.saveAll(categories);
+    const saveLastCategory = this.categoryRepository.saveLastCategory(0);
+    return forkJoin([saveAll, saveLastCategory]).pipe(
+      map(() => {
+        return;
+      })
+    );
   }
 
-  public async save(category: Category) {
-    this.categoryRepository.save(category);
+  public save(category: Category): Observable<void> {
+    return this.categoryRepository.save(category);
   }
 
-  public async saveCategories(categories: Category[]) {
-    this.categoryRepository.saveCategories(categories);
+  public saveAll(categories: Category[]): Observable<void> {
+    return this.categoryRepository.saveAll(categories);
   }
 
   public async saveLastCategory(index: number) {
@@ -32,7 +37,7 @@ export class CategoryService {
   }
 
   public getCategories(): Observable<Category[]> {
-    return this.categoryRepository.getCategories();
+    return this.categoryRepository.findAll();
   }
 
   public getCategoryById(id: string): Observable<Optional<Category>> {

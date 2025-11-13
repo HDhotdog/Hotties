@@ -48,8 +48,9 @@ export class CategorySettingComponent {
   handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
     [this._categories[ev.detail.from], this._categories[ev.detail.to]]
       = [this._categories[ev.detail.to], this._categories[ev.detail.from]];
-    this.categoryService.saveCategories(this._categories);
-    ev.detail.complete();
+    this.categoryService.saveAll(this._categories).subscribe(() => {
+      ev.detail.complete();
+    });
   }
 
   get categories(): Category[] {

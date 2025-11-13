@@ -11,6 +11,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import { Platform } from '@ionic/angular';
 import { v4 as uuidv4 } from 'uuid';
 import { SafeArea } from '@aashu-dubey/capacitor-statusbar-safe-area';
+import {DatabaseService} from "./database/database";
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -20,7 +21,7 @@ import { SafeArea } from '@aashu-dubey/capacitor-statusbar-safe-area';
 })
 export class AppComponent implements OnInit {
   constructor(
-    private appService: AppService, 
+    private appService: AppService,
     private categoryService: CategoryService,
     private labelService: LabelService,
     private platform: Platform
@@ -41,19 +42,20 @@ export class AppComponent implements OnInit {
       console.log(height);
     });
   }
-  
+
 
   async adjustSafeArea() {
     const {height} = await SafeArea.getStatusBarHeight();
-    document.documentElement.style.setProperty('--ion-safe-area-top', `${height}px`);  
+    document.documentElement.style.setProperty('--ion-safe-area-top', `${height}px`);
     return height;
   }
 
   async ngOnInit() {
-    await this.appService.loadInitialValues();
-    if (this.appService.firstTime) {
-      this.initValues()
-    }
+    this.initValues();
+    // await this.appService.loadInitialValues();
+    // if (this.appService.firstTime) {
+    //   this.initValues()
+    // }
   }
 
   private initValues() {
@@ -105,6 +107,6 @@ export class AppComponent implements OnInit {
     this.categoryService.save(category);
     this.categoryService.saveLastCategory(0);
     this.appService.firstTime = false;
-    this.appService.saveInitalValues();
+    this.appService.saveInitialValues();
   }
 }

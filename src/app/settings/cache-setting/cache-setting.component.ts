@@ -30,7 +30,6 @@ export class CacheSettingComponent {
 
     this.categoryService.deleteAllCategories().subscribe(() => {
       this.categoryService.initCategories([category]);
-      // this.categoryService.saveLastCategory(0);
     });
   }
 

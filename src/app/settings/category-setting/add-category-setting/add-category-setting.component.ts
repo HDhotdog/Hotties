@@ -64,21 +64,23 @@ export class AddCategorySettingComponent implements OnInit {
         toast.present();
       })
     } else {
+      let category: Category;
       if (this._category) {
         this._category.name = this._name;
         this._category.saveSuggestions = this._saveSuggestions;
-        this.categoryService.save(this._category);
+        category = this._category;
       } else {
-        const category: Category = {
+         category ={
           id: uuidv4(),
           name: this._name,
           elements: [],
           suggestions: [],
           saveSuggestions: this._saveSuggestions
         }
-        this.categoryService.save(category);
       }
-      this.navigateBack();
+      this.categoryService.save(category).subscribe(() => {
+        this.navigateBack();
+      });
     }
   }
 
