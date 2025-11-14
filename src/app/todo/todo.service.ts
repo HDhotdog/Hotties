@@ -1,29 +1,29 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { ToDo } from './todo';
+import { RxToDo } from './rxToDo';
+import {TodoRepository} from "./todo.repository";
+import {Observable} from "rxjs";
 
 @Injectable({
     providedIn: 'root'
 })
 export class TodoService {
-
-    private TODO_STORAGE: string = 'todos';
-    public todos: ToDo[] = [];
-
-    constructor() {
+    constructor(private todoRepository: TodoRepository) {
     }
 
-    public async saveTodos() {
-        Preferences.set({ key: this.TODO_STORAGE, value: JSON.stringify(this.todos) });
+    public save(todo: RxToDo): Observable<RxToDo> {
+      return this.todoRepository.save(todo)
     }
 
-    public async loadTodos() {
-        const { value } = await Preferences.get({ key: this.TODO_STORAGE })
-        this.todos = (value ? JSON.parse(value) : []) as ToDo[];
+    public findAll(): Observable<RxToDo[]> {
+      return this.todoRepository.findAll();
     }
 
-    public async clearTodos() {
-        this.todos.length = 0;
-        Preferences.remove({ key: this.TODO_STORAGE })
+    public findByCategoryId(categoryId: string): Observable<RxToDo[]> {
+      return this.todoRepository.findByCategoryId(categoryId);
+    }
+
+    public deleteById(id: string): Observable<boolean> {
+      return this.todoRepository.deleteById(id);
     }
 }

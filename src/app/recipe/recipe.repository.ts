@@ -1,8 +1,7 @@
-import { Injectable } from "@angular/core";
-import { Recipe } from "./models/recipe.interface";
-import { Preferences } from "@capacitor/preferences";
-import { catchError, of, Observable, map, from, take, switchMap } from "rxjs";
-import { Category } from "../category/category";
+import {Injectable} from "@angular/core";
+import {Recipe} from "./models/recipe.interface";
+import {Preferences} from "@capacitor/preferences";
+import {catchError, from, map, Observable, of, switchMap, take} from "rxjs";
 
 @Injectable({
     providedIn: 'root'
@@ -32,7 +31,7 @@ export class RecipeRepository {
                 }
                 return recipes;
             }),
-            switchMap((updatedRecipes) => 
+            switchMap((updatedRecipes) =>
                 from(Preferences.set({ key: this.RECIPE_STORAGE, value: JSON.stringify(updatedRecipes) }))
             )
         );
@@ -62,7 +61,7 @@ export class RecipeRepository {
         return this.findAll().pipe(
             take(1), // Ensure we only fetch the latest list once
             map((recipes) => recipes.filter((recipe) => recipe.id !== id)), // Remove the recipe
-            switchMap((updatedRecipes) => 
+            switchMap((updatedRecipes) =>
                 from(Preferences.set({ key: this.RECIPE_STORAGE, value: JSON.stringify(updatedRecipes) }))
             )
         );

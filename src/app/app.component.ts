@@ -1,17 +1,14 @@
 import {Component, OnInit} from '@angular/core';
 import {AppService} from './app.service';
-import {CategoryService} from './category/category.service';
-import {Category} from './category/category';
 import {LabelGroup} from "./label/models/label.interface";
 import {LabelService} from "./settings/label-setting/label-service.service";
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { Keyboard } from '@capacitor/keyboard';
-import { Platform } from '@ionic/angular';
-import { v4 as uuidv4 } from 'uuid';
-import { SafeArea } from '@aashu-dubey/capacitor-statusbar-safe-area';
-import {DatabaseService} from "./database/database";
+import {IonicModule, Platform} from '@ionic/angular';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {Keyboard} from '@capacitor/keyboard';
+import {v4 as uuidv4} from 'uuid';
+import {SafeArea} from '@aashu-dubey/capacitor-statusbar-safe-area';
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -22,7 +19,6 @@ import {DatabaseService} from "./database/database";
 export class AppComponent implements OnInit {
   constructor(
     private appService: AppService,
-    private categoryService: CategoryService,
     private labelService: LabelService,
     private platform: Platform
   ) {
@@ -33,8 +29,8 @@ export class AppComponent implements OnInit {
     this.platform.ready().then(() => {
       // Configure keyboard behavior
       if (this.platform.is('capacitor')) {
-        Keyboard.setResizeMode({ mode: 'ionic' as any });
-        Keyboard.setScroll({ isDisabled: false });
+        Keyboard.setResizeMode({mode: 'ionic' as any});
+        Keyboard.setScroll({isDisabled: false});
       }
     });
 
@@ -52,21 +48,9 @@ export class AppComponent implements OnInit {
 
   async ngOnInit() {
     this.initValues();
-    // await this.appService.loadInitialValues();
-    // if (this.appService.firstTime) {
-    //   this.initValues()
-    // }
   }
 
   private initValues() {
-    const category: Category = {
-      id: uuidv4(),
-      name: "Shopping List",
-      elements: [],
-      suggestions: [],
-      saveSuggestions: true
-    }
-
     const kindLabels: LabelGroup = {
       id: uuidv4(),
       name: "Art",
@@ -104,9 +88,6 @@ export class AppComponent implements OnInit {
       ]
     }
     this.labelService.saveLabels([kindLabels, tasteLabels]);
-    this.categoryService.save(category);
-    this.categoryService.saveLastCategory(0);
-    this.appService.firstTime = false;
-    this.appService.saveInitialValues();
+    this.appService.saveInitialValues().subscribe();
   }
 }

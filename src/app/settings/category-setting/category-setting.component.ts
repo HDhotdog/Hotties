@@ -2,8 +2,8 @@ import { Location, CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
-import { Category } from 'src/app/category/category';
 import { CategoryService } from 'src/app/category/category.service';
+import {RxCategory} from "../../category/category";
 
 @Component({
   selector: 'app-category-setting',
@@ -14,7 +14,7 @@ import { CategoryService } from 'src/app/category/category.service';
 })
 export class CategorySettingComponent {
 
-  private _categories: Category[] = [];
+  private _categories: RxCategory[] = [];
 
   constructor(
     private categoryService: CategoryService,
@@ -41,19 +41,19 @@ export class CategorySettingComponent {
   }
 
   public deleteCategory(id: string) {
-    this.categoryService.deleteCategory(id);
+    this.categoryService.deleteCategory(id).subscribe();
     this._categories = this._categories.filter((category) => category.id !== id);
   }
 
-  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
-    [this._categories[ev.detail.from], this._categories[ev.detail.to]]
-      = [this._categories[ev.detail.to], this._categories[ev.detail.from]];
-    this.categoryService.saveAll(this._categories).subscribe(() => {
-      ev.detail.complete();
-    });
-  }
+  // handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
+  //   [this._categories[ev.detail.from], this._categories[ev.detail.to]]
+  //     = [this._categories[ev.detail.to], this._categories[ev.detail.from]];
+  //   this.categoryService.saveAll(this._categories).subscribe(() => {
+  //     ev.detail.complete();
+  //   });
+  // }
 
-  get categories(): Category[] {
+  get categories(): RxCategory[] {
     return this._categories;
   }
 }

@@ -1,8 +1,9 @@
 import {Injectable} from '@angular/core';
 import {Preferences} from '@capacitor/preferences';
-import {DatabaseService} from "./database/database";
 import {RxCategory} from "./category/category";
-import {CategoryRepository} from "./category/category.repository";
+import {CategoryService} from "./category/category.service";
+import {v4 as UUIDv4} from 'uuid';
+import {Observable} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -13,17 +14,17 @@ export class AppService {
   private HEIGHT_STORAGE: string = 'first-height';
   public firstTime: boolean = false;
 
-  constructor(private repo: CategoryRepository) {
+  constructor(private categoryService: CategoryService) {
   }
 
-  public async saveInitialValues() {
-    const cat = {
-      id: "1",
+  public saveInitialValues(): Observable<RxCategory> {
+    const edeka = {
+      id: UUIDv4(),
       name: "Edeka"
     } as RxCategory;
-    const doc = await this.repo.saveOrUpdateCategory(cat)
-    console.log(doc.get("name"))
-    Preferences.set({key: this.INIT_STORAGE, value: JSON.stringify(this.firstTime)});
+
+    localStorage.setItem("selectedCategoryId", edeka.id);
+    return this.categoryService.save(edeka)
   }
 
   public async loadInitialValues() {

@@ -5,9 +5,9 @@ import {RecipeService} from '../recipe.service';
 import {Recipe} from '../models/recipe.interface';
 import {CategoryService} from 'src/app/category/category.service';
 import {IonSelect, IonicModule} from "@ionic/angular";
-import {Category} from "../../category/category";
 import {FormsModule} from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import {RxCategory} from "../../category/category";
 
 
 @Component({
@@ -26,7 +26,7 @@ export class RecipeDisplayComponent implements OnInit {
   private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
   private _selectedCategoryId!: string;
-  private _categories: Category[] = [];
+  private _categories: RxCategory[] = [];
 
   @ViewChild("selectionList", { static: false })
   public selectionList!: IonSelect;
@@ -97,7 +97,7 @@ export class RecipeDisplayComponent implements OnInit {
     return this._isLoading;
   }
 
-  get categories(): Category[] {
+  get categories(): RxCategory[] {
     return this._categories;
   }
 

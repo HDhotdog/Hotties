@@ -20,14 +20,16 @@
       </ion-button>
     </ion-item>
 
-    <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorder($any($event))">
-      <ion-item *ngFor="let category of this.categories">
-        <ion-reorder slot="start"></ion-reorder>
-        <ion-label>{{category.name}}</ion-label>
-        <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button" (click)="editCategory(category.id)"></ion-icon>
-        <ion-icon *ngIf="this.categories.length > 1" aria-hidden="true" name="trash" slot="end"
-          (click)="deleteCategory(category.id)" class="delete-button"></ion-icon>
-      </ion-item>
+    <ion-reorder-group [disabled]="false">
+    <!--                       (ionItemReorder)="handleReorder($any($event))-->
+    <ion-item *ngFor="let category of this.categories">
+      <ion-reorder slot="start"></ion-reorder>
+      <ion-label>{{ category.name }}</ion-label>
+      <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button"
+                (click)="editCategory(category.id)"></ion-icon>
+      <ion-icon *ngIf="this.categories.length > 1" aria-hidden="true" name="trash" slot="end"
+                (click)="deleteCategory(category.id)" class="delete-button"></ion-icon>
+    </ion-item>
     </ion-reorder-group>
   </ion-list>
 </ion-content>

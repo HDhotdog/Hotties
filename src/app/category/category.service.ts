@@ -1,11 +1,13 @@
 import {Injectable} from '@angular/core';
-import {Category} from './category';
+import {RxCategory} from './category';
 import {Ingredient} from '../recipe/models/ingredient.interface';
 import {Recipe} from '../recipe/models/recipe.interface';
-import {ImportanceLevel, ToDo} from '../todo/todo';
-import { CategoryRepository } from './category.repository';
-import { forkJoin, map, Observable } from 'rxjs';
-import Optional from '../util/optional';
+import {RxToDo} from '../todo/rxToDo';
+import {CategoryRepository} from './category.repository';
+import {Observable, of} from 'rxjs';
+import {ImportanceLevel} from "../todo/importance-level.enum";
+import {v4 as UUIDv4} from 'uuid';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -14,63 +16,75 @@ export class CategoryService {
   constructor(private categoryRepository: CategoryRepository) {
   }
 
-  public initCategories(categories: Category[]): Observable<void> {
-    const saveAll = this.categoryRepository.saveAll(categories);
-    const saveLastCategory = this.categoryRepository.saveLastCategory(0);
-    return forkJoin([saveAll, saveLastCategory]).pipe(
-      map(() => {
-        return;
-      })
-    );
+  public initCategories(categories: RxCategory[]): Observable<void> {
+    // const saveAll = this.categoryRepository.saveAll(categories);
+    // const saveLastCategory = this.categoryRepository.saveLastCategory(0);
+    // return forkJoin([saveAll, saveLastCategory]).pipe(
+    //   map(() => {
+    //     return;
+    //   })
+    // );
+    return of()
   }
 
-  public save(category: Category): Observable<void> {
+  public save(category: RxCategory): Observable<RxCategory> {
     return this.categoryRepository.save(category);
   }
 
-  public saveAll(categories: Category[]): Observable<void> {
+  public saveAll(categories: RxCategory[]): Observable<RxCategory[]> {
     return this.categoryRepository.saveAll(categories);
   }
 
-  public async saveLastCategory(index: number) {
-    this.categoryRepository.saveLastCategory(index);
-  }
+  // public async saveLastCategory(index: number) {
+  //   this.categoryRepository.saveLastCategory(index);
+  // }
 
-  public getCategories(): Observable<Category[]> {
+  public getCategories(): Observable<RxCategory[]> {
     return this.categoryRepository.findAll();
   }
 
-  public getCategoryById(id: string): Observable<Optional<Category>> {
-    return this.categoryRepository.findCategoryById(id);
+  public getCategoryById(categoryId: string): Observable<RxCategory> {
+    return this.categoryRepository.findById(categoryId);
   }
 
-  public getLastCategory(): Observable<number> {
-    return this.categoryRepository.getLastCategory();
+  // public getCategoryById(id: string): Observable<Optional<RxCategory>> {
+  //   return this.categoryRepository.findCategoryById(id);
+  // }
+  //
+  // public getLastCategory(): Observable<number> {
+  //   return this.categoryRepository.getLastCategory();
+  // }
+  //
+  public deleteAllCategories(): Observable<number> {
+    return this.categoryRepository.deleteAll();
   }
 
-  public deleteAllCategories(): Observable<void> {
-    return this.categoryRepository.deleteAllCategories();
+  //
+  public deleteCategory(id: string): Observable<boolean> {
+    return this.categoryRepository.deleteById(id);
   }
 
-  public deleteCategory(id: string): void {
-    this.categoryRepository.deleteCategory(id);
+  public saveCurrentCategory(category: RxCategory): void {
+    localStorage.setItem("selectedCategoryId", category.id);
   }
 
-  public addIngredientsToCategory(categoryId: string, recipe: Recipe) {
-    this.categoryRepository.findCategoryById(categoryId).subscribe((category) => {
-      category.ifPresentOrElse((cat) => {
-        const toDos: ToDo[] = recipe.ingredients.map((item) => this.ingredientToTodo(item))
-        cat.elements.push(...toDos);
-        this.save(cat);
-      }, () => {
-        throw new Error('Category with id ' + categoryId + ' not found');
-      });
-    });
+  public addIngredientsToCategory(categoryId: string, recipe: Recipe): void {
+    // this.categoryRepository.findCategoryById(categoryId).subscribe((category) => {
+    //   category.ifPresentOrElse((cat) => {
+    //     const toDos: RxToDo[] = recipe.ingredients.map((item) => this.ingredientToTodo(categoryId, item))
+    //     // cat.elements.push(...toDos);
+    //     this.save(cat);
+    //   }, () => {
+    //     throw new Error('Category with id ' + categoryId + ' not found');
+    //   });
+    // });
   }
 
-  private ingredientToTodo(ingredient: Ingredient): ToDo {
+  private ingredientToTodo(categoryId: string, ingredient: Ingredient): RxToDo {
     return {
-      task: ingredient.name,
+      id: UUIDv4(),
+      categoryId: categoryId,
+      name: ingredient.name,
       done: false,
       importance: ImportanceLevel.NORMAL
     }

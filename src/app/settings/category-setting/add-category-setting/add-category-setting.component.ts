@@ -1,12 +1,13 @@
-import { Location, CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ToastController, IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
-import { Category } from 'src/app/category/category';
-import { CategoryService } from 'src/app/category/category.service';
-import { v4 as uuidv4 } from 'uuid';
-import { forkJoin } from 'rxjs';
+import {CommonModule, Location} from '@angular/common';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, RouterModule} from '@angular/router';
+import {IonicModule, ToastController} from '@ionic/angular';
+import {FormsModule} from '@angular/forms';
+import {CategoryService} from 'src/app/category/category.service';
+import {v4 as uuidv4} from 'uuid';
+import {forkJoin} from 'rxjs';
+import {RxCategory} from "../../../category/category";
+
 @Component({
   selector: 'app-add-category-setting',
   templateUrl: './add-category-setting.component.html',
@@ -18,15 +19,16 @@ export class AddCategorySettingComponent implements OnInit {
 
   private _name: string = "";
   private _saveSuggestions: boolean = true;
-  private _previousInputs: Category = {} as Category;
-  private _category: Category | null = null;
-  private _categories: Category[] = [];
+  private _previousInputs: RxCategory = {} as RxCategory;
+  private _category: RxCategory | null = null;
+  private _categories: RxCategory[] = [];
   private _id: string | null = null;
 
   constructor(private location: Location,
-    private categoryService: CategoryService,
-    private toastCtrl: ToastController,
-    private route: ActivatedRoute) { }
+              private categoryService: CategoryService,
+              private toastCtrl: ToastController,
+              private route: ActivatedRoute) {
+  }
 
   ngOnInit(): void {
     this._id = this.route.snapshot.paramMap.get('id');
@@ -35,7 +37,7 @@ export class AddCategorySettingComponent implements OnInit {
     const categoriesObservable = this.categoryService.getCategories();
 
     forkJoin([categoryObservable, categoriesObservable]).subscribe(([category, categories]) => {
-      this._category = category.getOrElse(null);
+      this._category = category
       this._categories = categories;
 
       if (this._category) {
@@ -64,17 +66,15 @@ export class AddCategorySettingComponent implements OnInit {
         toast.present();
       })
     } else {
-      let category: Category;
+      let category: RxCategory;
       if (this._category) {
         this._category.name = this._name;
         this._category.saveSuggestions = this._saveSuggestions;
         category = this._category;
       } else {
-         category ={
+        category = {
           id: uuidv4(),
           name: this._name,
-          elements: [],
-          suggestions: [],
           saveSuggestions: this._saveSuggestions
         }
       }
@@ -93,13 +93,13 @@ export class AddCategorySettingComponent implements OnInit {
     return this.route.snapshot.paramMap.get("id") != null;
   }
 
-  set categories(categories: Category[]) {
+  set categories(categories: RxCategory[]) {
     this._categories = categories;
   }
 
-  get categories(): Category[] {
+  get categories(): RxCategory[] {
     return this._categories;
-  } 
+  }
 
   set name(name: string) {
     this._name = name;
@@ -117,11 +117,11 @@ export class AddCategorySettingComponent implements OnInit {
     return this._saveSuggestions;
   }
 
-  set previousInputs(previousInputs: Category) {
+  set previousInputs(previousInputs: RxCategory) {
     this._previousInputs = previousInputs;
   }
 
-  get previousInputs(): Category {
+  get previousInputs(): RxCategory {
     return this._previousInputs;
   }
 }

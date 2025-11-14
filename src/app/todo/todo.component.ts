@@ -1,12 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { Category } from '../category/category';
-import { CategoryService } from '../category/category.service';
-import { Suggestion } from './suggestion/suggestion';
-import { ToDo, ImportanceLevel } from './todo';
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import {Component, OnInit} from '@angular/core';
+import {CategoryService} from '../category/category.service';
+import {RxSuggestion} from './suggestion/rxSuggestion';
+import {RxToDo} from './rxToDo';
+import {IonicModule} from '@ionic/angular';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {ImportanceLevel} from "./importance-level.enum";
+import {RxCategory} from "../category/category";
+import {v4 as UUIDv4} from 'uuid';
+import {TodoService} from "./todo.service";
+import {SuggestionService} from "./suggestion/suggestion.service";
+import {SuggestionFactory} from "./suggestion/suggestion-factory";
+
 
 @Component({
   selector: 'app-todo',
@@ -19,10 +24,10 @@ export class TodoComponent implements OnInit {
 
   private _inputField: string = "";
   private _categoryInputField: string = "";
-  private _currentSuggestion: Suggestion = { suggestion: "Cookies", suffix: "! :D" };
+  private _currentSuggestion: RxSuggestion = {} as RxSuggestion;
   private _sortIncreasing: boolean = true;
-  private _currentCategoryIndex: number = 0;
-  private _selectedCategory: Category = {} as Category;
+  private _currentCategoryIndex: string = "";
+  private _selectedCategory: RxCategory = {} as RxCategory;
   private _showColorBar: boolean = true;
   private _currentImportanceLevel: ImportanceLevel = ImportanceLevel.NORMAL;
   private suggestion_suffixes: string[] = [
@@ -37,94 +42,114 @@ export class TodoComponent implements OnInit {
     [ImportanceLevel.VERY_HIGH]: '#ff00ff'
   };
 
-  private _categories: Category[] = [];
+  private _categories: RxCategory[] = [];
+  private _suggestions: RxSuggestion[] = [];
+  private _tasks: RxToDo[] = [];
 
-  constructor(private categoryService: CategoryService) {
+  constructor(private categoryService: CategoryService,
+              private todoService: TodoService,
+              private suggestionService: SuggestionService) {
   }
 
   async ngOnInit() {
-    const categories = this.categoryService.getCategories();
-    const lastCategory = this.categoryService.getLastCategory();
-    
-    forkJoin([categories, lastCategory]).subscribe(([categories, lastCategory]) => {
-      this._categories = categories;
-      this._currentCategoryIndex = lastCategory;
-      this._selectedCategory = categories[this._currentCategoryIndex];
-      this._categoryInputField = this._selectedCategory.name;
-      this._isLoading = false;
-    });
+    this.init();
   }
 
   async ionViewWillEnter() {
-    const categories = this.categoryService.getCategories();
-    const lastCategory = this.categoryService.getLastCategory();
-
-    forkJoin([categories, lastCategory]).subscribe(([categories, lastCategory]) => {
-      this._categories = categories;
-      this._currentCategoryIndex = lastCategory;
-      this._selectedCategory = categories[this._currentCategoryIndex];
-      this._categoryInputField = this._selectedCategory.name;
-      this._isLoading = false;
-    });
-
+    this.init();
     this.generateSuggestion();
   }
 
+  private init() {
+    const categories = this.categoryService.getCategories();
+
+    categories.subscribe((categories) => {
+      this._categories = categories;
+      this._selectedCategory = categories[0];
+      this._currentCategoryIndex = localStorage.getItem('selectedCategoryId') || this.categories[0].id;
+      this._categoryInputField = this._selectedCategory.name;
+      this._currentSuggestion = {
+        id: UUIDv4(),
+        categoryId: this.selectedCategory.id,
+        suggestion: "Cookies",
+        suffix: "! :D"
+      }
+      this.refreshTodos();
+    })
+  }
+
+  public refreshTodos(): void {
+    this._isLoading = true;
+    this.todoService.findByCategoryId(this.selectedCategory.id).subscribe(
+      (tasks) => {
+        this._tasks = tasks;
+        this._isLoading = false;
+      }
+    )
+  }
+
   public addTodo(task: string) {
-    const newTodo: ToDo = {
-      task: task.trim() ? task : this._currentSuggestion.suggestion,
+    const newTodo: RxToDo = {
+      id: UUIDv4(),
+      categoryId: this.selectedCategory.id,
+      name: task.trim() ? task : this._currentSuggestion.suggestion,
       done: false,
       importance: this._currentImportanceLevel || ImportanceLevel.NORMAL
     };
 
-    this._selectedCategory.elements.push(newTodo);
-    
+    this.todoService.save(newTodo).subscribe();
+
     if (task.trim()) {
       this.saveSuggestion(task);
     }
-    
+
     this._inputField = "";
-    this.categoryService.save(this._selectedCategory);
-    this.generateSuggestion();
+    // this.generateSuggestion();
   }
 
   public clearTodos() {
-    this._selectedCategory.elements.forEach(todo => todo.done = true);
+    // this._selectedCategory.elements.forEach(todo => todo.done = true);
     setTimeout(() => {
-      this._selectedCategory.elements.length = 0;
+      // this._selectedCategory.elements.length = 0;
       this.categoryService.save(this._selectedCategory);
     }, 1100);
   }
 
-  public markAsDone(todo: ToDo) {
-    const todoIndex = this._selectedCategory.elements.indexOf(todo);
-    if (todoIndex === -1) return; // Todo not found
-    
-    this._selectedCategory.elements.splice(todoIndex, 1);
-    this.categoryService.save(this._selectedCategory);
+  public markAsDone(todo: RxToDo) {
+    this.todoService.deleteById(todo.id).subscribe();
+    this.refreshTodos();
+    // const todoIndex = this._selectedCategory.elements.indexOf(todo);
+    // if (todoIndex === -1) return; // Todo not found
+    //
+    // this._selectedCategory.elements.splice(todoIndex, 1);
+    // this.categoryService.save(this._selectedCategory);
   }
 
   public generateSuggestion(): void {
-    if (this._selectedCategory.suggestions.length == 0) {
-      this._selectedCategory.suggestions.push("Cookies");
+    if (this._suggestions.length == 0) {
+      this.suggestionService.save(SuggestionFactory.createSuggestionWithoutSuffix("Cookies", this.selectedCategory.id))
+        .subscribe();
     }
+    const suggestion = this._suggestions[Math.floor(Math.random() * this._suggestions.length)];
 
-    const suggestion = this._selectedCategory.suggestions[Math.floor(Math.random() * this._selectedCategory.suggestions.length)];
+    // const suggestion = this._selectedCategory.suggestions[Math.floor(Math.random() * this._selectedCategory.suggestions.length)];
     const suffix = this.suggestion_suffixes[Math.floor(Math.random() * this.suggestion_suffixes.length)];
     this._currentSuggestion = {
-      suggestion: suggestion,
+      id: suggestion.id,
+      categoryId: suggestion.categoryId,
+      suggestion: suggestion.suggestion,
       suffix: suffix
     }
   }
 
-  private saveSuggestion(text: string) {
+  private saveSuggestion(suggestionText: string) {
     if (this._selectedCategory.saveSuggestions) {
-      const included: boolean = this._selectedCategory.suggestions
-        .filter((sugg) => sugg.toLowerCase() == text.trim().toLowerCase()).length > 0
+      const included: boolean = this._suggestions
+        .filter((suggestion) => suggestion.suggestion.toLowerCase() == suggestionText.trim().toLowerCase()).length > 0
 
       if (!included) {
-        this._selectedCategory.suggestions.push(text);
-        this.categoryService.save(this._selectedCategory);
+        this.suggestionService.save(SuggestionFactory.createSuggestionWithoutSuffix(suggestionText, this.selectedCategory.id))
+          .subscribe()
       }
     }
   }
@@ -136,14 +161,15 @@ export class TodoComponent implements OnInit {
   public changeSort() {
     if (this._sortIncreasing) {
       this._sortIncreasing = false;
-      this._selectedCategory.elements.sort(function (a, b) {
-        return a.task.localeCompare(b.task);
-      });
+      //TODO fix
+      // this._selectedCategory.elements.sort(function (a, b) {
+      //   return a.task.localeCompare(b.task);
+      // });
     } else {
       this._sortIncreasing = true;
-      this._selectedCategory.elements.sort(function (a, b) {
-        return b.task.localeCompare(a.task);
-      });
+      // this._selectedCategory.elements.sort(function (a, b) {
+      //   return b.task.localeCompare(a.task);
+      // });
     }
 
     this.categoryService.save(this._selectedCategory);
@@ -151,11 +177,17 @@ export class TodoComponent implements OnInit {
 
   public changeCategory() {
     this.categoryService.getCategories().subscribe((categories) => {
-      const index = categories.map(function (e) { return e.name; }).indexOf(this._categoryInputField);
+      const index = categories.map(function (e) {
+        return e.name;
+      }).indexOf(this._categoryInputField);
       if (index >= 0) {
         this._selectedCategory = categories[index];
-        this._currentCategoryIndex = index;
-        this.categoryService.saveLastCategory(this._currentCategoryIndex);
+        this._currentCategoryIndex = this._selectedCategory.id;
+        this.suggestionService.findByCategoryId(this.selectedCategory.id)
+          .subscribe((suggestions) => {
+            this._suggestions = suggestions;
+          })
+        this.categoryService.saveCurrentCategory(this.selectedCategory);
       }
       this.generateSuggestion();
     });
@@ -189,7 +221,7 @@ export class TodoComponent implements OnInit {
     this._currentImportanceLevel = this.getCircleColor(level);
   }
 
-  get categories(): Category[] {
+  get categories(): RxCategory[] {
     return this._categories;
   }
 
@@ -213,7 +245,7 @@ export class TodoComponent implements OnInit {
     this._categoryInputField = categoryInputField;
   }
 
-  get currentSuggestion(): Suggestion {
+  get currentSuggestion(): RxSuggestion {
     return this._currentSuggestion;
   }
 
@@ -221,11 +253,11 @@ export class TodoComponent implements OnInit {
     return this._sortIncreasing;
   }
 
-  get currentCategoryIndex(): number {
+  get currentCategoryIndex(): string {
     return this._currentCategoryIndex;
   }
 
-  get selectedCategory(): Category {
+  get selectedCategory(): RxCategory {
     return this._selectedCategory;
   }
 
@@ -249,4 +281,7 @@ export class TodoComponent implements OnInit {
     return this._isLoading;
   }
 
+  get categoryTasks() {
+    return this._tasks;
+  }
 }

@@ -14,8 +14,12 @@ export const CATEGORY_SCHEMA_LITERAL = {
         maxLength: 255,
         default: 'category name',
       },
+      saveSuggestions: {
+        type: 'boolean',
+        default: false,
+      }
     },
-    required: ['id', 'name'],
+    required: ['id', 'name', 'saveSuggestions'],
   }
 };
 

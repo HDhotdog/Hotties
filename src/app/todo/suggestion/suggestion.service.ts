@@ -1,32 +1,38 @@
-import { Injectable } from '@angular/core';
-import { Preferences } from '@capacitor/preferences';
+import {Injectable} from '@angular/core';
+import {Preferences} from '@capacitor/preferences';
+import {SuggestionRepository} from "./suggestion.repository";
+import {Observable} from "rxjs";
+import {RxSuggestion} from "./rxSuggestion";
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class SuggestionService {
 
-    private SUGGESTION_STORAGE: string = 'suggestion';
-    public suggestions: string[] = [];
+  constructor(private suggestionRepository: SuggestionRepository) {
+  }
 
-    constructor() {
-    }
+  public findByCategoryId(categoryId: string): Observable<RxSuggestion[]> {
+    return this.suggestionRepository.findByCategoryId(categoryId);
+  }
 
-    public async saveSuggestions() {
-        this.suggestions.sort(function (a, b) {
-            return a.localeCompare(b);
-        });
-        
-        Preferences.set({ key: this.SUGGESTION_STORAGE, value: JSON.stringify(this.suggestions) });
-    }
+  public save(suggestion: RxSuggestion): Observable<RxSuggestion> {
+    return this.suggestionRepository.save(suggestion);
+  }
 
-    public async loadSuggestions() {
-        const { value } = await Preferences.get({ key: this.SUGGESTION_STORAGE })
-        this.suggestions = (value ? JSON.parse(value) : []) as string[];
-    }
+  public saveAll(suggestions: RxSuggestion[]): Observable<RxSuggestion[]> {
+    return this.suggestionRepository.saveAll(suggestions);
+  }
 
-    public async clearSuggestions() {
-        this.suggestions.length = 0;
-        Preferences.remove({ key: this.SUGGESTION_STORAGE });
-    }
+  public findAll(): Observable<RxSuggestion[]> {
+    return this.suggestionRepository.findAll();
+  }
+
+  public clearSuggestions(): Observable<number> {
+    return this.suggestionRepository.deleteAll();
+  }
+
+  public deleteById(id: string): Observable<boolean> {
+    return this.suggestionRepository.deleteById(id);
+  }
 }
