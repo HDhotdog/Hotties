@@ -1,19 +1,13 @@
-export const DB_METADATA_SCHEMA_LITERAL = {
+export const SETTINGS_SCHEMA_LITERAL = {
   schema: {
     version: 0,
-    primaryKey: 'id',
+    primaryKey: 'key',
     type: 'object',
     properties: {
-      id: {
-        type: 'string',
-        maxLength: 255,
-      },
-      isCreated: {
-        type: 'boolean',
-        default: false,
-      }
+      key: {type: 'string', maxLength: 255},
+      value: {type: 'string'},
     },
-    required: ['id', 'isCreated'],
-  }
+    required: ['key', 'value'],
+  },
 };
 

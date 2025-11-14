@@ -88,6 +88,5 @@ export class AppComponent implements OnInit {
       ]
     }
     this.labelService.saveLabels([kindLabels, tasteLabels]);
-    this.appService.saveInitialValues().subscribe();
   }
 }

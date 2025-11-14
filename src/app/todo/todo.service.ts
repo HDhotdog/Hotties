@@ -1,6 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Preferences } from '@capacitor/preferences';
-import { RxToDo } from './rxToDo';
+import {Injectable} from '@angular/core';
+import {RxToDo} from './rxToDo';
 import {TodoRepository} from "./todo.repository";
 import {Observable} from "rxjs";
 
@@ -25,5 +24,9 @@ export class TodoService {
 
     public deleteById(id: string): Observable<boolean> {
       return this.todoRepository.deleteById(id);
+    }
+
+    public deleteAll(): Observable<number> {
+      return this.todoRepository.deleteAll();
     }
 }
