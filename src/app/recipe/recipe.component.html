@@ -21,7 +21,7 @@
       </div>
       <div *ngFor="let group of this.labelGroups" class="label-group">
         <div class="group-name">{{ group.name }}</div>
-        <ion-checkbox *ngFor="let label of group.labels" labelPlacement="start" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
+        <ion-checkbox *ngFor="let label of this.labelsForGroup(group.id)" labelPlacement="start" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
       </div>
     </div>
   </ion-content>
@@ -51,19 +51,19 @@
   <ion-content class="content-wrapper">
     <ion-searchbar [(ngModel)]="search" (ngModelChange)="filterRecipes()"></ion-searchbar>
     <div class="recipes-list-container">
-      <div class="recipe-preview-container" *ngFor="let recipe of this.results" (click)="openRecipe(recipe)">
+      <div class="recipe-preview-container" *ngFor="let recipe of this.recipes" (click)="openRecipe(recipe)">
         <div class="recipe-preview-title">
           <div class="title-container">
-            <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>
+<!--            <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>-->
             <p>{{recipe.name}}</p>
           </div>
           <p>{{this.parseDate(recipe)}}</p>
         </div>
-        <div class="recipe-preview-image">
-          <ion-img [src]="recipe.imgSrc"></ion-img>
-        </div>
+<!--        <div class="recipe-preview-image">-->
+<!--          <ion-img [src]="recipe.imgSrc"></ion-img>-->
+<!--        </div>-->
         <div class="recipe-preview-labels">
-          <div class="recipe-preview-label" *ngFor="let label of recipe.labels">{{label.name}}</div>
+          <div class="recipe-preview-label" *ngFor="let label of this.labelsForRecipe(recipe.id)">{{label.name}}</div>
         </div>
       </div>
     </div>

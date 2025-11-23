@@ -3,14 +3,17 @@ import {RxDBDevModePlugin} from "rxdb/plugins/dev-mode";
 import {wrappedValidateAjvStorage} from "rxdb/plugins/validate-ajv";
 import {getRxStorageLocalstorage} from "rxdb/plugins/storage-localstorage";
 import {Injectable} from "@angular/core";
-import {CATEGORY_SCHEMA_LITERAL} from "./category.schema";
-import {TODO_SCHEMA_LITERAL} from "./todo.schema";
-import {RECIPE_SCHEMA_LITERAL} from "./recipe.schema";
-import {SETTINGS_SCHEMA_LITERAL} from "./db-metadata.schema";
+import {CATEGORY_SCHEMA_LITERAL} from "./schema/category.schema";
+import {TODO_SCHEMA_LITERAL} from "./schema/todo.schema";
+import {RECIPE_SCHEMA_LITERAL} from "./schema/recipe.schema";
+import {SETTINGS_SCHEMA_LITERAL} from "./schema/db-metadata.schema";
 import {RxDBMigrationSchemaPlugin} from "rxdb/plugins/migration-schema";
-import {SUGGESTION_SCHEMA_LITERAL} from "./suggestion.schema";
+import {SUGGESTION_SCHEMA_LITERAL} from "./schema/suggestion.schema";
 import {RxCategory} from "../category/category";
 import {v4 as UUIDv4} from 'uuid';
+import {LABEL_SCHEMA_LITERAL} from "./schema/label.schema";
+import {LABEL_GROUP_SCHEMA_LITERAL} from "./schema/label-groups.schema";
+import {INGREDIENT_SCHEMA_LITERAL} from "./schema/ingredient.schema";
 
 addRxPlugin(RxDBDevModePlugin);
 addRxPlugin(RxDBMigrationSchemaPlugin)
@@ -41,7 +44,10 @@ export class DatabaseService {
       categories: CATEGORY_SCHEMA_LITERAL,
       suggestions: SUGGESTION_SCHEMA_LITERAL,
       todos: TODO_SCHEMA_LITERAL,
-      recipes: RECIPE_SCHEMA_LITERAL
+      recipes: RECIPE_SCHEMA_LITERAL,
+      labels: LABEL_SCHEMA_LITERAL,
+      label_groups: LABEL_GROUP_SCHEMA_LITERAL,
+      ingredients: INGREDIENT_SCHEMA_LITERAL
     });
 
     await this.seedInitialData(db);

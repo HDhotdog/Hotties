@@ -1,4 +1,4 @@
-import {ImportanceLevel} from "../todo/importance-level.enum";
+import {ImportanceLevel} from "../../todo/importance-level.enum";
 
 export const TODO_SCHEMA_LITERAL = {
   schema: {

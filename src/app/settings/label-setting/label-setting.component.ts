@@ -1,12 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
-import { ItemReorderEventDetail } from '@ionic/angular';
-import { Label, LabelGroup } from 'src/app/label/models/label.interface';
-import { LabelService } from './label-service.service';
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { v4 as uuidv4 } from 'uuid';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule, Location} from '@angular/common';
+import {IonicModule} from '@ionic/angular';
+import {RxLabel, RxLabelGroup} from 'src/app/label/models/label';
+import {LabelService} from '../../label/label-service.service';
+import {FormsModule} from '@angular/forms';
+import {v4 as uuidv4} from 'uuid';
+
 @Component({
   selector: 'app-label-setting-component',
   templateUrl: './label-setting.component.html',
@@ -16,71 +15,74 @@ import { v4 as uuidv4 } from 'uuid';
 })
 export class LabelSettingComponent implements OnInit {
   private _newGroupName: string = '';
-  private _selectedGroup: LabelGroup | null = null;
+  private _selectedGroup: RxLabelGroup | null = null;
   private _newLabelName: string = '';
-  private _editingGroup: LabelGroup | null = null;
-  private _editingLabel: { group: LabelGroup; label: Label } | null = null;
+  private _editingGroup: RxLabelGroup | null = null;
+  private _editingLabel: { group: RxLabelGroup; label: RxLabel } | null = null;
   private _editName: string = '';
-  private _labelGroups: LabelGroup[] = [];
+  private _labelGroups: RxLabelGroup[] = [];
 
   constructor(
     private location: Location,
-    public labelService: LabelService
-  ) {}
+    private labelService: LabelService
+  ) {
+  }
 
   ngOnInit() {
-    this.labelService.loadLabels().subscribe((labelGroups) => {
+    this.labelService.getAllLabelGroups().subscribe((labelGroups) => {
       this._labelGroups = labelGroups;
     });
   }
 
-  handleReorderOfLabelGroups(ev: CustomEvent<ItemReorderEventDetail>) {
-    this._labelGroups.splice(ev.detail.to, 0, this._labelGroups.splice(ev.detail.from, 1)[0]);
-    this.labelService.saveLabels(this._labelGroups);
-    this._editingGroup = null;
-    ev.detail.complete();
-  }
-
-  handleReorderOfLabels(ev: CustomEvent<ItemReorderEventDetail>, labelGroup: LabelGroup) {
-    ev.stopPropagation();
-    labelGroup.labels.splice(ev.detail.to, 0, labelGroup.labels.splice(ev.detail.from, 1)[0]);
-    this.labelService.saveLabels(this._labelGroups);
-    this._editingLabel = null;
-    this._editName = '';
-    ev.detail.complete();
-  }
+  // handleReorderOfLabelGroups(ev: CustomEvent<ItemReorderEventDetail>) {
+  //   this._labelGroups.splice(ev.detail.to, 0, this._labelGroups.splice(ev.detail.from, 1)[0]);
+  //   this.labelService.(this._labelGroups);
+  //   this._editingGroup = null;
+  //   ev.detail.complete();
+  // }
+  //
+  // handleReorderOfLabels(ev: CustomEvent<ItemReorderEventDetail>, labelGroup: RxLabelGroup) {
+  //   ev.stopPropagation();
+  //   labelGroup.labels.splice(ev.detail.to, 0, labelGroup.labels.splice(ev.detail.from, 1)[0]);
+  //   this.labelService.saveLabels(this._labelGroups);
+  //   this._editingLabel = null;
+  //   this._editName = '';
+  //   ev.detail.complete();
+  // }
 
   addLabelGroup() {
     if (this._newGroupName.trim()) {
-      const newGroup: LabelGroup = {
+      const newGroup: RxLabelGroup = {
         id: uuidv4(),
         name: this._newGroupName.trim(),
-        labels: []
       };
       this._labelGroups.push(newGroup);
-      this.labelService.saveLabels(this._labelGroups);
+      this.labelService.saveLabelGroup(newGroup);
       this._newGroupName = '';
     }
   }
 
   addLabel() {
     if (this._selectedGroup && this._newLabelName.trim()) {
-      const newLabel: Label = {
+      const newLabel: RxLabel = {
+        id: uuidv4(),
+        groupId: this._selectedGroup.id,
+        recipeId: "",
         name: this._newLabelName.trim()
       };
-      this._selectedGroup.labels.push(newLabel);
-      this.labelService.saveLabels(this._labelGroups);
+      // this._selectedGroup.labels.push(newLabel);
+      this.labelService.saveLabel(newLabel);
       this._newLabelName = '';
     }
   }
 
-  startEditingGroup(group: LabelGroup) {
+  startEditingGroup(group: RxLabelGroup) {
     this._editingGroup = group;
     this._editName = group.name;
   }
 
-  startEditingLabel(group: LabelGroup, label: Label) {
-    this._editingLabel = { group, label };
+  startEditingLabel(group: RxLabelGroup, label: RxLabel) {
+    this._editingLabel = {group, label};
     this._editName = label.name;
   }
 
@@ -88,13 +90,13 @@ export class LabelSettingComponent implements OnInit {
     if (this._editingGroup) {
       if (this._editName.trim() && this._editName !== this._editingGroup.name) {
         this._editingGroup.name = this._editName.trim();
-        this.labelService.saveLabels(this._labelGroups);
+        this.labelService.saveLabelGroup(this._editingGroup);
       }
       this._editingGroup = null;
     } else if (this._editingLabel) {
       if (this._editName.trim() && this._editName !== this._editingLabel!.label.name) {
         this._editingLabel!.label.name = this._editName.trim();
-        this.labelService.saveLabels(this._labelGroups);
+        this.labelService.saveLabel(this._editingLabel.label);
       }
       this._editingLabel = null;
     }
@@ -107,48 +109,48 @@ export class LabelSettingComponent implements OnInit {
     this._editName = '';
   }
 
-  removeLabel(group: LabelGroup, label: Label) {
-    const index = group.labels.indexOf(label);
-    if (index > -1) {
-      group.labels.splice(index, 1);
-      this.labelService.saveLabels(this._labelGroups);
-    }
+  removeLabel(label: RxLabel) {
+    this.labelService.deleteLabelById(label.id).subscribe();
   }
 
-  removeLabelGroup(group: LabelGroup) {
-    const index = this._labelGroups.indexOf(group);
-    if (index > -1) {
-      this._labelGroups.splice(index, 1);
-      this.labelService.saveLabels(this._labelGroups);
-    }
+  removeLabelGroup(group: RxLabelGroup) {
+    this.labelService.deleteLabelGroupById(group.id).subscribe();
   }
 
   navigateBack() {
     this.location.back();
   }
 
-  get labelGroups(): LabelGroup[] {
+  get labelGroups(): RxLabelGroup[] {
     return this._labelGroups;
-  } 
+  }
 
-  get selectedGroup(): LabelGroup | null {
+  get labelsForGroup(): RxLabel[] {
+    return [];
+  }
+
+  get selectedGroup(): RxLabelGroup | null {
     return this._selectedGroup;
   }
 
-  set selectedGroup(group: LabelGroup | null) {
+  set selectedGroup(group: RxLabelGroup | null) {
     this._selectedGroup = group;
   }
 
-  get editingGroup(): LabelGroup | null {
+  get editingGroup(): RxLabelGroup | null {
     return this._editingGroup;
   }
 
-  get editingLabel(): { group: LabelGroup; label: Label } | null {
+  get editingLabel(): { group: RxLabelGroup; label: RxLabel } | null {
     return this._editingLabel;
   }
 
   get editName(): string {
     return this._editName;
+  }
+
+  set editName(value: string) {
+    this._editName = value;
   }
 
   get newLabelName(): string {

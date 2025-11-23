@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {RxCategory} from './category';
-import {Ingredient} from '../recipe/models/ingredient.interface';
-import {Recipe} from '../recipe/models/recipe.interface';
+import {RxIngredient} from '../ingredients/ingredient';
+import {RxRecipe} from '../recipe/models/recipe';
 import {RxToDo} from '../todo/rxToDo';
 import {CategoryRepository} from './category.repository';
 import {Observable, of} from 'rxjs';
@@ -68,7 +68,7 @@ export class CategoryService {
     localStorage.setItem("selectedCategoryId", category.id);
   }
 
-  public addIngredientsToCategory(categoryId: string, recipe: Recipe): void {
+  public addIngredientsToCategory(categoryId: string, recipe: RxRecipe): void {
     // this.categoryRepository.findCategoryById(categoryId).subscribe((category) => {
     //   category.ifPresentOrElse((cat) => {
     //     const toDos: RxToDo[] = recipe.ingredients.map((item) => this.ingredientToTodo(categoryId, item))
@@ -80,7 +80,7 @@ export class CategoryService {
     // });
   }
 
-  private ingredientToTodo(categoryId: string, ingredient: Ingredient): RxToDo {
+  private ingredientToTodo(categoryId: string, ingredient: RxIngredient): RxToDo {
     return {
       id: UUIDv4(),
       categoryId: categoryId,

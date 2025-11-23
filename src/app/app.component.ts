@@ -1,12 +1,11 @@
 import {Component, OnInit} from '@angular/core';
-import {AppService} from './app.service';
-import {LabelGroup} from "./label/models/label.interface";
-import {LabelService} from "./settings/label-setting/label-service.service";
+import {RxLabel, RxLabelGroup} from "./label/models/label";
+import {LabelService} from "./label/label-service.service";
 import {IonicModule, Platform} from '@ionic/angular';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {Keyboard} from '@capacitor/keyboard';
-import {v4 as uuidv4} from 'uuid';
+import {v4 as UUIDv4} from 'uuid';
 import {SafeArea} from '@aashu-dubey/capacitor-statusbar-safe-area';
 
 @Component({
@@ -18,7 +17,6 @@ import {SafeArea} from '@aashu-dubey/capacitor-statusbar-safe-area';
 })
 export class AppComponent implements OnInit {
   constructor(
-    private appService: AppService,
     private labelService: LabelService,
     private platform: Platform
   ) {
@@ -47,46 +45,40 @@ export class AppComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.initValues();
+    await this.initValues();
   }
 
-  private initValues() {
-    const kindLabels: LabelGroup = {
-      id: uuidv4(),
+  private async initValues() {
+    const kindLabelGroup: RxLabelGroup = {
+      id: UUIDv4(),
       name: "Art",
-      labels: [{
-        name: "Frühstück"
-      },
-        {
-          name: "Mittagessen"
-        },
-        {
-          name: "Abendessen"
-        },
-        {
-          name: "Snack"
-        }
-      ]
     }
 
-    const tasteLabels: LabelGroup = {
-      id: uuidv4(),
-      name: "Geschmack",
-      labels: [
-        {
-          name: "Süß"
-        },
-        {
-          name: "Scharf"
-        },
-        {
-          name: "Salzig"
-        },
-        {
-          name: "Sauer"
-        }
-      ]
+    const kinds = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
+    const kindLabels: RxLabel[] = kinds.map((kind) => {
+      return {
+        id: UUIDv4(),
+        name: kind,
+        groupId: kindLabelGroup.id,
+        recipeId: ""
+      }
+    })
+
+    const tasteLabelGroup: RxLabelGroup = {
+      id: UUIDv4(),
+      name: "Geschmack"
     }
-    this.labelService.saveLabels([kindLabels, tasteLabels]);
+
+    const tastes = ["Süß", "Scharf", "Salzig", "Sauer"]
+    const tasteLabels: RxLabel[] = tastes.map((taste) => {
+      return {
+        id: UUIDv4(),
+        name: taste,
+        groupId: tasteLabelGroup.id,
+        recipeId: ""
+      }
+    })
+    this.labelService.saveAllGroups([kindLabelGroup, tasteLabelGroup]).subscribe();
+    this.labelService.saveAllLabels(kindLabels.concat(tasteLabels)).subscribe();
   }
 }

@@ -65,9 +65,6 @@ export class TodoComponent implements OnInit {
 
     categories.subscribe((categories) => {
       this._categories = categories;
-      categories.forEach(category => {
-        console.log(category.id);
-      })
       if (selectedCategoryId != null) {
         this._selectedCategory = categories.find((category) => category.id === selectedCategoryId)!;
       } else {
