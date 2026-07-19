@@ -15,15 +15,16 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | `60f25be` | Recipes migrated to RxDB |
 | `4c4a22c` | "Klaus work" — fixed label models, inverted filter logic, reactive queries, recipe filtering |
 | `f03ae5d` | Phase 2 complete — data relations, shopping list export, cache reset, tests |
-| Uncommitted | Phase 3 legacy cleanup completed (see below) |
+| `759026f` | Phase 3 complete — legacy Preferences/`@ionic/storage` cleanup, settings collection |
+| Uncommitted | Phase 4 (storage + dev-mode gating) completed (see below) |
 
-## Current Progress: ~95%
+## Current Progress: ~97%
 
 ### Completed
 
 | Area | Status | Notes |
 |------|--------|-------|
-| RxDB setup | ✅ Done | Database, plugins, localStorage adapter |
+| RxDB setup | ✅ Done | Database, plugins, IndexedDB (Dexie) adapter |
 | Schema definitions | ✅ Done | 8 collections, all at version 0 |
 | `AbstractRepository` | ✅ Done | Generic CRUD with RxJS observables |
 | Category repository/service | ✅ Done | Fully on RxDB |
@@ -48,6 +49,8 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | Cache reset | ✅ Fixed | `clearCategoryCache()` now subscribes and chains delete → reseed |
 | `initCategories()` | ✅ Fixed | Calls `categoryRepository.saveAll()` |
 | Repository/component tests | ✅ Fixed | Stale `todo.component.spec.ts` rewritten; 10 specs with standalone components misdeclared in `declarations` fixed to use `imports` + proper DI mocks |
+| IndexedDB storage | ✅ Done | `getRxStorageDexie()` replaces `getRxStorageLocalstorage()`; verified in-browser (IndexedDB populated, `localStorage` empty, data survives reload) |
+| Dev/prod RxDB config | ✅ Done | `RxDBDevModePlugin` only loaded when `!environment.production`; production build verified clean |
 
 ### In Progress / Broken
 
@@ -58,10 +61,9 @@ _(none blocking; remaining items are scoped enhancements, see Not Started)_
 | Area | Notes |
 |------|-------|
 | Data migration script | No import path from old Preferences JSON → RxDB. Deliberately skipped: app is pre-release (`package.json` version `0.0.1`, not published), no installs have Preferences data to preserve |
-| IndexedDB adapter | `pouchdb-adapter-idb` in `package.json` but not wired |
-| Schema migrations | Plugin loaded, no migration strategies defined |
-| Recipe images/emoji | Fields removed from schema during migration |
-| Dev/prod RxDB config | Dev-mode plugin always active |
+| Unused `pouchdb-adapter-idb` dependency | Never wired up (predates the rxdb v16 storage-plugin architecture now in use); still listed in `package.json`, not removed in this pass |
+| Schema migrations | Plugin loaded, no migration strategies defined. Deferred together with recipe media fields, by product decision |
+| Recipe images/emoji | Fields removed from schema during migration. Deferred by product decision — see Phase 4 items 16–17 |
 | Tests for repositories | No repository or DB integration tests (component-level tests exist) |
 
 ---
@@ -100,32 +102,17 @@ Additionally, all Karma unit tests were brought back to green (`ng test`): rewro
 
 13. **Move UI preferences to RxDB** ✅ — Added `SettingsRepository`/`SettingsService` (`src/app/database/settings/`) wrapping the existing key/value `settings` collection. `CategoryService.getSelectedCategoryId()` / `saveCurrentCategory()` now read/write through it instead of `localStorage`; `TodoComponent.init()` combines the categories and selected-id streams reactively. Note: this changed `saveCurrentCategory()` from a synchronous void method to an `Observable` that must be subscribed — both call sites were updated accordingly (and a pre-existing latent bug where `changeSort()`'s `categoryService.save()` call was never subscribed, so sort order silently never persisted, was fixed in passing).
 
-### Phase 4 — Production Hardening (2–3 days)
+### Phase 4 — Production Hardening 🟡 Mostly done (items 16–17 deferred)
 
 **Goal:** Stable storage for mobile production use.
 
-14. **Switch to IndexedDB storage**
-    - Replace `getRxStorageLocalstorage()` with IndexedDB adapter:
-      ```typescript
-      import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-      // or wire up existing pouchdb-adapter-idb
-      ```
-    - localStorage has size limits (~5 MB) — insufficient for recipe images
+14. **Switch to IndexedDB storage** ✅ — `database.ts` now uses `getRxStorageDexie()` (`rxdb/plugins/storage-dexie`) instead of `getRxStorageLocalstorage()`. Verified in-browser: all 8 collections show up as `rxdb-dexie-dbhotties--0--*` IndexedDB databases, `localStorage` is empty, and data survives a page reload. `pouchdb-adapter-idb` (an old rxdb-v9-era pouchdb plugin, incompatible with the rxdb v16 storage-plugin architecture already in use) was never wired up and remains an unused `package.json` entry — not removed in this pass, flagged for cleanup.
 
-15. **Gate dev-mode plugin**
-    ```typescript
-    if (!environment.production) {
-      addRxPlugin(RxDBDevModePlugin);
-    }
-    ```
+15. **Gate dev-mode plugin** ✅ — `addRxPlugin(RxDBDevModePlugin)` in `database.ts` is now wrapped in `if (!environment.production)`. Verified the production build (`ng build --configuration production`) still compiles clean with the plugin excluded from that path.
 
-16. **Define schema migrations**
-    - Bump schema versions when adding fields (e.g. `imgSrc`, `emoji` back to recipes)
-    - Add migration strategies in schema literals
+16. **Define schema migrations** — **Deferred**, tracked together with item 17 below (by product decision). Nothing to migrate yet since no schema fields have changed.
 
-17. **Restore recipe media fields** (optional, if needed)
-    - Add `imgSrc` and `emoji` back to recipe schema (version 1)
-    - Re-enable UI in add-recipe and recipe-display components
+17. **Restore recipe media fields** (optional) — **Deferred by product decision.** `imgSrc`/`emoji` remain commented out of the recipe schema and UI (`RxRecipe`, `add-recipe.component.ts`, `recipe-display`). Doing this later requires: bump `RECIPE_SCHEMA_LITERAL` to `version: 1` with a migration strategy (item 16), add the fields back to `RxRecipe`, and re-enable the already-scaffolded emoji-picker/image-upload UI.
 
 ### Phase 5 — Quality (ongoing)
 

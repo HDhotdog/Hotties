@@ -1,7 +1,7 @@
 import {addRxPlugin, createRxDatabase, RxDatabase} from "rxdb";
 import {RxDBDevModePlugin} from "rxdb/plugins/dev-mode";
 import {wrappedValidateAjvStorage} from "rxdb/plugins/validate-ajv";
-import {getRxStorageLocalstorage} from "rxdb/plugins/storage-localstorage";
+import {getRxStorageDexie} from "rxdb/plugins/storage-dexie";
 import {Injectable} from "@angular/core";
 import {CATEGORY_SCHEMA_LITERAL} from "./schema/category.schema";
 import {TODO_SCHEMA_LITERAL} from "./schema/todo.schema";
@@ -15,8 +15,11 @@ import {LABEL_SCHEMA_LITERAL} from "./schema/label.schema";
 import {LABEL_GROUP_SCHEMA_LITERAL} from "./schema/label-groups.schema";
 import {INGREDIENT_SCHEMA_LITERAL} from "./schema/ingredient.schema";
 import {RxLabel, RxLabelGroup} from "../label/models/label";
+import {environment} from "../../environments/environment";
 
-addRxPlugin(RxDBDevModePlugin);
+if (!environment.production) {
+  addRxPlugin(RxDBDevModePlugin);
+}
 addRxPlugin(RxDBMigrationSchemaPlugin)
 
 @Injectable()
@@ -36,7 +39,7 @@ export class DatabaseService {
     const db = await createRxDatabase({
       name: 'dbhotties',
       storage: wrappedValidateAjvStorage({
-        storage: getRxStorageLocalstorage(),
+        storage: getRxStorageDexie(),
       }),
     });
 
