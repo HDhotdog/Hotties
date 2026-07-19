@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { CategoryService } from 'src/app/category/category.service';
 
 import { CacheSettingComponent } from './cache-setting.component';
 
@@ -9,8 +11,11 @@ describe('CacheSettingComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CacheSettingComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [CacheSettingComponent, IonicModule.forRoot()],
+      providers: [
+        {provide: Location, useValue: {back: () => {}}},
+        {provide: CategoryService, useValue: {}}
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CacheSettingComponent);

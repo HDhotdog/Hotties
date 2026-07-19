@@ -1,41 +1,67 @@
-import { Injectable } from "@angular/core";
-import { Preferences } from "@capacitor/preferences";
-import { LabelGroup } from "./models/label.interface";
-import { catchError, from, map, of, tap } from "rxjs";
-import { Observable } from "rxjs";
+import {Injectable} from "@angular/core";
+import {RxLabel} from "./models/label";
+import {from, map, Observable, switchMap} from "rxjs";
+import {AbstractRepository} from "../database/abstract-repository";
+import {DatabaseService} from "../database/database";
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
-export class LabelRepository {
-    private readonly LABEL_STORAGE = 'labels';
+export class LabelRepository extends AbstractRepository<RxLabel> {
+  protected override collectionName: string = "labels";
 
-    constructor() {}
+  constructor(protected override database: DatabaseService) {
+    super(database);
+  }
 
-    public saveAll(labelGroups: LabelGroup[]) {
-        Preferences.set({ key: this.LABEL_STORAGE, value: JSON.stringify(labelGroups) })
-            .then(() => console.log('Label groups saved successfully!'))
-            .catch((error) => console.error('Error saving label groups:', error));
-    }
+  public findByRecipeId(recipeId: string): Observable<RxLabel[]> {
+    return this.getCollection().pipe(
+      switchMap(col =>
+        col.find({
+          selector: {recipeId}
+        }).$
+      )
+    );
+  }
 
-    public findAll(): Observable<LabelGroup[]> {
-        return from(Preferences.get({key: this.LABEL_STORAGE})).pipe(
-            map(({value}) => (value ? JSON.parse(value) : []) as LabelGroup[]),
-            catchError((error) => {
-                console.error('Error getting label groups:', error);
-                return of([]);
-            })
-        );    
-    }
+  public findDistinctNames(): Observable<string[]> {
+    return this.getCollection().pipe(
+      switchMap(col => col.find().$),
+      map(labels => [...new Set(labels.map(l => l.name))])
+    );
+  }
 
-    public deleteAll(): Observable<void> {
-        return from(Preferences.remove({key: this.LABEL_STORAGE}));
-    }   
+  public findUniqueLabels(): Observable<RxLabel[]> {
+    return this.getCollection().pipe(
+      switchMap(col => col.find().$),
+      map(labels => {
+        const byName = new Map<string, RxLabel>();
+        for (const label of labels) {
+          if (!byName.has(label.name)) {
+            byName.set(label.name, label);
+          }
+        }
+        return Array.from(byName.values());
+      })
+    );
+  }
 
-    public delete(labelGroup: LabelGroup): Observable<LabelGroup[]> {
-        return this.findAll().pipe(
-            map((labelGroups) => labelGroups.filter((lab) => lab.id !== labelGroup.id)),
-            tap((labelGroups) => Preferences.set({key: this.LABEL_STORAGE, value: JSON.stringify(labelGroups)}))
-        );
-    }
+  public deleteByLabelGroupId(groupId: string): Observable<number> {
+    return this.getCollection().pipe(
+      switchMap(col =>
+        from(col.find({ selector: { groupId } }).remove())
+      ),
+      map(deletedDocs => deletedDocs.length) // return number of deleted docs
+    );
+  }
+
+  public deleteByRecipeId(recipeId: string): Observable<number> {
+    return this.getCollection().pipe(
+      switchMap(col =>
+        from(col.find({ selector: { recipeId } }).remove())
+      ),
+      map(deletedDocs => deletedDocs.length)
+    );
+  }
 }
+

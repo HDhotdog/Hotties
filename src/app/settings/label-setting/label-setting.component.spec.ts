@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { of } from 'rxjs';
+import { LabelService } from '../../label/label-service.service';
 
 import { LabelSettingComponent } from './label-setting.component';
 
@@ -9,8 +12,17 @@ describe('LabelComponentComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ LabelSettingComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [LabelSettingComponent, IonicModule.forRoot()],
+      providers: [
+        {provide: Location, useValue: {back: () => {}}},
+        {
+          provide: LabelService,
+          useValue: {
+            getAllLabelGroups: () => of([]),
+            getAllLabels: () => of([])
+          }
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(LabelSettingComponent);

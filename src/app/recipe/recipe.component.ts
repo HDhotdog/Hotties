@@ -1,14 +1,15 @@
 import {Component, OnInit} from '@angular/core';
 import {RecipeService} from './recipe.service';
-import {Recipe} from './models/recipe.interface';
-import {Label, LabelGroup} from '../label/models/label.interface';
+import {Recipe} from './models/recipe.dto';
+import {Label, LabelGroup} from '../label/models/label.dto';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {LabelService} from "../settings/label-setting/label-service.service";
+import {LabelService} from "../label/label-service.service";
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {IonicModule} from '@ionic/angular';
-import {MenuController} from '@ionic/angular';
-import { forkJoin } from 'rxjs';
+import {IonicModule, MenuController} from '@ionic/angular';
+import {combineLatest, Observable} from 'rxjs';
+import {filterRecipes, labelsForGroup as getLabelsForGroup, labelsForRecipe as getLabelsForRecipe} from './recipe-filter';
+
 @Component({
   selector: 'app-recipe',
   templateUrl: 'recipe.component.html',
@@ -17,23 +18,27 @@ import { forkJoin } from 'rxjs';
   imports: [CommonModule, IonicModule, FormsModule, RouterModule]
 })
 export class RecipeComponent implements OnInit {
-
   private _recipes: Recipe[] = [];
+  private _labels: Label[] = [];
+  private _labelGroups: LabelGroup[] = [];
+
   private _setFilters: Label[] = [];
   public search: string = "";
   public selectedTime: number | null = null;
   public results: Recipe[] = [];
-  private _labelGroups: LabelGroup[] = [];
+
   constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute,
               public labelService: LabelService, private menuController: MenuController) {
   }
 
   ngOnInit(): void {
-    const recipes = this.recipeService.findAll();
-    const labels = this.labelService.loadLabels();
-    forkJoin([recipes, labels]).subscribe(([recipes, labels]) => {
+    const recipesObs: Observable<Recipe[]> = this.recipeService.findAll();
+    const labelsObs: Observable<Label[]> = this.labelService.getAllLabels();
+    const labelGroupsObs: Observable<LabelGroup[]> = this.labelService.getAllLabelGroups();
+    combineLatest([recipesObs, labelsObs, labelGroupsObs]).subscribe(([recipes, labels, labelGroups]) => {
       this._recipes = recipes;
-      this._labelGroups = labels;
+      this._labels = labels;
+      this._labelGroups = labelGroups;
       this.filterRecipes();
     });
   }
@@ -43,12 +48,14 @@ export class RecipeComponent implements OnInit {
   }
 
   public parseDate(recipe: Recipe): string {
+    let hours = (recipe.preparationTime - recipe.preparationTime % 60) / 60;
+    let minutes = recipe.preparationTime % 60;
     let date: string = "";
-    if (recipe.prepTimeHour > 0) {
-      date += recipe.prepTimeHour + "h "
+    if (hours > 0) {
+      date += hours + "h "
     }
-    if (recipe.prepTimeMinutes > 0) {
-      date += recipe.prepTimeMinutes + "m"
+    if (minutes > 0) {
+      date += minutes + "m"
     }
     return date.trim();
   }
@@ -63,15 +70,13 @@ export class RecipeComponent implements OnInit {
   }
 
   public filterRecipes(): void {
-    this.results = this._recipes.filter((recipe) => {
-      const matchesSearch = recipe.name.toLowerCase().includes(this.search.toLowerCase());
-      const matchesLabels = this._setFilters.length === 0 || 
-        this._setFilters.every((label: Label) => recipe.labels.some(recipeLabel => recipeLabel.name === label.name));
-      const matchesTime = !this.selectedTime || 
-        (recipe.prepTimeHour * 60 + recipe.prepTimeMinutes) <= this.selectedTime;
-      
-      return matchesSearch && matchesLabels && matchesTime;
-    });
+    this.results = filterRecipes(
+      this._recipes,
+      this._labels,
+      this.search,
+      this._setFilters,
+      this.selectedTime
+    );
   }
 
   public openRecipe(recipe: Recipe): void {
@@ -89,4 +94,17 @@ export class RecipeComponent implements OnInit {
   get labelGroups(): LabelGroup[] {
     return this._labelGroups;
   }
+
+  public labelsForGroup(groupId: string): Label[] {
+    return getLabelsForGroup(this._labels, groupId);
+  }
+
+  public labelsForRecipe(recipeId: string): Label[] {
+    return getLabelsForRecipe(this._labels, recipeId);
+  }
+
+  get recipes(): Recipe[] {
+    return this.results;
+  }
+
 }

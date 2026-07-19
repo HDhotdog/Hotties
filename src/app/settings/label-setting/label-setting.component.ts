@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
-import { ItemReorderEventDetail } from '@ionic/angular';
-import { Label, LabelGroup } from 'src/app/label/models/label.interface';
-import { LabelService } from './label-service.service';
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { v4 as uuidv4 } from 'uuid';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {IonicModule} from '@ionic/angular';
+import {Label, LabelGroup} from 'src/app/label/models/label.dto';
+import {LabelService} from '../../label/label-service.service';
+import {FormsModule} from '@angular/forms';
+import {v4 as uuidv4} from 'uuid';
+import {combineLatest} from 'rxjs';
+import {Router} from '@angular/router';
+import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
+
 @Component({
   selector: 'app-label-setting-component',
   templateUrl: './label-setting.component.html',
@@ -22,32 +24,22 @@ export class LabelSettingComponent implements OnInit {
   private _editingLabel: { group: LabelGroup; label: Label } | null = null;
   private _editName: string = '';
   private _labelGroups: LabelGroup[] = [];
+  private _labels: Label[] = [];
 
   constructor(
-    private location: Location,
-    public labelService: LabelService
-  ) {}
+    private router: Router,
+    private labelService: LabelService
+  ) {
+  }
 
   ngOnInit() {
-    this.labelService.loadLabels().subscribe((labelGroups) => {
+    combineLatest([
+      this.labelService.getAllLabelGroups(),
+      this.labelService.getAllLabels(),
+    ]).subscribe(([labelGroups, labels]) => {
       this._labelGroups = labelGroups;
+      this._labels = labels;
     });
-  }
-
-  handleReorderOfLabelGroups(ev: CustomEvent<ItemReorderEventDetail>) {
-    this._labelGroups.splice(ev.detail.to, 0, this._labelGroups.splice(ev.detail.from, 1)[0]);
-    this.labelService.saveLabels(this._labelGroups);
-    this._editingGroup = null;
-    ev.detail.complete();
-  }
-
-  handleReorderOfLabels(ev: CustomEvent<ItemReorderEventDetail>, labelGroup: LabelGroup) {
-    ev.stopPropagation();
-    labelGroup.labels.splice(ev.detail.to, 0, labelGroup.labels.splice(ev.detail.from, 1)[0]);
-    this.labelService.saveLabels(this._labelGroups);
-    this._editingLabel = null;
-    this._editName = '';
-    ev.detail.complete();
   }
 
   addLabelGroup() {
@@ -55,10 +47,9 @@ export class LabelSettingComponent implements OnInit {
       const newGroup: LabelGroup = {
         id: uuidv4(),
         name: this._newGroupName.trim(),
-        labels: []
       };
       this._labelGroups.push(newGroup);
-      this.labelService.saveLabels(this._labelGroups);
+      this.labelService.saveLabelGroup(newGroup);
       this._newGroupName = '';
     }
   }
@@ -66,10 +57,12 @@ export class LabelSettingComponent implements OnInit {
   addLabel() {
     if (this._selectedGroup && this._newLabelName.trim()) {
       const newLabel: Label = {
+        id: uuidv4(),
+        groupId: this._selectedGroup.id,
+        recipeId: "",
         name: this._newLabelName.trim()
       };
-      this._selectedGroup.labels.push(newLabel);
-      this.labelService.saveLabels(this._labelGroups);
+      this.labelService.saveLabel(newLabel);
       this._newLabelName = '';
     }
   }
@@ -80,7 +73,7 @@ export class LabelSettingComponent implements OnInit {
   }
 
   startEditingLabel(group: LabelGroup, label: Label) {
-    this._editingLabel = { group, label };
+    this._editingLabel = {group, label};
     this._editName = label.name;
   }
 
@@ -88,13 +81,13 @@ export class LabelSettingComponent implements OnInit {
     if (this._editingGroup) {
       if (this._editName.trim() && this._editName !== this._editingGroup.name) {
         this._editingGroup.name = this._editName.trim();
-        this.labelService.saveLabels(this._labelGroups);
+        this.labelService.saveLabelGroup(this._editingGroup);
       }
       this._editingGroup = null;
     } else if (this._editingLabel) {
       if (this._editName.trim() && this._editName !== this._editingLabel!.label.name) {
         this._editingLabel!.label.name = this._editName.trim();
-        this.labelService.saveLabels(this._labelGroups);
+        this.labelService.saveLabel(this._editingLabel.label);
       }
       this._editingLabel = null;
     }
@@ -107,29 +100,26 @@ export class LabelSettingComponent implements OnInit {
     this._editName = '';
   }
 
-  removeLabel(group: LabelGroup, label: Label) {
-    const index = group.labels.indexOf(label);
-    if (index > -1) {
-      group.labels.splice(index, 1);
-      this.labelService.saveLabels(this._labelGroups);
-    }
+  removeLabel(label: Label) {
+    this.labelService.deleteLabelById(label.id).subscribe();
   }
 
   removeLabelGroup(group: LabelGroup) {
-    const index = this._labelGroups.indexOf(group);
-    if (index > -1) {
-      this._labelGroups.splice(index, 1);
-      this.labelService.saveLabels(this._labelGroups);
-    }
+    this.labelService.deleteLabelGroupById(group.id).subscribe();
   }
 
   navigateBack() {
-    this.location.back();
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings']);
+  }
+
+  labelsForGroup(groupId: string): Label[] {
+    return getLabelsForGroup(this._labels, groupId);
   }
 
   get labelGroups(): LabelGroup[] {
     return this._labelGroups;
-  } 
+  }
 
   get selectedGroup(): LabelGroup | null {
     return this._selectedGroup;
@@ -149,6 +139,10 @@ export class LabelSettingComponent implements OnInit {
 
   get editName(): string {
     return this._editName;
+  }
+
+  set editName(value: string) {
+    this._editName = value;
   }
 
   get newLabelName(): string {

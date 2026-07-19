@@ -1,21 +1,21 @@
-import { Location, CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
-import { Ingredient } from '../models/ingredient.interface';
-import { Label, LabelGroup } from '../../label/models/label.interface';
-import { Recipe } from '../models/recipe.interface';
-import { RecipeService } from '../recipe.service';
-import { v4 as uuidv4 } from 'uuid';
-import { LabelService } from "../../settings/label-setting/label-service.service";
-import { NgxImageCompressService } from 'ngx-image-compress';
-import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
-import { PickerModule } from '@ctrl/ngx-emoji-mart';
-import { forkJoin } from 'rxjs';
+import {CommonModule} from '@angular/common';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {IonicModule} from '@ionic/angular';
+import {Ingredient} from '../../ingredients/ingredient.dto';
+import {Label} from '../../label/models/label.dto';
+import {Recipe} from '../models/recipe.dto';
+import {RecipeService} from '../recipe.service';
+import {v4 as uuidv4} from 'uuid';
+import {LabelService} from "../../label/label-service.service";
+import {NgxImageCompressService} from 'ngx-image-compress';
+import {EmojiModule} from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import {PickerModule} from '@ctrl/ngx-emoji-mart';
+import {combineLatest, forkJoin} from 'rxjs';
 
 @Component({
-  selector: 'app-add-category',
+  selector: 'app-add-recipe',
   templateUrl: './add-recipe.component.html',
   styleUrls: ['./add-recipe.component.scss'],
   standalone: true,
@@ -27,11 +27,12 @@ export class AddRecipeComponent implements OnInit {
   private _description: string = "";
   private _hours: number = 0;
   private _minutes: number = 0;
+  private _prepTime: number = 0;
   private _ingredient: string = "";
   private _ingredients: Ingredient[] = [];
   private _recipe: Recipe = {} as Recipe;
   private _stringLabels: string[] = [];
-  private _availableLabels: Label[] = [];
+  private _templateLabels: Label[] = [];
   private _labels: Label[] = [];
   private _imgSrc: string = "";
   private _imageSelected: boolean = false;
@@ -39,54 +40,64 @@ export class AddRecipeComponent implements OnInit {
   private _selectedEmoji: string | null = null;
   private _newLabel: string = "";
 
-  constructor(private location: Location,
-    private recipeService: RecipeService,
-    private route: ActivatedRoute,
-    private labelService: LabelService,
-    private imageCompress: NgxImageCompressService) {
+  constructor(private router: Router,
+              private recipeService: RecipeService,
+              private route: ActivatedRoute,
+              private labelService: LabelService,
+              private imageCompress: NgxImageCompressService) {
   }
 
   ngOnInit(): void {
-    this.labelService.loadLabels().subscribe((labelGroups) => {
-      labelGroups.map((labelGroup) => {
-        labelGroup.labels.map((label) => {
-          this._availableLabels.push(label);
-        })
-      })
-    })
     const index = this.route.snapshot.paramMap.get('id');
     if (index) {
       const recipe = this.recipeService.findById(index);
-      forkJoin([recipe]).subscribe(([recipe]) => {
+      const ingredients = this.recipeService.getIngredients(index);
+      const templateLabels = this.labelService.getTemplateLabels();
+      const recipeLabels = this.labelService.getLabelsForRecipe(index);
+      // combineLatest (not forkJoin): findById()/getIngredients()/getTemplateLabels()/getLabelsForRecipe()
+      // are live queries (RxDB `.$`) that never complete, so forkJoin would never emit.
+      combineLatest([recipe, ingredients, templateLabels, recipeLabels]).subscribe(([recipe, ingredients, templateLabels, recipeLabels]) => {
+        this._templateLabels = templateLabels;
         this._recipe = recipe;
         this._name = recipe.name;
-        this._imgSrc = recipe.imgSrc;
+        this._imgSrc = recipe.imgSrc ?? "";
         this._description = recipe.description;
-        this._hours = recipe.prepTimeHour;
-        this._minutes = recipe.prepTimeMinutes;
-        this._ingredients = recipe.ingredients;
-        this._stringLabels = recipe.labels.map((label: Label) => label.name);
+        this._prepTime = recipe.preparationTime;
+        this._hours = Math.floor(recipe.preparationTime / 60);
+        this._minutes = recipe.preparationTime % 60;
+        this._ingredients = ingredients;
+        this._labels = recipeLabels;
+        this._stringLabels = templateLabels
+          .filter(template => recipeLabels.some(label => label.name === template.name && label.groupId === template.groupId))
+          .map(template => template.id);
         this._imageSelected = !!this._imgSrc;
-        this._labels = recipe.labels;
-        this._selectedEmoji = recipe.emoji || null;
+        this._selectedEmoji = recipe.emoji ?? null;
       });
     } else {
-      this._recipe = {
-        id: uuidv4(),
-        name: this._name,
-        imgSrc: this._imgSrc,
-        description: this._description,
-        prepTimeHour: this._hours,
-        prepTimeMinutes: this._minutes,
-        ingredients: this._ingredients,
-        labels: this._labels,
-        emoji: this._selectedEmoji
-      } as Recipe;
+      this.labelService.getTemplateLabels().subscribe(templateLabels => {
+        this._templateLabels = templateLabels;
+        this._recipe = {
+          id: uuidv4(),
+          name: this._name,
+          imgSrc: this._imgSrc,
+          description: this._description,
+          preparationTime: this._prepTime,
+          emoji: this._selectedEmoji
+        };
+      });
     }
   }
 
   public navigateBack() {
-    this.location.back();
+    // Explicit destination rather than Location.back(): back() depends on
+    // browser history, which is empty/unrelated on a fresh navigation or
+    // deep link (e.g. after saving), so it could land anywhere.
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      void this.router.navigate(['/tabs/recipe/display', id]);
+    } else {
+      void this.router.navigate(['/tabs/recipe']);
+    }
   }
 
   public saveRecipe() {
@@ -97,26 +108,28 @@ export class AddRecipeComponent implements OnInit {
       recipe.id = id;
       recipe.name = this._name;
       recipe.description = this._description;
+      recipe.preparationTime = this._prepTime;
       recipe.imgSrc = this._imgSrc;
-      recipe.prepTimeHour = this._hours;
-      recipe.prepTimeMinutes = this._minutes;
-      recipe.ingredients = this._ingredients;
-      recipe.labels = this._labels;
+      // recipe.ingredients = this._ingredients;
+      // recipe.labels = this._labels;
       recipe.emoji = this._selectedEmoji;
     } else {
       recipe = {
-        id: uuidv4(),
+        id: this._recipe.id,
         name: this._name,
         imgSrc: this._imgSrc,
         description: this._description,
-        prepTimeHour: this._hours,
-        prepTimeMinutes: this._minutes,
-        ingredients: this._ingredients,
-        labels: this._labels,
+        preparationTime: this._prepTime,
+        // ingredients: this._ingredients,
+        // labels: this._labels,
         emoji: this._selectedEmoji
       }
     }
-    this.recipeService.save(recipe).subscribe(() => {
+    const savedRecipe = this.recipeService.save(recipe);
+    const savedLabels = this.labelService.saveLabelsForRecipe(recipe.id, this._labels);
+    const savedIngredients = this.recipeService.saveIngredients(recipe.id, this._ingredients);
+
+    forkJoin([savedRecipe, savedLabels, savedIngredients]).subscribe(() => {
       this.navigateBack();
     });
   }
@@ -124,18 +137,18 @@ export class AddRecipeComponent implements OnInit {
   public inputChanged(): boolean {
     return this._recipe.name !== this._name
       || this._recipe.description !== this._description
-      || this._recipe.prepTimeHour !== this._hours
-      || this._recipe.prepTimeMinutes !== this._minutes
-      || this._recipe.ingredients !== this._ingredients
-      || this._recipe.labels !== this._labels
-      || this._recipe.imgSrc !== this._imgSrc
-      || this._recipe.emoji !== this._selectedEmoji;
+      || this._recipe.preparationTime !== this._prepTime
+      || (this._recipe.imgSrc ?? "") !== this._imgSrc
+      || (this._recipe.emoji ?? null) !== this._selectedEmoji;
+    // || this._recipe.ingredients !== this._ingredients
+    // || this._recipe.labels !== this._labels
   }
 
   public addIngredient(): void {
     this._ingredients.push({
+      id: uuidv4(),
+      recipeId: this._recipe.id,
       name: this._ingredient,
-      shouldBuy: true
     })
     this._ingredient = "";
   }
@@ -145,12 +158,16 @@ export class AddRecipeComponent implements OnInit {
     this._ingredients.splice(index, 1)
   }
 
-  public handleLabelChange() {
-    this._labels = this._stringLabels.map((label) => {
-      return {
-        name: label
-      } as Label
-    })
+  public handleLabelChange(): void {
+    this._labels = this._stringLabels
+      .map(templateId => this._templateLabels.find(template => template.id === templateId))
+      .filter((template): template is Label => !!template)
+      .map(template => ({
+        id: uuidv4(),
+        recipeId: this._recipe.id,
+        groupId: template.groupId,
+        name: template.name
+      }));
   }
 
   public uploadFile() {
@@ -165,16 +182,16 @@ export class AddRecipeComponent implements OnInit {
   private uploadCompressedFile() {
     const MAX_MEGABYTE = 2;
     this.imageCompress
-        .uploadAndGetImageWithMaxSize(MAX_MEGABYTE)
-        .then(
-            (result: string) => {
-                this._imgSrc = result;
-            },
-            (result: string) => {
-                this._imgSrc = result;
-            }
-        );
-}
+      .uploadAndGetImageWithMaxSize(MAX_MEGABYTE)
+      .then(
+        (result: string) => {
+          this._imgSrc = result;
+        },
+        (result: string) => {
+          this._imgSrc = result;
+        }
+      );
+  }
 
   public toggleEmojiPicker() {
     this._showEmojiPicker = !this._showEmojiPicker;
@@ -223,6 +240,7 @@ export class AddRecipeComponent implements OnInit {
 
   set hours(hours: number) {
     this._hours = hours;
+    this._prepTime = this._hours * 60 + this._minutes;
   }
 
   get minutes(): number {
@@ -231,6 +249,7 @@ export class AddRecipeComponent implements OnInit {
 
   set minutes(minutes: number) {
     this._minutes = minutes;
+    this._prepTime = this._hours * 60 + this._minutes;
   }
 
   get selectedEmoji(): string | null {
@@ -246,7 +265,7 @@ export class AddRecipeComponent implements OnInit {
   }
 
   get availableLabels(): Label[] {
-    return this._availableLabels;
+    return this._templateLabels;
   }
 
   get labels(): Label[] {

@@ -1,29 +1,41 @@
-import { Injectable } from '@angular/core';
-import { Preferences } from '@capacitor/preferences';
-import { ToDo } from './todo';
+import {Injectable} from '@angular/core';
+import {TodoRepository} from "./todo.repository";
+import {map, Observable} from "rxjs";
+import {Todo} from './todo.dto';
+import {toTodo, toRxToDo} from './todo.mapper';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TodoService {
-
-    private TODO_STORAGE: string = 'todos';
-    public todos: ToDo[] = [];
-
-    constructor() {
+    constructor(private todoRepository: TodoRepository) {
     }
 
-    public async saveTodos() {
-        Preferences.set({ key: this.TODO_STORAGE, value: JSON.stringify(this.todos) });
+    public save(todo: Todo): Observable<Todo> {
+      return this.todoRepository.save(toRxToDo(todo)).pipe(map(toTodo));
     }
 
-    public async loadTodos() {
-        const { value } = await Preferences.get({ key: this.TODO_STORAGE })
-        this.todos = (value ? JSON.parse(value) : []) as ToDo[];
+    public saveAll(todos: Todo[]): Observable<unknown> {
+      return this.todoRepository.saveAll(todos.map(toRxToDo));
     }
 
-    public async clearTodos() {
-        this.todos.length = 0;
-        Preferences.remove({ key: this.TODO_STORAGE })
+    public findAll(): Observable<Todo[]> {
+      return this.todoRepository.findAll().pipe(map(docs => docs.map(toTodo)));
+    }
+
+    public findByCategoryId(categoryId: string): Observable<Todo[]> {
+      return this.todoRepository.findByCategoryId(categoryId).pipe(map(docs => docs.map(toTodo)));
+    }
+
+    public deleteById(id: string): Observable<boolean> {
+      return this.todoRepository.deleteById(id);
+    }
+
+    public deleteAll(): Observable<number> {
+      return this.todoRepository.deleteAll();
+    }
+
+    public deleteByCategoryId(categoryId: string): Observable<number> {
+      return this.todoRepository.deleteByCategoryId(categoryId);
     }
 }

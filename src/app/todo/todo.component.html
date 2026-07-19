@@ -10,7 +10,9 @@
       <ion-row>
         <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()">
           <div slot="label"></div>
-          <ion-select-option *ngFor="let category of this.categories">{{category.name}}</ion-select-option>
+          <ion-select-option *ngFor="let category of this.categories" [value]="category.id">
+            {{ category.name }}
+          </ion-select-option>
         </ion-select>
       </ion-row>
     </ion-grid>
@@ -26,12 +28,9 @@
 <ion-content>
   <div class="container-elements">
     <div class="content-container" *ngIf="!this.isLoading">
-      <div *ngFor="let todo of this.selectedCategory.elements" class="todo-wrapper">
-        <div class="todo" 
-             [ngStyle]="getTodoBackgroundColor(todo.importance)"
-             (ionSwipe)="markAsDone(todo)"
-             #todoItem>
-          <span class="todo-text">{{todo.task}}</span>
+      <div *ngFor="let todo of this.categoryTasks " class="todo-wrapper">
+        <div class="todo" [ngStyle]="getTodoBackgroundColor(todo.importance)">
+          <span class="todo-text">{{ todo.name }}</span>
           <ion-button fill="clear" class="check-button" (click)="markAsDone(todo)">
             <ion-icon name="checkmark-outline"></ion-icon>
           </ion-button>
@@ -41,12 +40,12 @@
 
     <div class="input-container">
       <div class="color-buttons" *ngIf="this.showColorBar">
-        <div 
-        *ngFor="let level of this.importanceLevels" 
-        class="color-circle" 
-        [ngStyle]="getCircleColorBackground(level)" 
-        [ngClass]="{'circle-border': isCurrentLevel(level)}"
-        (click)="setCurrentImportanceLevel(level)">
+        <div
+          *ngFor="let level of this.importanceLevels"
+          class="color-circle"
+          [ngStyle]="getCircleColorBackground(level)"
+          [ngClass]="{'circle-border': isCurrentLevel(level)}"
+          (click)="setCurrentImportanceLevel(level)">
         </div>
       </div>
       <div class="lower-input-fields">
@@ -54,7 +53,7 @@
           <ion-icon slot="icon-only" name="trash" color="danger"></ion-icon>
         </ion-button>
         <ion-input placeholder="{{getCurrentSuggestion}}" [(ngModel)]="inputField"
-          (keyup.enter)="addTodo(inputField)"></ion-input>
+                   (keyup.enter)="addTodo(inputField)"></ion-input>
         <ion-button class="add-button" fill="clear" (click)="addTodo(inputField)">
           <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
         </ion-button>

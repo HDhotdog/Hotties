@@ -1,9 +1,9 @@
-import { Location, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
-import { Category } from 'src/app/category/category';
 import { CategoryService } from 'src/app/category/category.service';
+import {Category} from "../../category/category.dto";
 
 @Component({
   selector: 'app-category-setting',
@@ -18,7 +18,6 @@ export class CategorySettingComponent {
 
   constructor(
     private categoryService: CategoryService,
-    private location: Location,
     private router: Router,
     private route: ActivatedRoute) { }
 
@@ -37,20 +36,22 @@ export class CategorySettingComponent {
   }
 
   public navigateBack() {
-    this.location.back()
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings']);
   }
 
   public deleteCategory(id: string) {
-    this.categoryService.deleteCategory(id);
+    this.categoryService.deleteCategory(id).subscribe();
     this._categories = this._categories.filter((category) => category.id !== id);
   }
 
-  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
-    [this._categories[ev.detail.from], this._categories[ev.detail.to]]
-      = [this._categories[ev.detail.to], this._categories[ev.detail.from]];
-    this.categoryService.saveCategories(this._categories);
-    ev.detail.complete();
-  }
+  // handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
+  //   [this._categories[ev.detail.from], this._categories[ev.detail.to]]
+  //     = [this._categories[ev.detail.to], this._categories[ev.detail.from]];
+  //   this.categoryService.saveAll(this._categories).subscribe(() => {
+  //     ev.detail.complete();
+  //   });
+  // }
 
   get categories(): Category[] {
     return this._categories;

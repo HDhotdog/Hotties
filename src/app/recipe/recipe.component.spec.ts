@@ -1,7 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {IonicModule} from '@ionic/angular';
+import {of} from 'rxjs';
 
-import { RecipeComponent } from './recipe.component';
+import {RecipeComponent} from './recipe.component';
+import {RecipeService} from './recipe.service';
+import {LabelService} from '../label/label-service.service';
+import {ActivatedRoute, Router} from '@angular/router';
 
 describe('RecipeComponent', () => {
   let component: RecipeComponent;
@@ -9,8 +13,28 @@ describe('RecipeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [RecipeComponent],
-      imports: [IonicModule.forRoot()]
+      imports: [RecipeComponent, IonicModule.forRoot()],
+      providers: [
+        {
+          provide: RecipeService,
+          useValue: {findAll: () => of([])},
+        },
+        {
+          provide: LabelService,
+          useValue: {
+            getAllLabels: () => of([]),
+            getAllLabelGroups: () => of([]),
+          },
+        },
+        {
+          provide: Router,
+          useValue: {navigate: jest.fn()},
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {},
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RecipeComponent);

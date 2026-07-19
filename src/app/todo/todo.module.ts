@@ -8,10 +8,6 @@ import { TodoRoutingModule } from './todo-routing.module';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Storage } from '@ionic/storage'
-import { TodoService } from './todo.service';
-import { SuggestionService } from './suggestion/suggestion.service';
-import { CategoryService } from '../category/category.service';
 
 
 @NgModule({
@@ -24,12 +20,6 @@ import { CategoryService } from '../category/category.service';
     MatCheckboxModule,
     MatFormFieldModule,
     TodoComponent
-  ],
-  providers: [
-    Storage,
-    TodoService,
-    SuggestionService,
-    CategoryService
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

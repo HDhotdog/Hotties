@@ -1,13 +1,16 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {Location, CommonModule} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {RecipeService} from '../recipe.service';
-import {Recipe} from '../models/recipe.interface';
+import {Recipe} from '../models/recipe.dto';
 import {CategoryService} from 'src/app/category/category.service';
-import {IonSelect, IonicModule} from "@ionic/angular";
-import {Category} from "../../category/category";
+import {IonicModule, IonSelect} from "@ionic/angular";
 import {FormsModule} from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import {combineLatest} from 'rxjs';
+import {Category} from "../../category/category.dto";
+import {Ingredient} from "../../ingredients/ingredient.dto";
+import {Label} from "../../label/models/label.dto";
+import {LabelService} from "../../label/label-service.service";
 
 
 @Component({
@@ -19,14 +22,19 @@ import { forkJoin } from 'rxjs';
 })
 export class RecipeDisplayComponent implements OnInit {
 
-  constructor(private router: Router, private route: ActivatedRoute, private location: Location,
-              private recipeService: RecipeService, private categoryService: CategoryService) {
+  constructor(private router: Router,
+              private route: ActivatedRoute,
+              private recipeService: RecipeService,
+              private categoryService: CategoryService,
+              private labelService: LabelService) {
   }
 
   private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
   private _selectedCategoryId!: string;
   private _categories: Category[] = [];
+  private _ingredients: Ingredient[] = [];
+  private _labels: Label[] = [];
 
   @ViewChild("selectionList", { static: false })
   public selectionList!: IonSelect;
@@ -36,10 +44,15 @@ export class RecipeDisplayComponent implements OnInit {
       const recipeId: string =  this.route.snapshot.paramMap.get('id')!;
       const recipe = this.recipeService.findById(recipeId);
       const categories = this.categoryService.getCategories();
+      const ingredients = this.recipeService.getIngredients(recipeId);
+      const labels = this.labelService.getLabelsForRecipe(recipeId)
 
-      forkJoin([recipe, categories]).subscribe(([recipe, categories]) => {
+      combineLatest([recipe, categories, ingredients, labels]).subscribe(([recipe, categories, ingredients, labels]) => {
         this._recipe = recipe;
         this._categories = categories;
+        this._ingredients = ingredients;
+        this._labels = labels;
+
         if(this.categories.length > 0) {
           this.selectedCategoryId = this.categories[0].id;
         }
@@ -52,41 +65,43 @@ export class RecipeDisplayComponent implements OnInit {
     this.ngOnInit();
   }
 
-
-  public parseDate(): string {
+  public parseDate(recipe: Recipe): string {
+    let hours = (recipe.preparationTime - recipe.preparationTime % 60) / 60;
+    let minutes = recipe.preparationTime % 60;
     let date: string = "";
-    if (this._recipe!.prepTimeHour > 0) {
-      date += this._recipe!.prepTimeHour + "h "
+    if (hours > 0) {
+      date += hours + "h "
     }
-    if (this.recipe!.prepTimeMinutes > 0) {
-      date += this._recipe!.prepTimeMinutes + "m"
+    if (minutes > 0) {
+      date += minutes + "m"
     }
     return date.trim();
   }
 
   public saveIngredients() {
     if(this._selectedCategoryId) {
-      this.categoryService.addIngredientsToCategory(this._selectedCategoryId, this._recipe!);
+      this.categoryService.addIngredientsToCategory(this._selectedCategoryId, this._ingredients).subscribe();
     }
   }
 
   public exportIngredients() {
-    this.selectionList.open();
+    void this.selectionList.open();
   }
 
 
   public navigateBack(): void {
-    this.location.back();
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/recipe']);
   }
 
   public deleteRecipe(): void {
-    this.recipeService.deleteRecipe(this._recipe.id).subscribe(() => {
-      this.router.navigate(['../../'], {relativeTo: this.route});
+    this.recipeService.deleteById(this._recipe.id).subscribe(() => {
+      void this.router.navigate(['../../'], {relativeTo: this.route});
     });
 }
 
   public editRecipe(): void {
-    this.router.navigate(['../../new', this._recipe.id], {relativeTo: this.route});
+    void this.router.navigate(['../../new', this._recipe.id], {relativeTo: this.route});
   }
 
   get recipe(): Recipe {
@@ -99,6 +114,14 @@ export class RecipeDisplayComponent implements OnInit {
 
   get categories(): Category[] {
     return this._categories;
+  }
+
+  get ingredients(): Ingredient[] {
+    return this._ingredients;
+  }
+
+  get labels(): Label[] {
+    return this._labels;
   }
 
   set selectedCategoryId(selectedCategoryId: string) {

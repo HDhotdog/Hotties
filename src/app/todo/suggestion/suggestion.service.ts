@@ -1,32 +1,38 @@
-import { Injectable } from '@angular/core';
-import { Preferences } from '@capacitor/preferences';
+import {Injectable} from '@angular/core';
+import {SuggestionRepository} from "./suggestion.repository";
+import {map, Observable} from "rxjs";
+import {Suggestion} from "./suggestion.dto";
+import {toSuggestion, toRxSuggestion} from "./suggestion.mapper";
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class SuggestionService {
 
-    private SUGGESTION_STORAGE: string = 'suggestion';
-    public suggestions: string[] = [];
+  constructor(private suggestionRepository: SuggestionRepository) {
+  }
 
-    constructor() {
-    }
+  public findByCategoryId(categoryId: string): Observable<Suggestion[]> {
+    return this.suggestionRepository.findByCategoryId(categoryId).pipe(map(docs => docs.map(toSuggestion)));
+  }
 
-    public async saveSuggestions() {
-        this.suggestions.sort(function (a, b) {
-            return a.localeCompare(b);
-        });
-        
-        Preferences.set({ key: this.SUGGESTION_STORAGE, value: JSON.stringify(this.suggestions) });
-    }
+  public save(suggestion: Suggestion): Observable<Suggestion> {
+    return this.suggestionRepository.save(toRxSuggestion(suggestion)).pipe(map(toSuggestion));
+  }
 
-    public async loadSuggestions() {
-        const { value } = await Preferences.get({ key: this.SUGGESTION_STORAGE })
-        this.suggestions = (value ? JSON.parse(value) : []) as string[];
-    }
+  public saveAll(suggestions: Suggestion[]): Observable<Suggestion[]> {
+    return this.suggestionRepository.saveAll(suggestions.map(toRxSuggestion)).pipe(map(docs => docs.map(toSuggestion)));
+  }
 
-    public async clearSuggestions() {
-        this.suggestions.length = 0;
-        Preferences.remove({ key: this.SUGGESTION_STORAGE });
-    }
+  public findAll(): Observable<Suggestion[]> {
+    return this.suggestionRepository.findAll().pipe(map(docs => docs.map(toSuggestion)));
+  }
+
+  public clearSuggestions(): Observable<number> {
+    return this.suggestionRepository.deleteAll();
+  }
+
+  public deleteById(id: string): Observable<boolean> {
+    return this.suggestionRepository.deleteById(id);
+  }
 }

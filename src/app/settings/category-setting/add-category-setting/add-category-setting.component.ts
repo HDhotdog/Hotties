@@ -1,12 +1,13 @@
-import { Location, CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ToastController, IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
-import { Category } from 'src/app/category/category';
-import { CategoryService } from 'src/app/category/category.service';
-import { v4 as uuidv4 } from 'uuid';
-import { forkJoin } from 'rxjs';
+import {CommonModule} from '@angular/common';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {IonicModule, ToastController} from '@ionic/angular';
+import {FormsModule} from '@angular/forms';
+import {CategoryService} from 'src/app/category/category.service';
+import {v4 as uuidv4} from 'uuid';
+import {combineLatest} from 'rxjs';
+import {Category} from "../../../category/category.dto";
+
 @Component({
   selector: 'app-add-category-setting',
   templateUrl: './add-category-setting.component.html',
@@ -23,33 +24,38 @@ export class AddCategorySettingComponent implements OnInit {
   private _categories: Category[] = [];
   private _id: string | null = null;
 
-  constructor(private location: Location,
-    private categoryService: CategoryService,
-    private toastCtrl: ToastController,
-    private route: ActivatedRoute) { }
+  constructor(private router: Router,
+              private categoryService: CategoryService,
+              private toastCtrl: ToastController,
+              private route: ActivatedRoute) {
+  }
 
   ngOnInit(): void {
     this._id = this.route.snapshot.paramMap.get('id');
-
-    const categoryObservable = this.categoryService.getCategoryById(this._id as string);
     const categoriesObservable = this.categoryService.getCategories();
 
-    forkJoin([categoryObservable, categoriesObservable]).subscribe(([category, categories]) => {
-      this._category = category.getOrElse(null);
-      this._categories = categories;
-
-      if (this._category) {
-        this._name = this._category.name;
-        this._saveSuggestions = this._category.saveSuggestions;
-      } else {
+    if (this._id) {
+      // combineLatest (not forkJoin): getCategoryById()/getCategories() are live queries
+      // (RxDB `.$`) that never complete, so forkJoin would never emit.
+      const categoryObservable = this.categoryService.getCategoryById(this._id);
+      combineLatest([categoryObservable, categoriesObservable]).subscribe(([category, categories]) => {
+        this._category = category;
+        this._categories = categories;
+        this._name = category.name;
+        this._saveSuggestions = category.saveSuggestions;
+      });
+    } else {
+      categoriesObservable.subscribe(categories => {
+        this._categories = categories;
         this._name = "";
         this._saveSuggestions = true;
-      }
-    });
+      });
+    }
   }
 
   public navigateBack() {
-    this.location.back();
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings/category']);
   }
 
   public saveCategory() {
@@ -64,21 +70,21 @@ export class AddCategorySettingComponent implements OnInit {
         toast.present();
       })
     } else {
+      let category: Category;
       if (this._category) {
         this._category.name = this._name;
         this._category.saveSuggestions = this._saveSuggestions;
-        this.categoryService.save(this._category);
+        category = this._category;
       } else {
-        const category: Category = {
+        category = {
           id: uuidv4(),
           name: this._name,
-          elements: [],
-          suggestions: [],
           saveSuggestions: this._saveSuggestions
         }
-        this.categoryService.save(category);
       }
-      this.navigateBack();
+      this.categoryService.save(category).subscribe(() => {
+        this.navigateBack();
+      });
     }
   }
 
@@ -97,7 +103,7 @@ export class AddCategorySettingComponent implements OnInit {
 
   get categories(): Category[] {
     return this._categories;
-  } 
+  }
 
   set name(name: string) {
     this._name = name;

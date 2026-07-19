@@ -22,19 +22,19 @@
     </ion-item>
 
     <!-- Label Groups with Reordering -->
-    <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabelGroups($any($event))">
+    <ion-reorder-group [disabled]="false"> <!--(ionItemReorder)="handleReorderOfLabelGroups($any($event))"-->
       <div *ngFor="let group of this.labelGroups" class="group-container">
         <ion-item-divider>
           <ion-reorder slot="start"></ion-reorder>
           <!-- Group Name (Edit Mode) -->
-          <ion-input *ngIf="editingGroup === group" 
-                    [(ngModel)]="editName" 
+          <ion-input *ngIf="editingGroup === group"
+                    [(ngModel)]="editName"
                     placeholder="Group name"
                     (keyup.enter)="saveEdit()">
           </ion-input>
           <!-- Group Name (Display Mode) -->
           <ion-label *ngIf="editingGroup !== group">{{ group.name }}</ion-label>
-          
+
           <!-- Group Actions -->
           <ion-buttons slot="end">
             <!-- Edit Mode Actions -->
@@ -68,18 +68,18 @@
           </ion-item>
 
           <!-- Labels with Reordering -->
-          <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorderOfLabels($any($event), group)">
-            <ion-item *ngFor="let label of group.labels">
+          <ion-reorder-group [disabled]="false"><!--(ionItemReorder)="handleReorderOfLabels($any($event), group)"-->
+            <ion-item *ngFor="let label of this.labelsForGroup(group.id)">
               <ion-reorder slot="start"></ion-reorder>
               <!-- Label Name (Edit Mode) -->
-              <ion-input *ngIf="editingLabel?.label === label" 
-                        [(ngModel)]="editName" 
+              <ion-input *ngIf="editingLabel?.label === label"
+                        [(ngModel)]="editName"
                         placeholder="Label name"
                         (keyup.enter)="saveEdit()">
               </ion-input>
               <!-- Label Name (Display Mode) -->
               <ion-label *ngIf="editingLabel?.label !== label">{{ label.name }}</ion-label>
-              
+
               <!-- Label Actions -->
               <ion-buttons slot="end">
                 <div [style.display]="editingLabel?.label === label ? 'flex' : 'none'" class="button-group">
@@ -94,7 +94,7 @@
                   <ion-button (click)="startEditingLabel(group, label)">
                     <ion-icon name="pencil"></ion-icon>
                   </ion-button>
-                  <ion-button color="danger" (click)="removeLabel(group, label)">
+                  <ion-button color="danger" (click)="removeLabel(label)">
                     <ion-icon name="trash"></ion-icon>
                   </ion-button>
                 </div>
