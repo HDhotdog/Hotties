@@ -11,6 +11,7 @@ import {v4 as UUIDv4} from 'uuid';
 import {TodoService} from "./todo.service";
 import {SuggestionService} from "./suggestion/suggestion.service";
 import {SuggestionFactory} from "./suggestion/suggestion-factory";
+import {combineLatest} from 'rxjs';
 
 
 @Component({
@@ -61,12 +62,12 @@ export class TodoComponent implements OnInit {
 
   private init() {
     const categories = this.categoryService.getCategories();
-    const selectedCategoryId: string | null = localStorage.getItem('selectedCategoryId');
+    const selectedCategoryId = this.categoryService.getSelectedCategoryId();
 
-    categories.subscribe((categories) => {
+    combineLatest([categories, selectedCategoryId]).subscribe(([categories, selectedCategoryId]) => {
       this._categories = categories;
       if (selectedCategoryId != null) {
-        this._selectedCategory = categories.find((category) => category.id === selectedCategoryId)!;
+        this._selectedCategory = categories.find((category) => category.id === selectedCategoryId) ?? categories[0];
       } else {
         this._selectedCategory = categories[0];
       }
@@ -183,7 +184,7 @@ export class TodoComponent implements OnInit {
       });
     }
 
-    this.categoryService.save(this._selectedCategory);
+    this.categoryService.save(this._selectedCategory).subscribe();
   }
 
   public changeCategory() {
@@ -191,7 +192,7 @@ export class TodoComponent implements OnInit {
       c => c.id === this.categoryInputField
     );
     this._selectedCategory = selectedCategory!
-    this.categoryService.saveCurrentCategory(this._selectedCategory)
+    this.categoryService.saveCurrentCategory(this._selectedCategory).subscribe();
     this.refreshTodos()
     this.generateSuggestion();
   }

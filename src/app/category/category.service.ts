@@ -7,13 +7,16 @@ import {Observable} from 'rxjs';
 import {ImportanceLevel} from "../todo/importance-level.enum";
 import {v4 as UUIDv4} from 'uuid';
 import {TodoService} from "../todo/todo.service";
+import {SettingsService} from "../database/settings/settings.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategoryService {
 
-  constructor(private categoryRepository: CategoryRepository, private todoService: TodoService) {
+  constructor(private categoryRepository: CategoryRepository,
+              private todoService: TodoService,
+              private settingsService: SettingsService) {
   }
 
   public initCategories(categories: RxCategory[]): Observable<RxCategory[]> {
@@ -28,10 +31,6 @@ export class CategoryService {
     return this.categoryRepository.saveAll(categories);
   }
 
-  // public async saveLastCategory(index: number) {
-  //   this.categoryRepository.saveLastCategory(index);
-  // }
-
   public getCategories(): Observable<RxCategory[]> {
     return this.categoryRepository.findAll();
   }
@@ -40,25 +39,20 @@ export class CategoryService {
     return this.categoryRepository.findById(categoryId);
   }
 
-  // public getCategoryById(id: string): Observable<Optional<RxCategory>> {
-  //   return this.categoryRepository.findCategoryById(id);
-  // }
-  //
-  // public getLastCategory(): Observable<number> {
-  //   return this.categoryRepository.getLastCategory();
-  // }
-  //
   public deleteAllCategories(): Observable<number> {
     return this.categoryRepository.deleteAll();
   }
 
-  //
   public deleteCategory(id: string): Observable<boolean> {
     return this.categoryRepository.deleteById(id);
   }
 
-  public saveCurrentCategory(category: RxCategory): void {
-    localStorage.setItem("selectedCategoryId", category.id);
+  public getSelectedCategoryId(): Observable<string | null> {
+    return this.settingsService.getSelectedCategoryId();
+  }
+
+  public saveCurrentCategory(category: RxCategory): Observable<unknown> {
+    return this.settingsService.setSelectedCategoryId(category.id);
   }
 
   public addIngredientsToCategory(categoryId: string, ingredients: RxIngredient[]): Observable<unknown> {

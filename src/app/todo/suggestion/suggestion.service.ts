@@ -1,5 +1,4 @@
 import {Injectable} from '@angular/core';
-import {Preferences} from '@capacitor/preferences';
 import {SuggestionRepository} from "./suggestion.repository";
 import {Observable} from "rxjs";
 import {RxSuggestion} from "./rxSuggestion";

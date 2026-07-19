@@ -46,10 +46,6 @@ export class LabelRepository extends AbstractRepository<RxLabel> {
     );
   }
 
-  // col.find({
-  //            selector: {categoryId}
-  //          }).$
-
   public deleteByLabelGroupId(groupId: string): Observable<number> {
     return this.getCollection().pipe(
       switchMap(col =>
@@ -68,32 +64,4 @@ export class LabelRepository extends AbstractRepository<RxLabel> {
     );
   }
 }
-
-
-  // public saveAll(labelGroups: RxLabelGroup[]) {
-  //     Preferences.set({ key: this.LABEL_STORAGE, value: JSON.stringify(labelGroups) })
-  //         .then(() => console.log('Label groups saved successfully!'))
-  //         .catch((error) => console.error('Error saving label groups:', error));
-  // }
-  //
-  // public findAll(): Observable<RxLabelGroup[]> {
-  //     return from(Preferences.get({key: this.LABEL_STORAGE})).pipe(
-  //         map(({value}) => (value ? JSON.parse(value) : []) as RxLabelGroup[]),
-  //         catchError((error) => {
-  //             console.error('Error getting label groups:', error);
-  //             return of([]);
-  //         })
-  //     );
-  // }
-  //
-  // public deleteAll(): Observable<void> {
-  //     return from(Preferences.remove({key: this.LABEL_STORAGE}));
-  // }
-  //
-  // public delete(labelGroup: RxLabelGroup): Observable<RxLabelGroup[]> {
-  //     return this.findAll().pipe(
-  //         map((labelGroups) => labelGroups.filter((lab) => lab.id !== labelGroup.id)),
-  //         tap((labelGroups) => Preferences.set({key: this.LABEL_STORAGE, value: JSON.stringify(labelGroups)}))
-  //     );
-  // }
 

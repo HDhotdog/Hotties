@@ -22,8 +22,6 @@ describe('TodoComponent', () => {
   ];
 
   beforeEach(async () => {
-    localStorage.removeItem('selectedCategoryId');
-
     todoService = jasmine.createSpyObj('TodoService', [
       'findByCategoryId', 'save', 'deleteById', 'deleteByCategoryId', 'deleteAll'
     ]);
@@ -32,8 +30,13 @@ describe('TodoComponent', () => {
     todoService.deleteById.and.returnValue(of(true));
     todoService.deleteByCategoryId.and.returnValue(of(1));
 
-    categoryService = jasmine.createSpyObj('CategoryService', ['getCategories', 'save', 'saveCurrentCategory']);
+    categoryService = jasmine.createSpyObj('CategoryService', [
+      'getCategories', 'save', 'saveCurrentCategory', 'getSelectedCategoryId'
+    ]);
     categoryService.getCategories.and.returnValue(of([category]));
+    categoryService.getSelectedCategoryId.and.returnValue(of(category.id));
+    categoryService.saveCurrentCategory.and.returnValue(of(undefined));
+    categoryService.save.and.returnValue(of(category));
 
     suggestionService = jasmine.createSpyObj('SuggestionService', ['findByCategoryId', 'save']);
     suggestionService.findByCategoryId.and.returnValue(of([]));

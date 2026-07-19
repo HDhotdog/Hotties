@@ -14,9 +14,10 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | `9b90fed` | Categories, todos, suggestions migrated to RxDB |
 | `60f25be` | Recipes migrated to RxDB |
 | `4c4a22c` | "Klaus work" — fixed label models, inverted filter logic, reactive queries, recipe filtering |
-| Uncommitted | Phase 1 blockers verified fixed; Phase 2 data-relation work completed (see below) |
+| `f03ae5d` | Phase 2 complete — data relations, shopping list export, cache reset, tests |
+| Uncommitted | Phase 3 legacy cleanup completed (see below) |
 
-## Current Progress: ~90%
+## Current Progress: ~95%
 
 ### Completed
 
@@ -33,7 +34,9 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | Label group repository/service | ✅ Done | CRUD on RxDB |
 | Ingredient repository/service | ✅ Done | Read by recipeId, scoped replace by recipe |
 | DB seeding | ✅ Done | Default category + label groups in `DatabaseService` |
-| Old Preferences code | ✅ Removed | Commented out in repositories (cleanup pending) |
+| Old Preferences/`@ionic/storage` code | ✅ Removed | Dead imports, `Storage` DI provider, and commented-out code deleted; both packages uninstalled |
+| Settings repository/service | ✅ Done | Generic key/value `settings` collection wrapper (`SettingsRepository`/`SettingsService`) |
+| UI preferences in DB | ✅ Fixed | `selectedCategoryId` now lives in the `settings` collection instead of `localStorage` |
 | Label TypeScript models | ✅ Fixed | `RxLabel`/`RxLabelGroup` are interfaces again, app compiles |
 | Recipe ingredients persistence | ✅ Fixed | `AddRecipeComponent.saveRecipe()` replaces ingredients via `RecipeService.saveIngredients()` |
 | Recipe label assignment | ✅ Fixed | `handleLabelChange()` resolves the correct `groupId` from template labels; save replaces recipe labels |
@@ -54,14 +57,12 @@ _(none blocking; remaining items are scoped enhancements, see Not Started)_
 
 | Area | Notes |
 |------|-------|
-| Data migration script | No import path from old Preferences JSON → RxDB |
+| Data migration script | No import path from old Preferences JSON → RxDB. Deliberately skipped: app is pre-release (`package.json` version `0.0.1`, not published), no installs have Preferences data to preserve |
 | IndexedDB adapter | `pouchdb-adapter-idb` in `package.json` but not wired |
 | Schema migrations | Plugin loaded, no migration strategies defined |
 | Recipe images/emoji | Fields removed from schema during migration |
-| UI preferences in DB | `selectedCategoryId` still in `localStorage` |
-| Legacy dependency cleanup | `@ionic/storage` provider, unused imports |
 | Dev/prod RxDB config | Dev-mode plugin always active |
-| Tests for repositories | No repository or DB integration tests |
+| Tests for repositories | No repository or DB integration tests (component-level tests exist) |
 
 ---
 
@@ -89,25 +90,15 @@ All five items (label model interfaces, non-inverted filter logic, live `.$` que
 
 Additionally, all Karma unit tests were brought back to green (`ng test`): rewrote the stale `todo.component.spec.ts` (referenced removed `RxCategory.elements` and a settable `currentImportanceLevel`), and fixed 10 other spec files that declared standalone components via the legacy `declarations` array instead of `imports`, adding the DI mocks (`ActivatedRoute`, `Router`, `Location`, services) those components need.
 
-### Phase 3 — Legacy Cleanup & Migration (1–2 days)
+### Phase 3 — Legacy Cleanup & Migration ✅ Done (except item 12, deliberately skipped)
 
 **Goal:** Remove old storage code and migrate existing user data.
 
-11. **Remove legacy storage dependencies**
-    - Remove `Storage` provider from `TodoModule`
-    - Remove unused `Preferences` imports
-    - Remove commented-out Preferences code from repositories
-    - Consider removing `@ionic/storage` from `package.json` if unused
+11. **Remove legacy storage dependencies** ✅ — Removed the `Storage` provider and import from `TodoModule` (also dropped the redundant `TodoService`/`SuggestionService`/`CategoryService` re-registrations there, since all three are already `providedIn: 'root'`); removed dead `Preferences` imports from `suggestion.service.ts` and `settings.component.ts`; deleted commented-out Preferences code from `label.repository.ts` and `recipe.repository.ts`; uninstalled `@capacitor/preferences` and `@ionic/storage` from `package.json` (confirmed via full-tree grep that nothing else referenced them).
 
-12. **One-time data migration from Preferences**
-    - On first RxDB init (before `dbSeeded`), check Preferences for old keys:
-      - Recipes, labels, categories, todos, suggestions
-    - Transform JSON blobs into normalized RxDB documents
-    - Mark migration complete in `settings` collection
-    - Only needed if users have existing installs with Preferences data
+12. **One-time data migration from Preferences** — **Skipped by decision**, not implemented. Confirmed with the project owner: app is pre-release (version `0.0.1`, unpublished), no installs exist with real Preferences data to lose. Revisit only if that changes before shipping.
 
-13. **Move UI preferences to RxDB**
-    - Store `selectedCategoryId` in `settings` collection instead of `localStorage`
+13. **Move UI preferences to RxDB** ✅ — Added `SettingsRepository`/`SettingsService` (`src/app/database/settings/`) wrapping the existing key/value `settings` collection. `CategoryService.getSelectedCategoryId()` / `saveCurrentCategory()` now read/write through it instead of `localStorage`; `TodoComponent.init()` combines the categories and selected-id streams reactively. Note: this changed `saveCurrentCategory()` from a synchronous void method to an `Observable` that must be subscribed — both call sites were updated accordingly (and a pre-existing latent bug where `changeSort()`'s `categoryService.save()` call was never subscribed, so sort order silently never persisted, was fixed in passing).
 
 ### Phase 4 — Production Hardening (2–3 days)
 

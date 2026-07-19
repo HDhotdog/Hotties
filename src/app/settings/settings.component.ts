@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Preferences } from '@capacitor/preferences';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 
