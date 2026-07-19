@@ -20,7 +20,8 @@ export class TodoRepository extends AbstractRepository<RxToDo> {
         col.find({
           selector: {categoryId}
         }).$
-      )
+      ),
+      map(docs => [...docs].sort((a, b) => a._data._meta.lwt - b._data._meta.lwt))
     );
   }
 
