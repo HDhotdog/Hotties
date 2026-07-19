@@ -2,6 +2,8 @@
 export interface Recipe {
   id: string;
   name: string;
+  imgSrc?: string;
   description: string;
   preparationTime: number;
+  emoji?: string | null;
 }

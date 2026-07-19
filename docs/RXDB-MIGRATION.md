@@ -17,9 +17,10 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | `f03ae5d` | Phase 2 complete — data relations, shopping list export, cache reset, tests |
 | `759026f` | Phase 3 complete — legacy Preferences/`@ionic/storage` cleanup, settings collection |
 | `d921c01` | Phase 4 complete (except deferred items) — IndexedDB storage, dev-mode gating |
-| Uncommitted | Phase 5 complete — Jest migration, repository tests, DTO/ACL layer (see below) |
+| `fc43da9` | Phase 5 complete — Jest migration, repository tests, DTO/ACL layer |
+| Uncommitted | Phase 4 items 16–17 complete — recipe imgSrc/emoji restored with a real schema migration (see below) |
 
-## Current Progress: ~99%
+## Current Progress: 100%
 
 ### Completed
 
@@ -55,6 +56,8 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | Test runner | ✅ Done | Migrated from Karma/Jasmine to Jest (`jest-preset-angular`); all 23 pre-existing tests converted and passing |
 | Repository/DB integration tests | ✅ Done | 31 new tests against an in-memory RxDB (`getRxStorageMemory()`) covering every repository's custom queries plus DB seeding logic |
 | UI/DB model split (DTO/ACL layer) | ✅ Done | Every entity now has a UI-facing DTO (`Category`, `Todo`, `Suggestion`, `Recipe`, `Ingredient`, `Label`/`LabelGroup`) distinct from its RxDB document type (`RxCategory`, etc.), with mapper functions at the service boundary; components no longer import RxDB document types |
+| Recipe images/emoji | ✅ Done | `imgSrc`/`emoji` restored to the recipe schema (`version: 1`, real migration strategy), `RxRecipe`/`Recipe` DTO, and UI (emoji picker + image upload in the edit form; emoji + image display in the list and detail views). Verified in-browser end-to-end |
+| Schema migrations | ✅ Done | `RxDBMigrationSchemaPlugin` migration is now actually invoked (`runPendingMigrations()` in `database.ts`, generic across all collections) — previously the plugin was loaded but nothing ever called `migrationNeeded()`/`getMigrationState().migratePromise()`, so a version bump alone would have crashed on any existing install. Covered by an integration test that seeds a real v0 recipe document and asserts it migrates to v1 with correct defaults |
 
 ### In Progress / Broken
 
@@ -66,9 +69,8 @@ _(none blocking; remaining items are scoped enhancements, see Not Started)_
 |------|-------|
 | Data migration script | No import path from old Preferences JSON → RxDB. Deliberately skipped: app is pre-release (`package.json` version `0.0.1`, not published), no installs have Preferences data to preserve |
 | Unused `pouchdb-adapter-idb` dependency | Never wired up (predates the rxdb v16 storage-plugin architecture now in use); still listed in `package.json`, not removed in this pass |
-| Schema migrations | Plugin loaded, no migration strategies defined. Deferred together with recipe media fields, by product decision |
-| Recipe images/emoji | Fields removed from schema during migration. Deferred by product decision — see Phase 4 items 16–17 |
 | UI DTOs for `RxSetting` | Not introduced — nothing in the UI layer touches `RxSetting` directly (`SettingsService` already exposes only primitive strings), so there was no boundary to split |
+| Hours/Minutes recipe inputs don't feed `preparationTime` | Found while restoring recipe media fields, out of scope to fix here: `add-recipe.component.html`'s Hours/Minutes inputs are bound to `hours`/`minutes`, but nothing in `add-recipe.component.ts` ever derives `_prepTime` from them — `preparationTime` is only ever saved as whatever `_prepTime` already was (always `0` for new recipes). Pre-existing, unrelated to this migration |
 
 ---
 
@@ -106,7 +108,7 @@ Additionally, all Karma unit tests were brought back to green (`ng test`): rewro
 
 13. **Move UI preferences to RxDB** ✅ — Added `SettingsRepository`/`SettingsService` (`src/app/database/settings/`) wrapping the existing key/value `settings` collection. `CategoryService.getSelectedCategoryId()` / `saveCurrentCategory()` now read/write through it instead of `localStorage`; `TodoComponent.init()` combines the categories and selected-id streams reactively. Note: this changed `saveCurrentCategory()` from a synchronous void method to an `Observable` that must be subscribed — both call sites were updated accordingly (and a pre-existing latent bug where `changeSort()`'s `categoryService.save()` call was never subscribed, so sort order silently never persisted, was fixed in passing).
 
-### Phase 4 — Production Hardening 🟡 Mostly done (items 16–17 deferred)
+### Phase 4 — Production Hardening ✅ Done
 
 **Goal:** Stable storage for mobile production use.
 
@@ -114,9 +116,15 @@ Additionally, all Karma unit tests were brought back to green (`ng test`): rewro
 
 15. **Gate dev-mode plugin** ✅ — `addRxPlugin(RxDBDevModePlugin)` in `database.ts` is now wrapped in `if (!environment.production)`. Verified the production build (`ng build --configuration production`) still compiles clean with the plugin excluded from that path.
 
-16. **Define schema migrations** — **Deferred**, tracked together with item 17 below (by product decision). Nothing to migrate yet since no schema fields have changed.
+16. **Define schema migrations** ✅ — `RECIPE_SCHEMA_LITERAL` bumped to `version: 1` with a `migrationStrategies: {1: ...}` that defaults `imgSrc` to `''` and `emoji` to `null` on old documents. Discovered that the `RxDBMigrationSchemaPlugin` being loaded does **not** auto-run migrations in rxdb v16 — you must explicitly call `collection.migrationNeeded()` / `collection.getMigrationState().migratePromise()`, or a version bump against an existing install silently never migrates (old-schema docs stay stuck, or every read throws). Added `runPendingMigrations(db)` to `database.ts`, called after `addCollections()`, generic across all collections so any future schema bump on any entity is covered automatically. Proven with a real integration test in `database.spec.ts`: seeds a v0-schema recipe document, reopens the same storage with the current (v1) schema, and asserts the document migrated with the correct defaults.
 
-17. **Restore recipe media fields** (optional) — **Deferred by product decision.** `imgSrc`/`emoji` remain commented out of the recipe schema and UI (`RxRecipe`, `add-recipe.component.ts`, `recipe-display`). Doing this later requires: bump `RECIPE_SCHEMA_LITERAL` to `version: 1` with a migration strategy (item 16), add the fields back to `RxRecipe`, and re-enable the already-scaffolded emoji-picker/image-upload UI.
+17. **Restore recipe media fields** ✅ — `imgSrc`/`emoji` added back to `RxRecipe`, the `Recipe` DTO, and `recipe.mapper.ts`. `AddRecipeComponent` now actually loads/saves them (the emoji-picker and image-upload UI in `add-recipe.component.html` were already fully wired, just never fed real data) and `inputChanged()` accounts for them so the save button activates correctly. Re-enabled the previously-commented-out emoji span and `ion-img` in both `recipe.component.html` (list) and `recipe-display.component.html` (detail). Verified end-to-end in-browser: picked an emoji on an existing recipe, saved, and confirmed it displays in both the list and detail views and survives a page reload.
+
+    **Two more bugs found and fixed while verifying this in the browser** (both pre-existing, unrelated to imgSrc/emoji specifically, but blocked verifying the edit flow):
+    - `AddRecipeComponent`'s edit-mode data loading (`ngOnInit()`'s `if (index)` branch) used `forkJoin([recipe, ingredients, templateLabels, recipeLabels])` — but every one of those four sources is a live RxDB query (`.$`) that never completes, and `forkJoin` only emits once *all* sources complete. The result: opening any existing recipe for editing loaded a **permanently empty form**, silently. Switched to `combineLatest`, matching the pattern already used correctly elsewhere (`todo.component.ts`, `recipe-display.component.ts`).
+    - `AddCategorySettingComponent` had the identical bug (`forkJoin([categoryObservable, categoriesObservable])`), plus called `getCategoryById(id)` even when creating a *new* category (`id` is `null`), which throws inside `AbstractRepository.findById()` since a null id never resolves to a document — so editing *or* creating a category via that screen never worked either. Restructured `ngOnInit()` to only fetch the category when an id is present, and to use `combineLatest` for the edit path.
+
+    Neither bug was caught by the unit tests (`add-recipe.component.spec.ts` / `add-category-setting.component.spec.ts` only assert `should create`, not that data actually loads) or by the type checker, since `forkJoin`/`combineLatest` are both valid `Observable<[A,B,...]>`-returning calls — only end-to-end browser testing surfaced it.
 
 ### Phase 5 — Quality ✅ Done
 

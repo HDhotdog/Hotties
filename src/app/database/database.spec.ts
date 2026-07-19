@@ -1,5 +1,6 @@
-import {RxDatabase} from 'rxdb';
+import {createRxDatabase, RxDatabase} from 'rxdb';
 import {getRxStorageMemory} from 'rxdb/plugins/storage-memory';
+import {wrappedValidateAjvStorage} from 'rxdb/plugins/validate-ajv';
 import {v4 as uuidv4} from 'uuid';
 import {createHottiesDatabase} from './database';
 
@@ -60,5 +61,54 @@ describe('createHottiesDatabase() seeding', () => {
 
     const categories = await db['categories'].find().exec();
     expect(categories).toHaveLength(1);
+  });
+});
+
+describe('recipe schema migration (v0 -> v1, imgSrc/emoji)', () => {
+  let db: RxDatabase;
+
+  afterEach(async () => {
+    if (db) {
+      await db.close();
+    }
+  });
+
+  it('migrates a pre-existing v0 recipe document to v1 with default imgSrc/emoji', async () => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+
+    // Simulate an existing install on the old (pre-imgSrc/emoji) recipe schema.
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    await oldDb.addCollections({
+      recipes: {
+        schema: {
+          version: 0,
+          primaryKey: 'id',
+          type: 'object',
+          properties: {
+            id: {type: 'string', maxLength: 255},
+            name: {type: 'string', minLength: 1, maxLength: 255},
+            description: {type: 'string'},
+            preparationTime: {type: 'number'}
+          },
+          required: ['id', 'name', 'description', 'preparationTime']
+        }
+      }
+    });
+    await oldDb['recipes'].upsert({id: 'r1', name: 'Pancakes', description: 'Fluffy', preparationTime: 20});
+    await oldDb.close();
+
+    // Re-open with the current (v1) schema against the same underlying storage.
+    db = await createHottiesDatabase(storage, dbName);
+
+    const migrated = await db['recipes'].findOne('r1').exec();
+    expect(migrated?.toJSON()).toMatchObject({
+      id: 'r1',
+      name: 'Pancakes',
+      description: 'Fluffy',
+      preparationTime: 20,
+      imgSrc: '',
+      emoji: null
+    });
   });
 });

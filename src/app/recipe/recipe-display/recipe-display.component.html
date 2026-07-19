@@ -23,14 +23,13 @@
   <div class="recipe-wrapper" *ngIf="!isLoading">
     <div class="recipe-header">
       <div class="title-container">
-<!--        <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>-->
+        <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>
         <h2>{{recipe.name}}</h2>
       </div>
       <h3>{{this.parseDate(recipe)}}</h3>
     </div>
 
-<!--    <ion-img-->
-<!--      src={{recipe.imgSrc}}></ion-img>-->
+    <ion-img *ngIf="recipe.imgSrc" [src]="recipe.imgSrc"></ion-img>
 
     <div class="ingredients">
       <p class="ingredients-title">Ingredients</p>

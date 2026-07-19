@@ -12,7 +12,7 @@ import {LabelService} from "../../label/label-service.service";
 import {NgxImageCompressService} from 'ngx-image-compress';
 import {EmojiModule} from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import {PickerModule} from '@ctrl/ngx-emoji-mart';
-import {forkJoin} from 'rxjs';
+import {combineLatest, forkJoin} from 'rxjs';
 
 @Component({
   selector: 'app-add-recipe',
@@ -54,11 +54,13 @@ export class AddRecipeComponent implements OnInit {
       const ingredients = this.recipeService.getIngredients(index);
       const templateLabels = this.labelService.getTemplateLabels();
       const recipeLabels = this.labelService.getLabelsForRecipe(index);
-      forkJoin([recipe, ingredients, templateLabels, recipeLabels]).subscribe(([recipe, ingredients, templateLabels, recipeLabels]) => {
+      // combineLatest (not forkJoin): findById()/getIngredients()/getTemplateLabels()/getLabelsForRecipe()
+      // are live queries (RxDB `.$`) that never complete, so forkJoin would never emit.
+      combineLatest([recipe, ingredients, templateLabels, recipeLabels]).subscribe(([recipe, ingredients, templateLabels, recipeLabels]) => {
         this._templateLabels = templateLabels;
         this._recipe = recipe;
         this._name = recipe.name;
-        // this._imgSrc = recipe.imgSrc;
+        this._imgSrc = recipe.imgSrc ?? "";
         this._description = recipe.description;
         this._prepTime = recipe.preparationTime;
         this._ingredients = ingredients;
@@ -67,8 +69,8 @@ export class AddRecipeComponent implements OnInit {
           .filter(template => recipeLabels.some(label => label.name === template.name && label.groupId === template.groupId))
           .map(template => template.id);
         // this._minutes = recipe.prepTimeMinutes;
-        // this._imageSelected = !!this._imgSrc;
-        // this._selectedEmoji = recipe.emoji || null;
+        this._imageSelected = !!this._imgSrc;
+        this._selectedEmoji = recipe.emoji ?? null;
       });
     } else {
       this.labelService.getTemplateLabels().subscribe(templateLabels => {
@@ -76,12 +78,12 @@ export class AddRecipeComponent implements OnInit {
         this._recipe = {
           id: uuidv4(),
           name: this._name,
-          // imgSrc: this._imgSrc,
+          imgSrc: this._imgSrc,
           description: this._description,
           preparationTime: this._prepTime,
           // prepTimeHour: this._hours,
           // prepTimeMinutes: this._minutes,
-          // emoji: this._selectedEmoji
+          emoji: this._selectedEmoji
         };
       });
     }
@@ -100,24 +102,24 @@ export class AddRecipeComponent implements OnInit {
       recipe.name = this._name;
       recipe.description = this._description;
       recipe.preparationTime = this._prepTime;
-      // recipe.imgSrc = this._imgSrc;
+      recipe.imgSrc = this._imgSrc;
       // recipe.prepTimeHour = this._hours;
       // recipe.prepTimeMinutes = this._minutes;
       // recipe.ingredients = this._ingredients;
       // recipe.labels = this._labels;
-      // recipe.emoji = this._selectedEmoji;
+      recipe.emoji = this._selectedEmoji;
     } else {
       recipe = {
         id: this._recipe.id,
         name: this._name,
-        // imgSrc: this._imgSrc,
+        imgSrc: this._imgSrc,
         description: this._description,
         preparationTime: this._prepTime,
         // prepTimeHour: this._hours,
         // prepTimeMinutes: this._minutes,
         // ingredients: this._ingredients,
         // labels: this._labels,
-        // emoji: this._selectedEmoji
+        emoji: this._selectedEmoji
       }
     }
     const savedRecipe = this.recipeService.save(recipe);
@@ -133,12 +135,12 @@ export class AddRecipeComponent implements OnInit {
     return this._recipe.name !== this._name
       || this._recipe.description !== this._description
       || this._recipe.preparationTime !== this._prepTime
+      || (this._recipe.imgSrc ?? "") !== this._imgSrc
+      || (this._recipe.emoji ?? null) !== this._selectedEmoji;
     // || this._recipe.prepTimeHour !== this._hours
     // || this._recipe.prepTimeMinutes !== this._minutes
     // || this._recipe.ingredients !== this._ingredients
     // || this._recipe.labels !== this._labels
-    // || this._recipe.imgSrc !== this._imgSrc
-    // || this._recipe.emoji !== this._selectedEmoji;
   }
 
   public addIngredient(): void {

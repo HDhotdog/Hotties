@@ -1,6 +1,6 @@
 export const RECIPE_SCHEMA_LITERAL = {
   schema: {
-    version: 0,
+    version: 1,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -21,9 +21,23 @@ export const RECIPE_SCHEMA_LITERAL = {
       preparationTime: {
         type: 'number',
         default: 0
+      },
+      imgSrc: {
+        type: 'string',
+        default: ''
+      },
+      emoji: {
+        type: ['string', 'null'],
+        default: null
       }
     },
     required: ['id', 'name', 'description', 'preparationTime'],
+  },
+  migrationStrategies: {
+    1: (oldDoc: any) => {
+      oldDoc.imgSrc = oldDoc.imgSrc ?? '';
+      oldDoc.emoji = oldDoc.emoji ?? null;
+      return oldDoc;
+    }
   }
 };
-

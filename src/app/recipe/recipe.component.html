@@ -54,14 +54,14 @@
       <div class="recipe-preview-container" *ngFor="let recipe of this.results" (click)="openRecipe(recipe)">
         <div class="recipe-preview-title">
           <div class="title-container">
-<!--            <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>-->
+            <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>
             <p>{{recipe.name}}</p>
           </div>
           <p>{{this.parseDate(recipe)}}</p>
         </div>
-<!--        <div class="recipe-preview-image">-->
-<!--          <ion-img [src]="recipe.imgSrc"></ion-img>-->
-<!--        </div>-->
+        <div class="recipe-preview-image" *ngIf="recipe.imgSrc">
+          <ion-img [src]="recipe.imgSrc"></ion-img>
+        </div>
         <div class="recipe-preview-labels">
           <div class="recipe-preview-label" *ngFor="let label of this.labelsForRecipe(recipe.id)">{{label.name}}</div>
         </div>

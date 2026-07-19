@@ -5,7 +5,7 @@ import {IonicModule, ToastController} from '@ionic/angular';
 import {FormsModule} from '@angular/forms';
 import {CategoryService} from 'src/app/category/category.service';
 import {v4 as uuidv4} from 'uuid';
-import {forkJoin} from 'rxjs';
+import {combineLatest} from 'rxjs';
 import {Category} from "../../../category/category.dto";
 
 @Component({
@@ -32,22 +32,25 @@ export class AddCategorySettingComponent implements OnInit {
 
   ngOnInit(): void {
     this._id = this.route.snapshot.paramMap.get('id');
-
-    const categoryObservable = this.categoryService.getCategoryById(this._id as string);
     const categoriesObservable = this.categoryService.getCategories();
 
-    forkJoin([categoryObservable, categoriesObservable]).subscribe(([category, categories]) => {
-      this._category = category
-      this._categories = categories;
-
-      if (this._category) {
-        this._name = this._category.name;
-        this._saveSuggestions = this._category.saveSuggestions;
-      } else {
+    if (this._id) {
+      // combineLatest (not forkJoin): getCategoryById()/getCategories() are live queries
+      // (RxDB `.$`) that never complete, so forkJoin would never emit.
+      const categoryObservable = this.categoryService.getCategoryById(this._id);
+      combineLatest([categoryObservable, categoriesObservable]).subscribe(([category, categories]) => {
+        this._category = category;
+        this._categories = categories;
+        this._name = category.name;
+        this._saveSuggestions = category.saveSuggestions;
+      });
+    } else {
+      categoriesObservable.subscribe(categories => {
+        this._categories = categories;
         this._name = "";
         this._saveSuggestions = true;
-      }
-    });
+      });
+    }
   }
 
   public navigateBack() {

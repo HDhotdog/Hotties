@@ -77,6 +77,18 @@ async function seedInitialData(db: RxDatabase) {
 }
 
 /**
+ * Runs any pending schema migrations (e.g. recipes v0 -> v1 adding imgSrc/emoji).
+ * A no-op for fresh installs and collections whose schema hasn't changed.
+ */
+async function runPendingMigrations(db: RxDatabase): Promise<void> {
+  for (const collection of Object.values(db.collections) as any[]) {
+    if (await collection.migrationNeeded()) {
+      await collection.getMigrationState().migratePromise();
+    }
+  }
+}
+
+/**
  * Creates and seeds a Hotties RxDatabase for the given storage. Extracted from
  * `DatabaseService` so tests can build an equivalent database against an
  * in-memory storage instead of the production IndexedDB (Dexie) adapter.
@@ -98,6 +110,7 @@ export async function createHottiesDatabase(storage: RxStorage<any, any>, dbName
     ingredients: INGREDIENT_SCHEMA_LITERAL
   });
 
+  await runPendingMigrations(db);
   await seedInitialData(db);
 
   return db;
