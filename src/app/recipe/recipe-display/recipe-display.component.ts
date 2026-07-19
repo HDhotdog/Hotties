@@ -2,14 +2,14 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {CommonModule, Location} from '@angular/common';
 import {RecipeService} from '../recipe.service';
-import {RxRecipe} from '../models/recipe';
+import {Recipe} from '../models/recipe.dto';
 import {CategoryService} from 'src/app/category/category.service';
 import {IonicModule, IonSelect} from "@ionic/angular";
 import {FormsModule} from '@angular/forms';
 import {combineLatest} from 'rxjs';
-import {RxCategory} from "../../category/category";
-import {RxIngredient} from "../../ingredients/ingredient";
-import {RxLabel} from "../../label/models/label";
+import {Category} from "../../category/category.dto";
+import {Ingredient} from "../../ingredients/ingredient.dto";
+import {Label} from "../../label/models/label.dto";
 import {LabelService} from "../../label/label-service.service";
 
 
@@ -30,12 +30,12 @@ export class RecipeDisplayComponent implements OnInit {
               private labelService: LabelService) {
   }
 
-  private _recipe: RxRecipe = {} as RxRecipe;
+  private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
   private _selectedCategoryId!: string;
-  private _categories: RxCategory[] = [];
-  private _ingredients: RxIngredient[] = [];
-  private _labels: RxLabel[] = [];
+  private _categories: Category[] = [];
+  private _ingredients: Ingredient[] = [];
+  private _labels: Label[] = [];
 
   @ViewChild("selectionList", { static: false })
   public selectionList!: IonSelect;
@@ -66,7 +66,7 @@ export class RecipeDisplayComponent implements OnInit {
     this.ngOnInit();
   }
 
-  public parseDate(recipe: RxRecipe): string {
+  public parseDate(recipe: Recipe): string {
     let hours = (recipe.preparationTime -  recipe.preparationTime % 60) / recipe.preparationTime;
     let minutes = recipe.preparationTime % 60;
     let date: string = "";
@@ -104,7 +104,7 @@ export class RecipeDisplayComponent implements OnInit {
     void this.router.navigate(['../../new', this._recipe.id], {relativeTo: this.route});
   }
 
-  get recipe(): RxRecipe {
+  get recipe(): Recipe {
     return this._recipe;
   }
 
@@ -112,15 +112,15 @@ export class RecipeDisplayComponent implements OnInit {
     return this._isLoading;
   }
 
-  get categories(): RxCategory[] {
+  get categories(): Category[] {
     return this._categories;
   }
 
-  get ingredients(): RxIngredient[] {
+  get ingredients(): Ingredient[] {
     return this._ingredients;
   }
 
-  get labels(): RxLabel[] {
+  get labels(): Label[] {
     return this._labels;
   }
 

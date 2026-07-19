@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule, Location} from '@angular/common';
 import {IonicModule} from '@ionic/angular';
-import {RxLabel, RxLabelGroup} from 'src/app/label/models/label';
+import {Label, LabelGroup} from 'src/app/label/models/label.dto';
 import {LabelService} from '../../label/label-service.service';
 import {FormsModule} from '@angular/forms';
 import {v4 as uuidv4} from 'uuid';
@@ -17,13 +17,13 @@ import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
 })
 export class LabelSettingComponent implements OnInit {
   private _newGroupName: string = '';
-  private _selectedGroup: RxLabelGroup | null = null;
+  private _selectedGroup: LabelGroup | null = null;
   private _newLabelName: string = '';
-  private _editingGroup: RxLabelGroup | null = null;
-  private _editingLabel: { group: RxLabelGroup; label: RxLabel } | null = null;
+  private _editingGroup: LabelGroup | null = null;
+  private _editingLabel: { group: LabelGroup; label: Label } | null = null;
   private _editName: string = '';
-  private _labelGroups: RxLabelGroup[] = [];
-  private _labels: RxLabel[] = [];
+  private _labelGroups: LabelGroup[] = [];
+  private _labels: Label[] = [];
 
   constructor(
     private location: Location,
@@ -43,7 +43,7 @@ export class LabelSettingComponent implements OnInit {
 
   addLabelGroup() {
     if (this._newGroupName.trim()) {
-      const newGroup: RxLabelGroup = {
+      const newGroup: LabelGroup = {
         id: uuidv4(),
         name: this._newGroupName.trim(),
       };
@@ -55,7 +55,7 @@ export class LabelSettingComponent implements OnInit {
 
   addLabel() {
     if (this._selectedGroup && this._newLabelName.trim()) {
-      const newLabel: RxLabel = {
+      const newLabel: Label = {
         id: uuidv4(),
         groupId: this._selectedGroup.id,
         recipeId: "",
@@ -66,12 +66,12 @@ export class LabelSettingComponent implements OnInit {
     }
   }
 
-  startEditingGroup(group: RxLabelGroup) {
+  startEditingGroup(group: LabelGroup) {
     this._editingGroup = group;
     this._editName = group.name;
   }
 
-  startEditingLabel(group: RxLabelGroup, label: RxLabel) {
+  startEditingLabel(group: LabelGroup, label: Label) {
     this._editingLabel = {group, label};
     this._editName = label.name;
   }
@@ -99,11 +99,11 @@ export class LabelSettingComponent implements OnInit {
     this._editName = '';
   }
 
-  removeLabel(label: RxLabel) {
+  removeLabel(label: Label) {
     this.labelService.deleteLabelById(label.id).subscribe();
   }
 
-  removeLabelGroup(group: RxLabelGroup) {
+  removeLabelGroup(group: LabelGroup) {
     this.labelService.deleteLabelGroupById(group.id).subscribe();
   }
 
@@ -111,27 +111,27 @@ export class LabelSettingComponent implements OnInit {
     this.location.back();
   }
 
-  labelsForGroup(groupId: string): RxLabel[] {
+  labelsForGroup(groupId: string): Label[] {
     return getLabelsForGroup(this._labels, groupId);
   }
 
-  get labelGroups(): RxLabelGroup[] {
+  get labelGroups(): LabelGroup[] {
     return this._labelGroups;
   }
 
-  get selectedGroup(): RxLabelGroup | null {
+  get selectedGroup(): LabelGroup | null {
     return this._selectedGroup;
   }
 
-  set selectedGroup(group: RxLabelGroup | null) {
+  set selectedGroup(group: LabelGroup | null) {
     this._selectedGroup = group;
   }
 
-  get editingGroup(): RxLabelGroup | null {
+  get editingGroup(): LabelGroup | null {
     return this._editingGroup;
   }
 
-  get editingLabel(): { group: RxLabelGroup; label: RxLabel } | null {
+  get editingLabel(): { group: LabelGroup; label: Label } | null {
     return this._editingLabel;
   }
 

@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {RecipeService} from './recipe.service';
-import {RxRecipe} from './models/recipe';
-import {RxLabel, RxLabelGroup} from '../label/models/label';
+import {Recipe} from './models/recipe.dto';
+import {Label, LabelGroup} from '../label/models/label.dto';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {LabelService} from "../label/label-service.service";
 import {CommonModule} from '@angular/common';
@@ -18,23 +18,23 @@ import {filterRecipes, labelsForGroup as getLabelsForGroup, labelsForRecipe as g
   imports: [CommonModule, IonicModule, FormsModule, RouterModule]
 })
 export class RecipeComponent implements OnInit {
-  private _recipes: RxRecipe[] = [];
-  private _labels: RxLabel[] = [];
-  private _labelGroups: RxLabelGroup[] = [];
+  private _recipes: Recipe[] = [];
+  private _labels: Label[] = [];
+  private _labelGroups: LabelGroup[] = [];
 
-  private _setFilters: RxLabel[] = [];
+  private _setFilters: Label[] = [];
   public search: string = "";
   public selectedTime: number | null = null;
-  public results: RxRecipe[] = [];
+  public results: Recipe[] = [];
 
   constructor(private recipeService: RecipeService, private router: Router, private route: ActivatedRoute,
               public labelService: LabelService, private menuController: MenuController) {
   }
 
   ngOnInit(): void {
-    const recipesObs: Observable<RxRecipe[]> = this.recipeService.findAll();
-    const labelsObs: Observable<RxLabel[]> = this.labelService.getAllLabels();
-    const labelGroupsObs: Observable<RxLabelGroup[]> = this.labelService.getAllLabelGroups();
+    const recipesObs: Observable<Recipe[]> = this.recipeService.findAll();
+    const labelsObs: Observable<Label[]> = this.labelService.getAllLabels();
+    const labelGroupsObs: Observable<LabelGroup[]> = this.labelService.getAllLabelGroups();
     combineLatest([recipesObs, labelsObs, labelGroupsObs]).subscribe(([recipes, labels, labelGroups]) => {
       this._recipes = recipes;
       this._labels = labels;
@@ -47,7 +47,7 @@ export class RecipeComponent implements OnInit {
     this.ngOnInit();
   }
 
-  public parseDate(recipe: RxRecipe): string {
+  public parseDate(recipe: Recipe): string {
     let hours = (recipe.preparationTime -  recipe.preparationTime % 60) / recipe.preparationTime;
     let minutes = recipe.preparationTime % 60;
     let date: string = "";
@@ -60,7 +60,7 @@ export class RecipeComponent implements OnInit {
     return date.trim();
   }
 
-  public changeFilter(event: Event, label: RxLabel) {
+  public changeFilter(event: Event, label: Label) {
     if((event.target as HTMLIonCheckboxElement).checked) {
       this._setFilters.push(label);
     } else {
@@ -79,7 +79,7 @@ export class RecipeComponent implements OnInit {
     );
   }
 
-  public openRecipe(recipe: RxRecipe): void {
+  public openRecipe(recipe: Recipe): void {
     this.router.navigate(['display', recipe.id], {relativeTo: this.route})
   }
 
@@ -91,19 +91,19 @@ export class RecipeComponent implements OnInit {
     await this.menuController.open('filter-menu');
   }
 
-  get labelGroups(): RxLabelGroup[] {
+  get labelGroups(): LabelGroup[] {
     return this._labelGroups;
   }
 
-  public labelsForGroup(groupId: string): RxLabel[] {
+  public labelsForGroup(groupId: string): Label[] {
     return getLabelsForGroup(this._labels, groupId);
   }
 
-  public labelsForRecipe(recipeId: string): RxLabel[] {
+  public labelsForRecipe(recipeId: string): Label[] {
     return getLabelsForRecipe(this._labels, recipeId);
   }
 
-  get recipes(): RxRecipe[] {
+  get recipes(): Recipe[] {
     return this.results;
   }
 

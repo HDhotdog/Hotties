@@ -17,7 +17,7 @@ describe('CategorySettingComponent', () => {
       providers: [
         {provide: CategoryService, useValue: {getCategories: () => of([])}},
         {provide: Location, useValue: {back: () => {}}},
-        {provide: Router, useValue: {navigate: jasmine.createSpy('navigate')}},
+        {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {}}
       ]
     }).compileComponents();

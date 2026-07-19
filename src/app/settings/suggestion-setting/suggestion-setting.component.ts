@@ -4,7 +4,7 @@ import { SuggestionService } from '../../todo/suggestion/suggestion.service';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {RxSuggestion} from "../../todo/suggestion/rxSuggestion";
+import {Suggestion} from "../../todo/suggestion/suggestion.dto";
 
 @Component({
   selector: 'app-suggestion-setting',
@@ -15,7 +15,7 @@ import {RxSuggestion} from "../../todo/suggestion/rxSuggestion";
 })
 export class SuggestionSettingComponent implements OnInit {
 
-  private _suggestions: RxSuggestion[] = [];
+  private _suggestions: Suggestion[] = [];
 
   constructor(public suggestionService: SuggestionService, private location: Location) {
     this.suggestionService = suggestionService;
@@ -41,7 +41,7 @@ export class SuggestionSettingComponent implements OnInit {
     this.suggestionService.deleteById(this._suggestions[idx].categoryId).subscribe();
   }
 
-  get suggestions(): RxSuggestion[] {
+  get suggestions(): Suggestion[] {
     return this._suggestions;
   }
 }

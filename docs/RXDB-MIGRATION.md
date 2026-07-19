@@ -16,9 +16,10 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | `4c4a22c` | "Klaus work" — fixed label models, inverted filter logic, reactive queries, recipe filtering |
 | `f03ae5d` | Phase 2 complete — data relations, shopping list export, cache reset, tests |
 | `759026f` | Phase 3 complete — legacy Preferences/`@ionic/storage` cleanup, settings collection |
-| Uncommitted | Phase 4 (storage + dev-mode gating) completed (see below) |
+| `d921c01` | Phase 4 complete (except deferred items) — IndexedDB storage, dev-mode gating |
+| Uncommitted | Phase 5 complete — Jest migration, repository tests, DTO/ACL layer (see below) |
 
-## Current Progress: ~97%
+## Current Progress: ~99%
 
 ### Completed
 
@@ -51,6 +52,9 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | Repository/component tests | ✅ Fixed | Stale `todo.component.spec.ts` rewritten; 10 specs with standalone components misdeclared in `declarations` fixed to use `imports` + proper DI mocks |
 | IndexedDB storage | ✅ Done | `getRxStorageDexie()` replaces `getRxStorageLocalstorage()`; verified in-browser (IndexedDB populated, `localStorage` empty, data survives reload) |
 | Dev/prod RxDB config | ✅ Done | `RxDBDevModePlugin` only loaded when `!environment.production`; production build verified clean |
+| Test runner | ✅ Done | Migrated from Karma/Jasmine to Jest (`jest-preset-angular`); all 23 pre-existing tests converted and passing |
+| Repository/DB integration tests | ✅ Done | 31 new tests against an in-memory RxDB (`getRxStorageMemory()`) covering every repository's custom queries plus DB seeding logic |
+| UI/DB model split (DTO/ACL layer) | ✅ Done | Every entity now has a UI-facing DTO (`Category`, `Todo`, `Suggestion`, `Recipe`, `Ingredient`, `Label`/`LabelGroup`) distinct from its RxDB document type (`RxCategory`, etc.), with mapper functions at the service boundary; components no longer import RxDB document types |
 
 ### In Progress / Broken
 
@@ -64,7 +68,7 @@ _(none blocking; remaining items are scoped enhancements, see Not Started)_
 | Unused `pouchdb-adapter-idb` dependency | Never wired up (predates the rxdb v16 storage-plugin architecture now in use); still listed in `package.json`, not removed in this pass |
 | Schema migrations | Plugin loaded, no migration strategies defined. Deferred together with recipe media fields, by product decision |
 | Recipe images/emoji | Fields removed from schema during migration. Deferred by product decision — see Phase 4 items 16–17 |
-| Tests for repositories | No repository or DB integration tests (component-level tests exist) |
+| UI DTOs for `RxSetting` | Not introduced — nothing in the UI layer touches `RxSetting` directly (`SettingsService` already exposes only primitive strings), so there was no boundary to split |
 
 ---
 
@@ -114,27 +118,25 @@ Additionally, all Karma unit tests were brought back to green (`ng test`): rewro
 
 17. **Restore recipe media fields** (optional) — **Deferred by product decision.** `imgSrc`/`emoji` remain commented out of the recipe schema and UI (`RxRecipe`, `add-recipe.component.ts`, `recipe-display`). Doing this later requires: bump `RECIPE_SCHEMA_LITERAL` to `version: 1` with a migration strategy (item 16), add the fields back to `RxRecipe`, and re-enable the already-scaffolded emoji-picker/image-upload UI.
 
-### Phase 5 — Quality (ongoing)
+### Phase 5 — Quality ✅ Done
 
-18. **Write repository tests**
-    - Test CRUD operations against in-memory RxDB
-    - Test seeding logic
-    - Test custom queries (`findByCategoryId`, `findByRecipeId`)
+20. **Migrate to Jest** ✅ — Replaced Karma/Jasmine with Jest (`jest-preset-angular` + `jest-environment-jsdom`). Removed `karma.conf.js`, `src/test.ts`, the `karma`/`jasmine-*`/`@types/jasmine` packages, and the `test` architect target in `angular.json`; added `jest.config.js`, `setup-jest.ts` (zone test env + a `crypto.subtle` polyfill via `node:crypto`, since jsdom doesn't implement it and RxDB needs it to hash schemas), and `modulePaths: ['<rootDir>']` so the existing `src/app/...` absolute imports resolve. All 23 pre-existing specs were converted (`jasmine.createSpyObj` → manual `jest.fn()` mocks, `jasmine.clock()` → `jest.useFakeTimers()`, `toBeTrue()/toBeFalse()` → `toBe(true/false)`, etc.) and pass under Jest.
 
-19. **Split UI models from DB models** (from roadmap)
-    - Introduce UI DTOs and mapping layer (Anti-Corruption Layer)
+18. **Write repository tests** ✅ — Added `createHottiesDatabase(storage, dbName)` to `database.ts` (extracted from `DatabaseService`, storage-agnostic) plus a `createTestDatabase()` test helper (`src/app/database/test-support/`) that builds a fresh, seeded, in-memory RxDB (`rxdb/plugins/storage-memory`) per test. 31 new integration tests cover: generic CRUD via `AbstractRepository` (save/upsert, saveAll, findById error case, deleteById, deleteAll, live `findAll()`), every repository's custom queries (`findByCategoryId`, `deleteByCategoryId`, `findByRecipeId`, `deleteByRecipeId`, `findDistinctNames`, `findUniqueLabels`, `deleteByLabelGroupId`, `SettingsRepository.findByKey`), and DB seeding logic (collections created, exactly one default category seeded, label groups/labels seeded as templates, `dbSeeded` flag prevents re-seeding).
 
-20. **Migrate to Jest** (from roadmap)
+19. **Split UI models from DB models** ✅ — Every entity now has a UI-facing DTO distinct from its RxDB document type, with mapper functions (`toXxx`/`toRxXxx`) applied at the Service layer boundary — repositories still speak `RxCategory`/`RxToDo`/etc., but `CategoryService`, `TodoService`, `SuggestionService`, `RecipeService`, `IngredientService`, and `LabelService` now expose `Category`, `Todo`, `Suggestion`, `Recipe`, `Ingredient`, `Label`/`LabelGroup`. Every component updated accordingly (imports switched from `../x/x` to `../x/x.dto`); no component or template references an `RxDB` document type anymore. New files per entity: `<entity>.dto.ts` + `<entity>.mapper.ts` (label got both `Label` and `LabelGroup` in one `label.dto.ts`/`label.mapper.ts`). `RxSetting` was left alone — `SettingsService` already only exposes primitive strings, so there's no UI-facing shape to split out.
+
+    **Bug found and fixed while smoke-testing this refactor:** `AddRecipeComponent.saveRecipe()` generated a *new* `uuidv4()` for the recipe id when creating a new recipe, instead of reusing `this._recipe.id` (the id already assigned in `ngOnInit()` and used to stamp `recipeId` on every ingredient/label as the user filled out the form). The saved recipe and its ingredients/labels ended up with mismatched ids — ingredients were written to IndexedDB successfully but were permanently orphaned from their recipe, so they silently never appeared again. This is pre-existing (predates this session, unrelated to the DTO renaming) but was only caught by end-to-end browser testing, not by the type checker or unit tests since both sides independently produced valid-looking UUIDs. Fixed in `add-recipe.component.ts` by reusing `this._recipe.id`; verified in-browser that a newly created recipe's ingredient round-trips correctly and exports to the shopping list.
 
 ---
 
 ## Recommended Priority Order
 
 ```
-Phase 1 (blockers)  →  Phase 2 (relations)  →  Phase 3 (cleanup)  →  Phase 4 (production)
+Phase 1 (blockers)  →  Phase 2 (relations)  →  Phase 3 (cleanup)  →  Phase 4 (production)  →  Phase 5 (quality)
 ```
 
-Phases 1 and 2 are required for a usable app. Phase 3 matters only if existing installs have Preferences data. Phase 4 is needed before shipping to Play Store with images. Phase 5 is long-term quality.
+Phases 1 and 2 are required for a usable app. Phase 3 matters only if existing installs have Preferences data. Phase 4 is needed before shipping to Play Store with images. Phase 5 is long-term quality — all done in this pass.
 
 ## Quick Verification Checklist
 

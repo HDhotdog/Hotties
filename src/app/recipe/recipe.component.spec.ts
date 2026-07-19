@@ -28,7 +28,7 @@ describe('RecipeComponent', () => {
         },
         {
           provide: Router,
-          useValue: {navigate: jasmine.createSpy('navigate')},
+          useValue: {navigate: jest.fn()},
         },
         {
           provide: ActivatedRoute,

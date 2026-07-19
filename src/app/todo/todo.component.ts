@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {CategoryService} from '../category/category.service';
-import {RxSuggestion} from './suggestion/rxSuggestion';
-import {RxToDo} from './rxToDo';
+import {Suggestion} from './suggestion/suggestion.dto';
+import {Todo} from './todo.dto';
 import {IonicModule} from '@ionic/angular';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ImportanceLevel} from "./importance-level.enum";
-import {RxCategory} from "../category/category";
+import {Category} from "../category/category.dto";
 import {v4 as UUIDv4} from 'uuid';
 import {TodoService} from "./todo.service";
 import {SuggestionService} from "./suggestion/suggestion.service";
@@ -25,9 +25,9 @@ export class TodoComponent implements OnInit {
 
   private _inputField: string = "";
   private _categoryInputField: string = "";
-  private _currentSuggestion: RxSuggestion = {} as RxSuggestion;
+  private _currentSuggestion: Suggestion = {} as Suggestion;
   private _sortIncreasing: boolean = true;
-  private _selectedCategory: RxCategory = {} as RxCategory;
+  private _selectedCategory: Category = {} as Category;
   private _showColorBar: boolean = true;
   private _currentImportanceLevel: ImportanceLevel = ImportanceLevel.NORMAL;
   private suggestion_suffixes: string[] = [
@@ -42,9 +42,9 @@ export class TodoComponent implements OnInit {
     [ImportanceLevel.VERY_HIGH]: '#ff00ff'
   };
 
-  private _categories: RxCategory[] = [];
-  private _suggestions: RxSuggestion[] = [];
-  private _tasks: RxToDo[] = [];
+  private _categories: Category[] = [];
+  private _suggestions: Suggestion[] = [];
+  private _tasks: Todo[] = [];
 
   constructor(private categoryService: CategoryService,
               private todoService: TodoService,
@@ -104,7 +104,7 @@ export class TodoComponent implements OnInit {
   }
 
   public addTodo(task: string) {
-    const newTodo: RxToDo = {
+    const newTodo: Todo = {
       id: UUIDv4(),
       categoryId: this.selectedCategory.id,
       name: task.trim() ? task : this._currentSuggestion.suggestion,
@@ -128,7 +128,7 @@ export class TodoComponent implements OnInit {
     }, 1100);
   }
 
-  public markAsDone(todo: RxToDo) {
+  public markAsDone(todo: Todo) {
     this.todoService.deleteById(todo.id).subscribe();
     this.refreshTodos();
   }
@@ -225,7 +225,7 @@ export class TodoComponent implements OnInit {
     this._currentImportanceLevel = this.getCircleColor(level);
   }
 
-  get categories(): RxCategory[] {
+  get categories(): Category[] {
     return this._categories;
   }
 
@@ -249,7 +249,7 @@ export class TodoComponent implements OnInit {
     return this._sortIncreasing;
   }
 
-  get selectedCategory(): RxCategory {
+  get selectedCategory(): Category {
     return this._selectedCategory;
   }
 

@@ -12,7 +12,7 @@ describe('SettingsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SettingsComponent, IonicModule.forRoot()],
       providers: [
-        {provide: Router, useValue: {navigate: jasmine.createSpy('navigate')}},
+        {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {}}
       ]
     }).compileComponents();

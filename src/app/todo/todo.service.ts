@@ -1,7 +1,8 @@
 import {Injectable} from '@angular/core';
-import {RxToDo} from './rxToDo';
 import {TodoRepository} from "./todo.repository";
-import {Observable} from "rxjs";
+import {map, Observable} from "rxjs";
+import {Todo} from './todo.dto';
+import {toTodo, toRxToDo} from './todo.mapper';
 
 @Injectable({
     providedIn: 'root'
@@ -10,20 +11,20 @@ export class TodoService {
     constructor(private todoRepository: TodoRepository) {
     }
 
-    public save(todo: RxToDo): Observable<RxToDo> {
-      return this.todoRepository.save(todo)
+    public save(todo: Todo): Observable<Todo> {
+      return this.todoRepository.save(toRxToDo(todo)).pipe(map(toTodo));
     }
 
-    public saveAll(todos: RxToDo[]): Observable<unknown> {
-      return this.todoRepository.saveAll(todos);
+    public saveAll(todos: Todo[]): Observable<unknown> {
+      return this.todoRepository.saveAll(todos.map(toRxToDo));
     }
 
-    public findAll(): Observable<RxToDo[]> {
-      return this.todoRepository.findAll();
+    public findAll(): Observable<Todo[]> {
+      return this.todoRepository.findAll().pipe(map(docs => docs.map(toTodo)));
     }
 
-    public findByCategoryId(categoryId: string): Observable<RxToDo[]> {
-      return this.todoRepository.findByCategoryId(categoryId);
+    public findByCategoryId(categoryId: string): Observable<Todo[]> {
+      return this.todoRepository.findByCategoryId(categoryId).pipe(map(docs => docs.map(toTodo)));
     }
 
     public deleteById(id: string): Observable<boolean> {

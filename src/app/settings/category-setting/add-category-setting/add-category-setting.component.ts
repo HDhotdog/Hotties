@@ -6,7 +6,7 @@ import {FormsModule} from '@angular/forms';
 import {CategoryService} from 'src/app/category/category.service';
 import {v4 as uuidv4} from 'uuid';
 import {forkJoin} from 'rxjs';
-import {RxCategory} from "../../../category/category";
+import {Category} from "../../../category/category.dto";
 
 @Component({
   selector: 'app-add-category-setting',
@@ -19,9 +19,9 @@ export class AddCategorySettingComponent implements OnInit {
 
   private _name: string = "";
   private _saveSuggestions: boolean = true;
-  private _previousInputs: RxCategory = {} as RxCategory;
-  private _category: RxCategory | null = null;
-  private _categories: RxCategory[] = [];
+  private _previousInputs: Category = {} as Category;
+  private _category: Category | null = null;
+  private _categories: Category[] = [];
   private _id: string | null = null;
 
   constructor(private location: Location,
@@ -66,7 +66,7 @@ export class AddCategorySettingComponent implements OnInit {
         toast.present();
       })
     } else {
-      let category: RxCategory;
+      let category: Category;
       if (this._category) {
         this._category.name = this._name;
         this._category.saveSuggestions = this._saveSuggestions;
@@ -93,11 +93,11 @@ export class AddCategorySettingComponent implements OnInit {
     return this.route.snapshot.paramMap.get("id") != null;
   }
 
-  set categories(categories: RxCategory[]) {
+  set categories(categories: Category[]) {
     this._categories = categories;
   }
 
-  get categories(): RxCategory[] {
+  get categories(): Category[] {
     return this._categories;
   }
 
@@ -117,11 +117,11 @@ export class AddCategorySettingComponent implements OnInit {
     return this._saveSuggestions;
   }
 
-  set previousInputs(previousInputs: RxCategory) {
+  set previousInputs(previousInputs: Category) {
     this._previousInputs = previousInputs;
   }
 
-  get previousInputs(): RxCategory {
+  get previousInputs(): Category {
     return this._previousInputs;
   }
 }

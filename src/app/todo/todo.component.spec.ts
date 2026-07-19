@@ -6,41 +6,51 @@ import {CategoryService} from '../category/category.service';
 import {TodoService} from './todo.service';
 import {SuggestionService} from './suggestion/suggestion.service';
 import {ImportanceLevel} from './importance-level.enum';
-import {RxCategory} from '../category/category';
-import {RxToDo} from './rxToDo';
+import {Category} from '../category/category.dto';
+import {Todo} from './todo.dto';
 
 describe('TodoComponent', () => {
   let component: TodoComponent;
   let fixture: ComponentFixture<TodoComponent>;
-  let todoService: jasmine.SpyObj<TodoService>;
-  let categoryService: jasmine.SpyObj<CategoryService>;
-  let suggestionService: jasmine.SpyObj<SuggestionService>;
+  let todoService: jest.Mocked<TodoService>;
+  let categoryService: jest.Mocked<CategoryService>;
+  let suggestionService: jest.Mocked<SuggestionService>;
 
-  const category: RxCategory = {id: 'cat-1', name: 'Edeka', saveSuggestions: true};
-  const tasks: RxToDo[] = [
+  const category: Category = {id: 'cat-1', name: 'Edeka', saveSuggestions: true};
+  const tasks: Todo[] = [
     {id: 't1', categoryId: 'cat-1', name: 'Task 1', done: false, importance: ImportanceLevel.NORMAL}
   ];
 
   beforeEach(async () => {
-    todoService = jasmine.createSpyObj('TodoService', [
-      'findByCategoryId', 'save', 'deleteById', 'deleteByCategoryId', 'deleteAll'
-    ]);
-    todoService.findByCategoryId.and.returnValue(of(tasks));
-    todoService.save.and.returnValue(of(tasks[0]));
-    todoService.deleteById.and.returnValue(of(true));
-    todoService.deleteByCategoryId.and.returnValue(of(1));
+    todoService = {
+      findByCategoryId: jest.fn(),
+      save: jest.fn(),
+      deleteById: jest.fn(),
+      deleteByCategoryId: jest.fn(),
+      deleteAll: jest.fn()
+    } as unknown as jest.Mocked<TodoService>;
+    todoService.findByCategoryId.mockReturnValue(of(tasks));
+    todoService.save.mockReturnValue(of(tasks[0]));
+    todoService.deleteById.mockReturnValue(of(true));
+    todoService.deleteByCategoryId.mockReturnValue(of(1));
 
-    categoryService = jasmine.createSpyObj('CategoryService', [
-      'getCategories', 'save', 'saveCurrentCategory', 'getSelectedCategoryId'
-    ]);
-    categoryService.getCategories.and.returnValue(of([category]));
-    categoryService.getSelectedCategoryId.and.returnValue(of(category.id));
-    categoryService.saveCurrentCategory.and.returnValue(of(undefined));
-    categoryService.save.and.returnValue(of(category));
+    categoryService = {
+      getCategories: jest.fn(),
+      save: jest.fn(),
+      saveCurrentCategory: jest.fn(),
+      getSelectedCategoryId: jest.fn()
+    } as unknown as jest.Mocked<CategoryService>;
+    categoryService.getCategories.mockReturnValue(of([category]));
+    categoryService.getSelectedCategoryId.mockReturnValue(of(category.id));
+    categoryService.saveCurrentCategory.mockReturnValue(of(undefined));
+    categoryService.save.mockReturnValue(of(category));
 
-    suggestionService = jasmine.createSpyObj('SuggestionService', ['findByCategoryId', 'save']);
-    suggestionService.findByCategoryId.and.returnValue(of([]));
-    suggestionService.save.and.returnValue(of({id: 's1', categoryId: 'cat-1', suggestion: 'Cookies', suffix: '! :D'}));
+    suggestionService = {
+      findByCategoryId: jest.fn(),
+      save: jest.fn()
+    } as unknown as jest.Mocked<SuggestionService>;
+    suggestionService.findByCategoryId.mockReturnValue(of([]));
+    suggestionService.save.mockReturnValue(of({id: 's1', categoryId: 'cat-1', suggestion: 'Cookies', suffix: '! :D'}));
 
     await TestBed.configureTestingModule({
       imports: [TodoComponent, IonicModule.forRoot()],
@@ -69,7 +79,7 @@ describe('TodoComponent', () => {
     component.setCurrentImportanceLevel('HIGH');
     component.addTodo('Buy milk');
 
-    expect(todoService.save).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(todoService.save).toHaveBeenCalledWith(expect.objectContaining({
       categoryId: 'cat-1',
       name: 'Buy milk',
       importance: ImportanceLevel.HIGH
@@ -77,33 +87,33 @@ describe('TodoComponent', () => {
   });
 
   it('deletes a todo and refreshes the list when marked as done', () => {
-    const findByCategoryIdCallsBefore = todoService.findByCategoryId.calls.count();
+    const findByCategoryIdCallsBefore = todoService.findByCategoryId.mock.calls.length;
 
     component.markAsDone(tasks[0]);
 
     expect(todoService.deleteById).toHaveBeenCalledWith('t1');
-    expect(todoService.findByCategoryId.calls.count()).toBeGreaterThan(findByCategoryIdCallsBefore);
+    expect(todoService.findByCategoryId.mock.calls.length).toBeGreaterThan(findByCategoryIdCallsBefore);
   });
 
   it('clears todos scoped to the currently selected category only', () => {
-    jasmine.clock().install();
+    jest.useFakeTimers();
     try {
       component.clearTodos();
-      jasmine.clock().tick(1100);
+      jest.advanceTimersByTime(1100);
 
       expect(todoService.deleteByCategoryId).toHaveBeenCalledWith('cat-1');
       expect(todoService.deleteAll).not.toHaveBeenCalled();
     } finally {
-      jasmine.clock().uninstall();
+      jest.useRealTimers();
     }
   });
 
   it('tracks which importance level is currently selected', () => {
-    expect(component.isCurrentLevel('NORMAL')).toBeTrue();
+    expect(component.isCurrentLevel('NORMAL')).toBe(true);
 
     component.setCurrentImportanceLevel('VERY_HIGH');
 
-    expect(component.isCurrentLevel('VERY_HIGH')).toBeTrue();
-    expect(component.isCurrentLevel('NORMAL')).toBeFalse();
+    expect(component.isCurrentLevel('VERY_HIGH')).toBe(true);
+    expect(component.isCurrentLevel('NORMAL')).toBe(false);
   });
 });

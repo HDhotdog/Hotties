@@ -5,7 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { v4 as uuidv4 } from 'uuid';
 import { switchMap } from 'rxjs';
-import {RxCategory} from "../../category/category";
+import {Category} from "../../category/category.dto";
 @Component({
   selector: 'app-cache-setting',
   templateUrl: './cache-setting.component.html',
@@ -21,7 +21,7 @@ export class CacheSettingComponent {
 
 
   public clearCategoryCache() {
-    const category: RxCategory = {
+    const category: Category = {
       id: uuidv4(),
       name: "Edeka",
       saveSuggestions: true

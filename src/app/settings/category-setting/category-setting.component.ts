@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
 import { CategoryService } from 'src/app/category/category.service';
-import {RxCategory} from "../../category/category";
+import {Category} from "../../category/category.dto";
 
 @Component({
   selector: 'app-category-setting',
@@ -14,7 +14,7 @@ import {RxCategory} from "../../category/category";
 })
 export class CategorySettingComponent {
 
-  private _categories: RxCategory[] = [];
+  private _categories: Category[] = [];
 
   constructor(
     private categoryService: CategoryService,
@@ -53,7 +53,7 @@ export class CategorySettingComponent {
   //   });
   // }
 
-  get categories(): RxCategory[] {
+  get categories(): Category[] {
     return this._categories;
   }
 }

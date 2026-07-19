@@ -17,7 +17,7 @@ describe('RecipeDisplayComponent', () => {
     TestBed.configureTestingModule({
       imports: [RecipeDisplayComponent, IonicModule.forRoot()],
       providers: [
-        {provide: Router, useValue: {navigate: jasmine.createSpy('navigate')}},
+        {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {has: () => false, get: () => null}}}},
         {provide: Location, useValue: {back: () => {}}},
         {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([])}},

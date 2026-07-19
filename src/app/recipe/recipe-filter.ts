@@ -1,21 +1,21 @@
-import {RxLabel} from '../label/models/label';
-import {RxRecipe} from './models/recipe';
+import {Label} from '../label/models/label.dto';
+import {Recipe} from './models/recipe.dto';
 
-export function labelsForGroup(labels: RxLabel[], groupId: string): RxLabel[] {
+export function labelsForGroup(labels: Label[], groupId: string): Label[] {
   return labels.filter(label => label.groupId === groupId && label.recipeId === '');
 }
 
-export function labelsForRecipe(labels: RxLabel[], recipeId: string): RxLabel[] {
+export function labelsForRecipe(labels: Label[], recipeId: string): Label[] {
   return labels.filter(label => label.recipeId === recipeId);
 }
 
 export function filterRecipes(
-  recipes: RxRecipe[],
-  labels: RxLabel[],
+  recipes: Recipe[],
+  labels: Label[],
   search: string,
-  setFilters: RxLabel[],
+  setFilters: Label[],
   selectedTime: number | null
-): RxRecipe[] {
+): Recipe[] {
   const normalizedSearch = search.toLowerCase();
 
   return recipes.filter(recipe => {

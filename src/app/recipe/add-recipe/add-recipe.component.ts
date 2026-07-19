@@ -3,9 +3,9 @@ import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, RouterModule} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
-import {RxIngredient} from '../../ingredients/ingredient';
-import {RxLabel} from '../../label/models/label';
-import {RxRecipe} from '../models/recipe';
+import {Ingredient} from '../../ingredients/ingredient.dto';
+import {Label} from '../../label/models/label.dto';
+import {Recipe} from '../models/recipe.dto';
 import {RecipeService} from '../recipe.service';
 import {v4 as uuidv4} from 'uuid';
 import {LabelService} from "../../label/label-service.service";
@@ -29,11 +29,11 @@ export class AddRecipeComponent implements OnInit {
   private _minutes: number = 0;
   private _prepTime: number = 0;
   private _ingredient: string = "";
-  private _ingredients: RxIngredient[] = [];
-  private _recipe: RxRecipe = {} as RxRecipe;
+  private _ingredients: Ingredient[] = [];
+  private _recipe: Recipe = {} as Recipe;
   private _stringLabels: string[] = [];
-  private _templateLabels: RxLabel[] = [];
-  private _labels: RxLabel[] = [];
+  private _templateLabels: Label[] = [];
+  private _labels: Label[] = [];
   private _imgSrc: string = "";
   private _imageSelected: boolean = false;
   private _showEmojiPicker: boolean = false;
@@ -92,7 +92,7 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public saveRecipe() {
-    let recipe: RxRecipe;
+    let recipe: Recipe;
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       recipe = this._recipe;
@@ -108,7 +108,7 @@ export class AddRecipeComponent implements OnInit {
       // recipe.emoji = this._selectedEmoji;
     } else {
       recipe = {
-        id: uuidv4(),
+        id: this._recipe.id,
         name: this._name,
         // imgSrc: this._imgSrc,
         description: this._description,
@@ -150,7 +150,7 @@ export class AddRecipeComponent implements OnInit {
     this._ingredient = "";
   }
 
-  public removeIngredient(ingredient: RxIngredient) {
+  public removeIngredient(ingredient: Ingredient) {
     const index = this._ingredients.indexOf(ingredient)
     this._ingredients.splice(index, 1)
   }
@@ -158,7 +158,7 @@ export class AddRecipeComponent implements OnInit {
   public handleLabelChange(): void {
     this._labels = this._stringLabels
       .map(templateId => this._templateLabels.find(template => template.id === templateId))
-      .filter((template): template is RxLabel => !!template)
+      .filter((template): template is Label => !!template)
       .map(template => ({
         id: uuidv4(),
         recipeId: this._recipe.id,
@@ -199,7 +199,7 @@ export class AddRecipeComponent implements OnInit {
     this._showEmojiPicker = false;
   }
 
-  get recipe(): RxRecipe {
+  get recipe(): Recipe {
     return this._recipe;
   }
 
@@ -211,11 +211,11 @@ export class AddRecipeComponent implements OnInit {
     this._name = name;
   }
 
-  get ingredients(): RxIngredient[] {
+  get ingredients(): Ingredient[] {
     return this._ingredients;
   }
 
-  set ingredients(ingredients: RxIngredient[]) {
+  set ingredients(ingredients: Ingredient[]) {
     this._ingredients = ingredients;
   }
 
@@ -259,15 +259,15 @@ export class AddRecipeComponent implements OnInit {
     this._stringLabels = stringLabels;
   }
 
-  get availableLabels(): RxLabel[] {
+  get availableLabels(): Label[] {
     return this._templateLabels;
   }
 
-  get labels(): RxLabel[] {
+  get labels(): Label[] {
     return this._labels;
   }
 
-  set labels(labels: RxLabel[]) {
+  set labels(labels: Label[]) {
     this._labels = labels;
   }
 

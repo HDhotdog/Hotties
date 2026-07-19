@@ -1,13 +1,14 @@
 import {Injectable} from '@angular/core';
-import {RxCategory} from './category';
-import {RxIngredient} from '../ingredients/ingredient';
-import {RxToDo} from '../todo/rxToDo';
+import {Ingredient} from '../ingredients/ingredient.dto';
+import {Todo} from '../todo/todo.dto';
 import {CategoryRepository} from './category.repository';
-import {Observable} from 'rxjs';
+import {map, Observable} from 'rxjs';
 import {ImportanceLevel} from "../todo/importance-level.enum";
 import {v4 as UUIDv4} from 'uuid';
 import {TodoService} from "../todo/todo.service";
 import {SettingsService} from "../database/settings/settings.service";
+import {Category} from './category.dto';
+import {toCategory, toRxCategory} from './category.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -19,24 +20,28 @@ export class CategoryService {
               private settingsService: SettingsService) {
   }
 
-  public initCategories(categories: RxCategory[]): Observable<RxCategory[]> {
-    return this.categoryRepository.saveAll(categories);
+  public initCategories(categories: Category[]): Observable<Category[]> {
+    return this.categoryRepository.saveAll(categories.map(toRxCategory)).pipe(
+      map(docs => docs.map(toCategory))
+    );
   }
 
-  public save(category: RxCategory): Observable<RxCategory> {
-    return this.categoryRepository.save(category);
+  public save(category: Category): Observable<Category> {
+    return this.categoryRepository.save(toRxCategory(category)).pipe(map(toCategory));
   }
 
-  public saveAll(categories: RxCategory[]): Observable<RxCategory[]> {
-    return this.categoryRepository.saveAll(categories);
+  public saveAll(categories: Category[]): Observable<Category[]> {
+    return this.categoryRepository.saveAll(categories.map(toRxCategory)).pipe(
+      map(docs => docs.map(toCategory))
+    );
   }
 
-  public getCategories(): Observable<RxCategory[]> {
-    return this.categoryRepository.findAll();
+  public getCategories(): Observable<Category[]> {
+    return this.categoryRepository.findAll().pipe(map(docs => docs.map(toCategory)));
   }
 
-  public getCategoryById(categoryId: string): Observable<RxCategory> {
-    return this.categoryRepository.findById(categoryId);
+  public getCategoryById(categoryId: string): Observable<Category> {
+    return this.categoryRepository.findById(categoryId).pipe(map(toCategory));
   }
 
   public deleteAllCategories(): Observable<number> {
@@ -51,16 +56,16 @@ export class CategoryService {
     return this.settingsService.getSelectedCategoryId();
   }
 
-  public saveCurrentCategory(category: RxCategory): Observable<unknown> {
+  public saveCurrentCategory(category: Category): Observable<unknown> {
     return this.settingsService.setSelectedCategoryId(category.id);
   }
 
-  public addIngredientsToCategory(categoryId: string, ingredients: RxIngredient[]): Observable<unknown> {
-    const toDos: RxToDo[] = ingredients.map((item) => this.ingredientToTodo(categoryId, item));
+  public addIngredientsToCategory(categoryId: string, ingredients: Ingredient[]): Observable<unknown> {
+    const toDos: Todo[] = ingredients.map((item) => this.ingredientToTodo(categoryId, item));
     return this.todoService.saveAll(toDos);
   }
 
-  private ingredientToTodo(categoryId: string, ingredient: RxIngredient): RxToDo {
+  private ingredientToTodo(categoryId: string, ingredient: Ingredient): Todo {
     return {
       id: UUIDv4(),
       categoryId: categoryId,

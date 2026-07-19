@@ -1,14 +1,14 @@
-import {RxLabel} from '../label/models/label';
-import {RxRecipe} from './models/recipe';
+import {Label} from '../label/models/label.dto';
+import {Recipe} from './models/recipe.dto';
 import {filterRecipes, labelsForGroup, labelsForRecipe} from './recipe-filter';
 
 describe('recipe-filter', () => {
-  const recipes: RxRecipe[] = [
+  const recipes: Recipe[] = [
     {id: 'r1', name: 'Pasta', description: '', preparationTime: 30},
     {id: 'r2', name: 'Salad', description: '', preparationTime: 10},
   ];
 
-  const labels: RxLabel[] = [
+  const labels: Label[] = [
     {id: 'l1', groupId: 'g1', recipeId: '', name: 'Mittagessen'},
     {id: 'l2', groupId: 'g1', recipeId: 'r1', name: 'Mittagessen'},
     {id: 'l3', groupId: 'g2', recipeId: 'r2', name: 'Süß'},
@@ -36,7 +36,7 @@ describe('recipe-filter', () => {
     });
 
     it('filters by assigned labels', () => {
-      const filter: RxLabel = {id: 'l3', groupId: 'g2', recipeId: 'r2', name: 'Süß'};
+      const filter: Label = {id: 'l3', groupId: 'g2', recipeId: 'r2', name: 'Süß'};
       expect(filterRecipes(recipes, labels, '', [filter], null)).toEqual([recipes[1]]);
     });
 
