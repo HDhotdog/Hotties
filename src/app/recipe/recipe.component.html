@@ -51,7 +51,7 @@
   <ion-content class="content-wrapper">
     <ion-searchbar [(ngModel)]="search" (ngModelChange)="filterRecipes()"></ion-searchbar>
     <div class="recipes-list-container">
-      <div class="recipe-preview-container" *ngFor="let recipe of this.recipes" (click)="openRecipe(recipe)">
+      <div class="recipe-preview-container" *ngFor="let recipe of this.results" (click)="openRecipe(recipe)">
         <div class="recipe-preview-title">
           <div class="title-container">
 <!--            <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>-->

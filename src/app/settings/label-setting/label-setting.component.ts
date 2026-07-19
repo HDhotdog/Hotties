@@ -5,6 +5,8 @@ import {RxLabel, RxLabelGroup} from 'src/app/label/models/label';
 import {LabelService} from '../../label/label-service.service';
 import {FormsModule} from '@angular/forms';
 import {v4 as uuidv4} from 'uuid';
+import {combineLatest} from 'rxjs';
+import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
 
 @Component({
   selector: 'app-label-setting-component',
@@ -21,6 +23,7 @@ export class LabelSettingComponent implements OnInit {
   private _editingLabel: { group: RxLabelGroup; label: RxLabel } | null = null;
   private _editName: string = '';
   private _labelGroups: RxLabelGroup[] = [];
+  private _labels: RxLabel[] = [];
 
   constructor(
     private location: Location,
@@ -29,26 +32,14 @@ export class LabelSettingComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.labelService.getAllLabelGroups().subscribe((labelGroups) => {
+    combineLatest([
+      this.labelService.getAllLabelGroups(),
+      this.labelService.getAllLabels(),
+    ]).subscribe(([labelGroups, labels]) => {
       this._labelGroups = labelGroups;
+      this._labels = labels;
     });
   }
-
-  // handleReorderOfLabelGroups(ev: CustomEvent<ItemReorderEventDetail>) {
-  //   this._labelGroups.splice(ev.detail.to, 0, this._labelGroups.splice(ev.detail.from, 1)[0]);
-  //   this.labelService.(this._labelGroups);
-  //   this._editingGroup = null;
-  //   ev.detail.complete();
-  // }
-  //
-  // handleReorderOfLabels(ev: CustomEvent<ItemReorderEventDetail>, labelGroup: RxLabelGroup) {
-  //   ev.stopPropagation();
-  //   labelGroup.labels.splice(ev.detail.to, 0, labelGroup.labels.splice(ev.detail.from, 1)[0]);
-  //   this.labelService.saveLabels(this._labelGroups);
-  //   this._editingLabel = null;
-  //   this._editName = '';
-  //   ev.detail.complete();
-  // }
 
   addLabelGroup() {
     if (this._newGroupName.trim()) {
@@ -70,7 +61,6 @@ export class LabelSettingComponent implements OnInit {
         recipeId: "",
         name: this._newLabelName.trim()
       };
-      // this._selectedGroup.labels.push(newLabel);
       this.labelService.saveLabel(newLabel);
       this._newLabelName = '';
     }
@@ -121,12 +111,12 @@ export class LabelSettingComponent implements OnInit {
     this.location.back();
   }
 
-  get labelGroups(): RxLabelGroup[] {
-    return this._labelGroups;
+  labelsForGroup(groupId: string): RxLabel[] {
+    return getLabelsForGroup(this._labels, groupId);
   }
 
-  get labelsForGroup(): RxLabel[] {
-    return [];
+  get labelGroups(): RxLabelGroup[] {
+    return this._labelGroups;
   }
 
   get selectedGroup(): RxLabelGroup | null {

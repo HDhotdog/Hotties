@@ -52,15 +52,17 @@ export class AddRecipeComponent implements OnInit {
     if (index) {
       const recipe = this.recipeService.findById(index);
       const ingredients = this.recipeService.getIngredients(index);
-      const labels = this.labelService.getDistinctLabelNames();
-      forkJoin([recipe, ingredients, labels]).subscribe(([recipe, ingredients, labels]) => {
-        this._availableLabelNames = labels;
+      const distinctLabelNames = this.labelService.getDistinctLabelNames();
+      const recipeLabels = this.labelService.getLabelsForRecipe(index);
+      forkJoin([recipe, ingredients, distinctLabelNames, recipeLabels]).subscribe(([recipe, ingredients, distinctLabelNames, recipeLabels]) => {
+        this._availableLabelNames = distinctLabelNames;
         this._recipe = recipe;
         this._name = recipe.name;
         // this._imgSrc = recipe.imgSrc;
         this._description = recipe.description;
         this._prepTime = recipe.preparationTime;
         this._ingredients = ingredients;
+        this._labels = recipeLabels;
         // this._minutes = recipe.prepTimeMinutes;
         // this._ingredients = recipe.ingredients;
         // this._stringLabels = recipe.labels.map((label: RxLabel) => label.name);
@@ -121,8 +123,12 @@ export class AddRecipeComponent implements OnInit {
       }
     }
     // const recipe = this.recipeService.save(recipe);
-    this.recipeService.save(recipe).subscribe(() => {
-      console.log("Saved Recipe");
+    const savedRecipe = this.recipeService.save(recipe);
+    const savedLabels = this.labelService.saveAllLabels(this._labels);
+    // const ingredients = this.recipeService.saveA(this._recipe.id);
+
+    forkJoin([savedRecipe, savedLabels]).subscribe(() => {
+      console.log("Saved recipe");
       this.navigateBack();
     });
   }
@@ -153,11 +159,14 @@ export class AddRecipeComponent implements OnInit {
     this._ingredients.splice(index, 1)
   }
 
-  public handleLabelChange() {
+  public handleLabelChange(): void {
     this._labels = this._stringLabels.map((label) => {
       return {
+        id: uuidv4(),
+        recipeId: this._recipe.id,
+        groupId: "",
         name: label
-      } as RxLabel
+      };
     })
   }
 

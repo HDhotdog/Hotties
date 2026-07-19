@@ -14,6 +14,7 @@ import {v4 as UUIDv4} from 'uuid';
 import {LABEL_SCHEMA_LITERAL} from "./schema/label.schema";
 import {LABEL_GROUP_SCHEMA_LITERAL} from "./schema/label-groups.schema";
 import {INGREDIENT_SCHEMA_LITERAL} from "./schema/ingredient.schema";
+import {RxLabel, RxLabelGroup} from "../label/models/label";
 
 addRxPlugin(RxDBDevModePlugin);
 addRxPlugin(RxDBMigrationSchemaPlugin)
@@ -75,5 +76,38 @@ export class DatabaseService {
 
     // Persist flag
     await db['settings'].upsert({key: 'dbSeeded', value: 'true'});
+
+    const kindLabelGroup: RxLabelGroup = {
+      id: UUIDv4(),
+      name: "Art",
+    }
+
+    const kinds = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
+    const kindLabels: RxLabel[] = kinds.map((kind) => {
+      return {
+        id: UUIDv4(),
+        name: kind,
+        groupId: kindLabelGroup.id,
+        recipeId: ""
+      }
+    })
+
+    const tasteLabelGroup: RxLabelGroup = {
+      id: UUIDv4(),
+      name: "Geschmack"
+    }
+
+    const tastes = ["Süß", "Scharf", "Salzig", "Sauer"]
+    const tasteLabels: RxLabel[] = tastes.map((taste) => {
+      return {
+        id: UUIDv4(),
+        name: taste,
+        groupId: tasteLabelGroup.id,
+        recipeId: ""
+      }
+    });
+
+    await db['label_groups'].bulkUpsert([kindLabelGroup, tasteLabelGroup]);
+    await db['labels'].bulkUpsert(tasteLabels.concat(kindLabels));
   }
 }

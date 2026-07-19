@@ -79,7 +79,7 @@
       </ion-row>
       <ion-row class="label-row">
         <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
-          <ion-select-option *ngFor="let label of this.availableLabels" value="{{label}}">{{label}}</ion-select-option>
+          <ion-select-option *ngFor="let label of this.labels" value="{{label.id}}">{{label.name}}</ion-select-option>
         </ion-select>
       </ion-row>
     </ion-grid>

@@ -24,6 +24,10 @@ export class LabelService {
     return this.labelRepository.findUniqueLabels();
   }
 
+  public getAllLabels(): Observable<RxLabel[]> {
+    return this.labelRepository.findAll();
+  }
+
   public getAllLabelGroups(): Observable<RxLabelGroup[]> {
     return this.labelGroupRepository.findAll();
   }

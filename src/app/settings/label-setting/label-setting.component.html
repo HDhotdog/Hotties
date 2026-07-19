@@ -69,7 +69,7 @@
 
           <!-- Labels with Reordering -->
           <ion-reorder-group [disabled]="false"><!--(ionItemReorder)="handleReorderOfLabels($any($event), group)"-->
-            <ion-item *ngFor="let label of this.labelsForGroup">
+            <ion-item *ngFor="let label of this.labelsForGroup(group.id)">
               <ion-reorder slot="start"></ion-reorder>
               <!-- Label Name (Edit Mode) -->
               <ion-input *ngIf="editingLabel?.label === label"

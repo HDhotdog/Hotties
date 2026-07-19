@@ -8,6 +8,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule, MenuController} from '@ionic/angular';
 import {combineLatest, Observable} from 'rxjs';
+import {filterRecipes, labelsForGroup as getLabelsForGroup, labelsForRecipe as getLabelsForRecipe} from './recipe-filter';
 
 @Component({
   selector: 'app-recipe',
@@ -32,11 +33,9 @@ export class RecipeComponent implements OnInit {
 
   ngOnInit(): void {
     const recipesObs: Observable<RxRecipe[]> = this.recipeService.findAll();
-    const labelsObs: Observable<RxLabel[]> = this.labelService.getDistinctLabels();
+    const labelsObs: Observable<RxLabel[]> = this.labelService.getAllLabels();
     const labelGroupsObs: Observable<RxLabelGroup[]> = this.labelService.getAllLabelGroups();
-    console.log("Recipes obs",recipesObs);
     combineLatest([recipesObs, labelsObs, labelGroupsObs]).subscribe(([recipes, labels, labelGroups]) => {
-      console.log("Recipes val",recipes);
       this._recipes = recipes;
       this._labels = labels;
       this._labelGroups = labelGroups;
@@ -71,15 +70,13 @@ export class RecipeComponent implements OnInit {
   }
 
   public filterRecipes(): void {
-    // this.results = this._recipes.filter((recipe) => {
-    //   const matchesSearch = recipe.name.toLowerCase().includes(this.search.toLowerCase());
-    //   const matchesLabels = this._setFilters.length === 0 ||
-    //     this._setFilters.every((label: Label) => recipe.labels.some(recipeLabel => recipeLabel.name === label.name));
-    //   const matchesTime = !this.selectedTime ||
-    //     (recipe.prepTimeHour * 60 + recipe.prepTimeMinutes) <= this.selectedTime;
-    //
-    //   return matchesSearch && matchesLabels && matchesTime;
-    // });
+    this.results = filterRecipes(
+      this._recipes,
+      this._labels,
+      this.search,
+      this._setFilters,
+      this.selectedTime
+    );
   }
 
   public openRecipe(recipe: RxRecipe): void {
@@ -98,15 +95,16 @@ export class RecipeComponent implements OnInit {
     return this._labelGroups;
   }
 
-  public labelsForGroup(groupId: string) {
-    return this._labels.filter((label) => label.groupId !== groupId);
+  public labelsForGroup(groupId: string): RxLabel[] {
+    return getLabelsForGroup(this._labels, groupId);
+  }
+
+  public labelsForRecipe(recipeId: string): RxLabel[] {
+    return getLabelsForRecipe(this._labels, recipeId);
   }
 
   get recipes(): RxRecipe[] {
-    return this._recipes;
+    return this.results;
   }
 
-  public labelsForRecipe(recipeId: string) {
-    return this._labels.filter((label) => label.recipeId !== recipeId);
-  }
 }
