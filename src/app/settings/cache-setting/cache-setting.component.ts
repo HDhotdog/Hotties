@@ -1,5 +1,5 @@
-import { Location } from '@angular/common';
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { CategoryService } from 'src/app/category/category.service';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
@@ -16,7 +16,7 @@ import {Category} from "../../category/category.dto";
 export class CacheSettingComponent {
 
   constructor(private categoryService: CategoryService,
-    private location: Location) {
+    private router: Router) {
   }
 
 
@@ -33,6 +33,7 @@ export class CacheSettingComponent {
   }
 
   public navigateBack() {
-    this.location.back()
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings']);
   }
 }

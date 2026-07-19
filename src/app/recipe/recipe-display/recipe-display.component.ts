@@ -1,6 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {CommonModule, Location} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {RecipeService} from '../recipe.service';
 import {Recipe} from '../models/recipe.dto';
 import {CategoryService} from 'src/app/category/category.service';
@@ -24,7 +24,6 @@ export class RecipeDisplayComponent implements OnInit {
 
   constructor(private router: Router,
               private route: ActivatedRoute,
-              private location: Location,
               private recipeService: RecipeService,
               private categoryService: CategoryService,
               private labelService: LabelService) {
@@ -91,7 +90,8 @@ export class RecipeDisplayComponent implements OnInit {
 
 
   public navigateBack(): void {
-    this.location.back();
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/recipe']);
   }
 
   public deleteRecipe(): void {

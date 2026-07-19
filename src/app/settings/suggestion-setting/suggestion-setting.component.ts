@@ -1,5 +1,5 @@
-import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
@@ -17,7 +17,7 @@ export class SuggestionSettingComponent implements OnInit {
 
   private _suggestions: Suggestion[] = [];
 
-  constructor(public suggestionService: SuggestionService, private location: Location) {
+  constructor(public suggestionService: SuggestionService, private router: Router) {
     this.suggestionService = suggestionService;
   }
 
@@ -34,7 +34,8 @@ export class SuggestionSettingComponent implements OnInit {
   }
 
   public navigateBack() {
-    this.location.back()
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings']);
   }
 
   public removeSuggestion(idx: number) {

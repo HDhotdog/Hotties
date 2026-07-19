@@ -1,6 +1,6 @@
-import {CommonModule, Location} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, RouterModule} from '@angular/router';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {IonicModule, ToastController} from '@ionic/angular';
 import {FormsModule} from '@angular/forms';
 import {CategoryService} from 'src/app/category/category.service';
@@ -24,7 +24,7 @@ export class AddCategorySettingComponent implements OnInit {
   private _categories: Category[] = [];
   private _id: string | null = null;
 
-  constructor(private location: Location,
+  constructor(private router: Router,
               private categoryService: CategoryService,
               private toastCtrl: ToastController,
               private route: ActivatedRoute) {
@@ -54,7 +54,8 @@ export class AddCategorySettingComponent implements OnInit {
   }
 
   public navigateBack() {
-    this.location.back();
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings/category']);
   }
 
   public saveCategory() {

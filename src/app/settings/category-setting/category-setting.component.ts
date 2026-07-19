@@ -1,4 +1,4 @@
-import { Location, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
@@ -18,7 +18,6 @@ export class CategorySettingComponent {
 
   constructor(
     private categoryService: CategoryService,
-    private location: Location,
     private router: Router,
     private route: ActivatedRoute) { }
 
@@ -37,7 +36,8 @@ export class CategorySettingComponent {
   }
 
   public navigateBack() {
-    this.location.back()
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings']);
   }
 
   public deleteCategory(id: string) {

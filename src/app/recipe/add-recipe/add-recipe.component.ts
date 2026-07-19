@@ -1,6 +1,6 @@
-import {CommonModule, Location} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, RouterModule} from '@angular/router';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
 import {Ingredient} from '../../ingredients/ingredient.dto';
@@ -40,7 +40,7 @@ export class AddRecipeComponent implements OnInit {
   private _selectedEmoji: string | null = null;
   private _newLabel: string = "";
 
-  constructor(private location: Location,
+  constructor(private router: Router,
               private recipeService: RecipeService,
               private route: ActivatedRoute,
               private labelService: LabelService,
@@ -89,7 +89,15 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public navigateBack() {
-    this.location.back();
+    // Explicit destination rather than Location.back(): back() depends on
+    // browser history, which is empty/unrelated on a fresh navigation or
+    // deep link (e.g. after saving), so it could land anywhere.
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      void this.router.navigate(['/tabs/recipe/display', id]);
+    } else {
+      void this.router.navigate(['/tabs/recipe']);
+    }
   }
 
   public saveRecipe() {

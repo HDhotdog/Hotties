@@ -1,11 +1,12 @@
 import {Component, OnInit} from '@angular/core';
-import {CommonModule, Location} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {IonicModule} from '@ionic/angular';
 import {Label, LabelGroup} from 'src/app/label/models/label.dto';
 import {LabelService} from '../../label/label-service.service';
 import {FormsModule} from '@angular/forms';
 import {v4 as uuidv4} from 'uuid';
 import {combineLatest} from 'rxjs';
+import {Router} from '@angular/router';
 import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
 
 @Component({
@@ -26,7 +27,7 @@ export class LabelSettingComponent implements OnInit {
   private _labels: Label[] = [];
 
   constructor(
-    private location: Location,
+    private router: Router,
     private labelService: LabelService
   ) {
   }
@@ -108,7 +109,8 @@ export class LabelSettingComponent implements OnInit {
   }
 
   navigateBack() {
-    this.location.back();
+    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+    void this.router.navigate(['/tabs/settings']);
   }
 
   labelsForGroup(groupId: string): Label[] {

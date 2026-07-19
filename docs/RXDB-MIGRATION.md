@@ -18,7 +18,9 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | `759026f` | Phase 3 complete — legacy Preferences/`@ionic/storage` cleanup, settings collection |
 | `d921c01` | Phase 4 complete (except deferred items) — IndexedDB storage, dev-mode gating |
 | `fc43da9` | Phase 5 complete — Jest migration, repository tests, DTO/ACL layer |
-| Uncommitted | Phase 4 items 16–17 complete — recipe imgSrc/emoji restored with a real schema migration (see below) |
+| `7557466` | Phase 4 items 16–17 complete — recipe imgSrc/emoji restored with a real schema migration |
+| `bdba43a` | Recipe Hours/Minutes inputs fixed to actually feed `preparationTime`; `parseDate()` division bug fixed |
+| Uncommitted | Fixed `Location.back()` "navigate back" buttons across 7 components — unreliable on fresh/deep-link navigation, replaced with explicit `Router.navigate()` (see below) |
 
 ## Current Progress: 100%
 
@@ -59,6 +61,7 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | Recipe images/emoji | ✅ Done | `imgSrc`/`emoji` restored to the recipe schema (`version: 1`, real migration strategy), `RxRecipe`/`Recipe` DTO, and UI (emoji picker + image upload in the edit form; emoji + image display in the list and detail views). Verified in-browser end-to-end |
 | Schema migrations | ✅ Done | `RxDBMigrationSchemaPlugin` migration is now actually invoked (`runPendingMigrations()` in `database.ts`, generic across all collections) — previously the plugin was loaded but nothing ever called `migrationNeeded()`/`getMigrationState().migratePromise()`, so a version bump alone would have crashed on any existing install. Covered by an integration test that seeds a real v0 recipe document and asserts it migrates to v1 with correct defaults |
 | Hours/Minutes recipe inputs | ✅ Fixed | Two bugs fixed together: (1) the Hours/Minutes inputs in `add-recipe.component.html` never fed into `preparationTime` — the `hours`/`minutes` setters in `add-recipe.component.ts` now also recompute `_prepTime = hours*60 + minutes`, and loading an existing recipe now decomposes `preparationTime` back into hours/minutes so the edit form pre-fills correctly (round-trip verified in-browser: 1h30m in → "1h 30m" shown in list/detail → 1/30 pre-filled on re-edit). (2) `parseDate()` (duplicated in `recipe.component.ts` and `recipe-display.component.ts`) divided by `recipe.preparationTime` instead of `60` when computing hours, which produced nonsense values (and `NaN`/division-by-zero for a `0`-minute recipe) — fixed to divide by `60` |
+| "Back" button navigation | ✅ Fixed | Every `navigateBack()` across the app (`AddRecipeComponent`, `RecipeDisplayComponent`, `CategorySettingComponent`, `AddCategorySettingComponent`, `LabelSettingComponent`, `CacheSettingComponent`, `SuggestionSettingComponent`) called `Location.back()`, which depends on real browser history. On a fresh navigation (deep link, page reload, or — as happened while testing — the harness navigating straight to a URL rather than clicking through the app) there's no relevant history entry, so `back()` lands wherever the browser tab happened to have last been, including a completely different tab of the app. Replaced with explicit `Router.navigate()` to a deterministic destination per component (e.g. `AddRecipeComponent` goes to `/tabs/recipe/display/:id` when editing or `/tabs/recipe` when creating; `AddCategorySettingComponent` goes to `/tabs/settings/category`, not just `/tabs/settings`). Verified in-browser for every affected screen by navigating directly to its URL (simulating the worst case — no prior in-app history) and confirming the back arrow lands on the correct parent screen |
 
 ### In Progress / Broken
 
