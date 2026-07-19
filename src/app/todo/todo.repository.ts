@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {RxToDo} from "./rxToDo";
 import {DatabaseService} from "../database/database";
 import {AbstractRepository} from "../database/abstract-repository";
-import {Observable, switchMap} from "rxjs";
+import {from, map, Observable, switchMap} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +21,13 @@ export class TodoRepository extends AbstractRepository<RxToDo> {
           selector: {categoryId}
         }).$
       )
+    );
+  }
+
+  public deleteByCategoryId(categoryId: string): Observable<number> {
+    return this.getCollection().pipe(
+      switchMap(col => from(col.find({selector: {categoryId}}).remove())),
+      map(deletedDocs => deletedDocs.length)
     );
   }
 }

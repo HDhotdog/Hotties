@@ -14,6 +14,10 @@ export class TodoService {
       return this.todoRepository.save(todo)
     }
 
+    public saveAll(todos: RxToDo[]): Observable<unknown> {
+      return this.todoRepository.saveAll(todos);
+    }
+
     public findAll(): Observable<RxToDo[]> {
       return this.todoRepository.findAll();
     }
@@ -28,5 +32,9 @@ export class TodoService {
 
     public deleteAll(): Observable<number> {
       return this.todoRepository.deleteAll();
+    }
+
+    public deleteByCategoryId(categoryId: string): Observable<number> {
+      return this.todoRepository.deleteByCategoryId(categoryId);
     }
 }

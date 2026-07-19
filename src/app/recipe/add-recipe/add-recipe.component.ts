@@ -32,7 +32,7 @@ export class AddRecipeComponent implements OnInit {
   private _ingredients: RxIngredient[] = [];
   private _recipe: RxRecipe = {} as RxRecipe;
   private _stringLabels: string[] = [];
-  private _availableLabelNames: string[] = [];
+  private _templateLabels: RxLabel[] = [];
   private _labels: RxLabel[] = [];
   private _imgSrc: string = "";
   private _imageSelected: boolean = false;
@@ -52,10 +52,10 @@ export class AddRecipeComponent implements OnInit {
     if (index) {
       const recipe = this.recipeService.findById(index);
       const ingredients = this.recipeService.getIngredients(index);
-      const distinctLabelNames = this.labelService.getDistinctLabelNames();
+      const templateLabels = this.labelService.getTemplateLabels();
       const recipeLabels = this.labelService.getLabelsForRecipe(index);
-      forkJoin([recipe, ingredients, distinctLabelNames, recipeLabels]).subscribe(([recipe, ingredients, distinctLabelNames, recipeLabels]) => {
-        this._availableLabelNames = distinctLabelNames;
+      forkJoin([recipe, ingredients, templateLabels, recipeLabels]).subscribe(([recipe, ingredients, templateLabels, recipeLabels]) => {
+        this._templateLabels = templateLabels;
         this._recipe = recipe;
         this._name = recipe.name;
         // this._imgSrc = recipe.imgSrc;
@@ -63,16 +63,16 @@ export class AddRecipeComponent implements OnInit {
         this._prepTime = recipe.preparationTime;
         this._ingredients = ingredients;
         this._labels = recipeLabels;
+        this._stringLabels = templateLabels
+          .filter(template => recipeLabels.some(label => label.name === template.name && label.groupId === template.groupId))
+          .map(template => template.id);
         // this._minutes = recipe.prepTimeMinutes;
-        // this._ingredients = recipe.ingredients;
-        // this._stringLabels = recipe.labels.map((label: RxLabel) => label.name);
         // this._imageSelected = !!this._imgSrc;
-        // this._labels = recipe.labels;
         // this._selectedEmoji = recipe.emoji || null;
       });
     } else {
-      this.labelService.getDistinctLabelNames().subscribe(labels => {
-        this._availableLabelNames = labels
+      this.labelService.getTemplateLabels().subscribe(templateLabels => {
+        this._templateLabels = templateLabels;
         this._recipe = {
           id: uuidv4(),
           name: this._name,
@@ -81,8 +81,6 @@ export class AddRecipeComponent implements OnInit {
           preparationTime: this._prepTime,
           // prepTimeHour: this._hours,
           // prepTimeMinutes: this._minutes,
-          // ingredients: this._ingredients,
-          // labels: this._labels,
           // emoji: this._selectedEmoji
         };
       });
@@ -122,13 +120,11 @@ export class AddRecipeComponent implements OnInit {
         // emoji: this._selectedEmoji
       }
     }
-    // const recipe = this.recipeService.save(recipe);
     const savedRecipe = this.recipeService.save(recipe);
-    const savedLabels = this.labelService.saveAllLabels(this._labels);
-    // const ingredients = this.recipeService.saveA(this._recipe.id);
+    const savedLabels = this.labelService.saveLabelsForRecipe(recipe.id, this._labels);
+    const savedIngredients = this.recipeService.saveIngredients(recipe.id, this._ingredients);
 
-    forkJoin([savedRecipe, savedLabels]).subscribe(() => {
-      console.log("Saved recipe");
+    forkJoin([savedRecipe, savedLabels, savedIngredients]).subscribe(() => {
       this.navigateBack();
     });
   }
@@ -160,14 +156,15 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public handleLabelChange(): void {
-    this._labels = this._stringLabels.map((label) => {
-      return {
+    this._labels = this._stringLabels
+      .map(templateId => this._templateLabels.find(template => template.id === templateId))
+      .filter((template): template is RxLabel => !!template)
+      .map(template => ({
         id: uuidv4(),
         recipeId: this._recipe.id,
-        groupId: "",
-        name: label
-      };
-    })
+        groupId: template.groupId,
+        name: template.name
+      }));
   }
 
   public uploadFile() {
@@ -262,8 +259,8 @@ export class AddRecipeComponent implements OnInit {
     this._stringLabels = stringLabels;
   }
 
-  get availableLabels(): string[] {
-    return this._availableLabelNames;
+  get availableLabels(): RxLabel[] {
+    return this._templateLabels;
   }
 
   get labels(): RxLabel[] {

@@ -1,7 +1,7 @@
 import {AbstractRepository} from "../database/abstract-repository";
 import {RxIngredient} from "./ingredient";
 import {DatabaseService} from "../database/database";
-import {Observable, switchMap} from "rxjs";
+import {from, map, Observable, switchMap} from "rxjs";
 import {Injectable} from "@angular/core";
 
 @Injectable({
@@ -21,6 +21,13 @@ export class IngredientRepository extends AbstractRepository<RxIngredient> {
           selector: {recipeId}
         }).$
       )
+    );
+  }
+
+  public deleteByRecipeId(recipeId: string): Observable<number> {
+    return this.getCollection().pipe(
+      switchMap(col => from(col.find({selector: {recipeId}}).remove())),
+      map(deletedDocs => deletedDocs.length)
     );
   }
 }

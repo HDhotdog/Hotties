@@ -58,6 +58,15 @@ export class LabelRepository extends AbstractRepository<RxLabel> {
       map(deletedDocs => deletedDocs.length) // return number of deleted docs
     );
   }
+
+  public deleteByRecipeId(recipeId: string): Observable<number> {
+    return this.getCollection().pipe(
+      switchMap(col =>
+        from(col.find({ selector: { recipeId } }).remove())
+      ),
+      map(deletedDocs => deletedDocs.length)
+    );
+  }
 }
 
 

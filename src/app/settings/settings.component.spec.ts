@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { SettingsComponent } from './settings.component';
 
@@ -9,8 +10,11 @@ describe('SettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SettingsComponent],
-      imports: [IonicModule.forRoot()]
+      imports: [SettingsComponent, IonicModule.forRoot()],
+      providers: [
+        {provide: Router, useValue: {navigate: jasmine.createSpy('navigate')}},
+        {provide: ActivatedRoute, useValue: {}}
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(SettingsComponent);

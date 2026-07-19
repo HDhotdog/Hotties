@@ -4,6 +4,7 @@ import { CategoryService } from 'src/app/category/category.service';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { v4 as uuidv4 } from 'uuid';
+import { switchMap } from 'rxjs';
 import {RxCategory} from "../../category/category";
 @Component({
   selector: 'app-cache-setting',
@@ -19,16 +20,16 @@ export class CacheSettingComponent {
   }
 
 
-  public async clearCategoryCache() {
+  public clearCategoryCache() {
     const category: RxCategory = {
       id: uuidv4(),
       name: "Edeka",
       saveSuggestions: true
     }
 
-    this.categoryService.deleteAllCategories().subscribe(() => {
-      this.categoryService.initCategories([category]);
-    });
+    this.categoryService.deleteAllCategories().pipe(
+      switchMap(() => this.categoryService.initCategories([category]))
+    ).subscribe();
   }
 
   public navigateBack() {

@@ -81,7 +81,7 @@ export class RecipeDisplayComponent implements OnInit {
 
   public saveIngredients() {
     if(this._selectedCategoryId) {
-      this.categoryService.addIngredientsToCategory(this._selectedCategoryId, this._recipe!);
+      this.categoryService.addIngredientsToCategory(this._selectedCategoryId, this._ingredients).subscribe();
     }
   }
 

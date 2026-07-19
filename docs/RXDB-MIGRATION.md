@@ -13,9 +13,10 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | `fc7dd9f` | Introduce RxDB — `DatabaseService`, schemas, `AbstractRepository` |
 | `9b90fed` | Categories, todos, suggestions migrated to RxDB |
 | `60f25be` | Recipes migrated to RxDB |
-| Uncommitted | Label seeding moved to DB init; label/recipe wiring fixes started |
+| `4c4a22c` | "Klaus work" — fixed label models, inverted filter logic, reactive queries, recipe filtering |
+| Uncommitted | Phase 1 blockers verified fixed; Phase 2 data-relation work completed (see below) |
 
-## Current Progress: ~75%
+## Current Progress: ~90%
 
 ### Completed
 
@@ -25,29 +26,29 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | Schema definitions | ✅ Done | 8 collections, all at version 0 |
 | `AbstractRepository` | ✅ Done | Generic CRUD with RxJS observables |
 | Category repository/service | ✅ Done | Fully on RxDB |
-| Todo repository/service | ✅ Done | Fully on RxDB |
+| Todo repository/service | ✅ Done | Fully on RxDB, scoped delete by category |
 | Suggestion repository/service | ✅ Done | Fully on RxDB |
 | Recipe repository/service | ✅ Done | Basic CRUD on RxDB |
-| Label repository/service | ✅ Done | CRUD + group queries |
+| Label repository/service | ✅ Done | CRUD + group queries + scoped delete by recipe |
 | Label group repository/service | ✅ Done | CRUD on RxDB |
-| Ingredient repository | ✅ Done | Read by recipeId works |
+| Ingredient repository/service | ✅ Done | Read by recipeId, scoped replace by recipe |
 | DB seeding | ✅ Done | Default category + label groups in `DatabaseService` |
 | Old Preferences code | ✅ Removed | Commented out in repositories (cleanup pending) |
+| Label TypeScript models | ✅ Fixed | `RxLabel`/`RxLabelGroup` are interfaces again, app compiles |
+| Recipe ingredients persistence | ✅ Fixed | `AddRecipeComponent.saveRecipe()` replaces ingredients via `RecipeService.saveIngredients()` |
+| Recipe label assignment | ✅ Fixed | `handleLabelChange()` resolves the correct `groupId` from template labels; save replaces recipe labels |
+| Recipe filtering | ✅ Fixed | `filterRecipes()` extracted to `recipe-filter.ts`, wired to template |
+| Label display queries | ✅ Fixed | `labelsForGroup` / `labelsForRecipe` filter correctly (not inverted) |
+| Label settings UI | ✅ Fixed | Uses shared `labelsForGroup` helper |
+| Shopping list export | ✅ Fixed | `CategoryService.addIngredientsToCategory()` bulk-saves `RxToDo` entries via `TodoService.saveAll()` |
+| Reactive live updates | ✅ Fixed | `findAll()` and custom finders use `.$` (live); one-shot ops use `.exec()`/`.remove()` |
+| Cache reset | ✅ Fixed | `clearCategoryCache()` now subscribes and chains delete → reseed |
+| `initCategories()` | ✅ Fixed | Calls `categoryRepository.saveAll()` |
+| Repository/component tests | ✅ Fixed | Stale `todo.component.spec.ts` rewritten; 10 specs with standalone components misdeclared in `declarations` fixed to use `imports` + proper DI mocks |
 
 ### In Progress / Broken
 
-| Area | Status | Issue |
-|------|--------|-------|
-| Label TypeScript models | 🔴 Broken | `RxLabel`/`RxLabelGroup` interfaces replaced with enums in working tree — app won't compile |
-| Recipe ingredients persistence | 🔴 Missing | Collected in UI, never saved to `ingredients` collection |
-| Recipe label assignment | 🟡 Partial | Save path exists but `handleLabelChange()` creates labels with empty `groupId` |
-| Recipe filtering | 🔴 Broken | `filterRecipes()` implementation commented out |
-| Label display queries | 🔴 Bug | `labelsForGroup` / `labelsForRecipe` filter with `!==` (inverted logic) |
-| Label settings UI | 🔴 Broken | `labelsForGroup` getter returns `[]` |
-| Shopping list export | 🔴 Stub | `addIngredientsToCategory()` not implemented |
-| Reactive live updates | 🟡 Mixed | Recent changes switched `findAll()` from `.$` to `.exec()` — lists won't auto-refresh |
-| Cache reset | 🟡 Partial | Only clears categories, not full database |
-| `initCategories()` | 🔴 Stub | Returns `of()` — cache reset after delete doesn't re-save category |
+_(none blocking; remaining items are scoped enhancements, see Not Started)_
 
 ### Not Started
 
@@ -66,68 +67,27 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 
 ## Completion Plan
 
-### Phase 1 — Fix Blockers (1–2 days)
+### Phase 1 — Fix Blockers ✅ Done
 
 **Goal:** App compiles and core CRUD works end-to-end.
 
-1. **Restore label models**
-   - Revert `src/app/label/models/label.ts` to interfaces:
-     ```typescript
-     export interface RxLabel { id: string; groupId: string; recipeId: string; name: string; }
-     export interface RxLabelGroup { id: string; name: string; }
-     ```
+All five items (label model interfaces, non-inverted filter logic, live `.$` queries, `filterRecipes()` wired to the template, working label settings component) were verified fixed as of the `4c4a22c` "Klaus work" commit — confirmed via a fresh audit rather than re-implemented.
 
-2. **Fix inverted filter logic**
-   - `recipe.component.ts`: `labelsForGroup(groupId)` → filter `label.groupId === groupId`
-   - `recipe.component.ts`: `labelsForRecipe(recipeId)` → filter `label.recipeId === recipeId`
-
-3. **Restore reactive queries**
-   - `AbstractRepository.findAll()` → use `col.find().$` for live updates
-   - Custom queries (`findByCategoryId`, `findByRecipeId`) → use `.$` where UI should auto-refresh
-   - Keep `.exec()` only for one-shot operations (seeding, migrations)
-
-4. **Re-enable recipe filtering**
-   - Uncomment and adapt `filterRecipes()` to use normalized labels:
-     ```typescript
-     this.results = this._recipes.filter(recipe => {
-       const matchesSearch = recipe.name.toLowerCase().includes(this.search.toLowerCase());
-       const recipeLabels = this._labels.filter(l => l.recipeId === recipe.id);
-       const matchesLabels = this._setFilters.length === 0 ||
-         this._setFilters.every(f => recipeLabels.some(rl => rl.name === f.name));
-       const matchesTime = !this.selectedTime || recipe.preparationTime <= this.selectedTime;
-       return matchesSearch && matchesLabels && matchesTime;
-     });
-     ```
-   - Bind template to `results` instead of `recipes`
-
-5. **Fix label settings component**
-   - Replace `labelsForGroup` getter with method `labelsForGroup(groupId: string)` querying `_labels`
-   - Subscribe to `labelService.getAllLabels()` alongside groups in `ngOnInit`
-
-### Phase 2 — Complete Data Relations (2–3 days)
+### Phase 2 — Complete Data Relations ✅ Done
 
 **Goal:** All related entities persist correctly.
 
-6. **Persist ingredients on recipe save**
-   - Add `IngredientService.saveAll()` / `deleteByRecipeId()`
-   - In `AddRecipeComponent.saveRecipe()`: delete old ingredients, bulk upsert new ones via `forkJoin`
+6. **Persist ingredients on recipe save** — `IngredientRepository.deleteByRecipeId()` + `IngredientService.saveIngredientsForRecipe()` added; `AddRecipeComponent.saveRecipe()` now calls `RecipeService.saveIngredients()` in the save `forkJoin`.
 
-7. **Fix label assignment on recipes**
-   - Distinguish template labels (`recipeId: ""`) from recipe-specific labels
-   - On save: delete existing labels for recipe, create new ones with correct `groupId` + `recipeId`
-   - Fix `add-recipe.component.html` — select should bind label names or IDs consistently with `handleLabelChange()`
+7. **Fix label assignment on recipes** — `AddRecipeComponent` now loads template labels (`recipeId: ""`) via `LabelService.getTemplateLabels()`, resolves the correct `groupId` in `handleLabelChange()`, and `saveRecipe()` replaces all recipe labels via `LabelService.saveLabelsForRecipe()` (delete-then-save). `add-recipe.component.html` select now iterates `availableLabels` (template labels) instead of the recipe's already-assigned labels.
 
-8. **Implement recipe → shopping list export**
-   - Wire `CategoryService.addIngredientsToCategory()` to create `RxToDo` entries from `RxIngredient[]`
-   - Call `TodoService.save()` for each ingredient
+8. **Implement recipe → shopping list export** — `CategoryService.addIngredientsToCategory()` maps `RxIngredient[]` to `RxToDo[]` and bulk-saves via `TodoService.saveAll()`; `RecipeDisplayComponent.saveIngredients()` passes its already-loaded ingredients and subscribes.
 
-9. **Fix cache reset**
-   - Implement `DatabaseService.reset()` that clears all collections and re-runs seed
-   - Or expose per-collection delete through a unified settings action
-   - Fix `initCategories()` to actually call `categoryRepository.saveAll()`
+9. **Fix cache reset** — `initCategories()` calls `categoryRepository.saveAll()`; `CacheSettingComponent.clearCategoryCache()` chains delete → reseed with `switchMap` and subscribes (previously the reseed observable was never subscribed to, so it silently did nothing).
 
-10. **Scope "clear todos" to current category**
-    - Add `TodoRepository.deleteByCategoryId()` and use it in `TodoComponent.clearTodos()`
+10. **Scope "clear todos" to current category** — `TodoRepository.deleteByCategoryId()` + `TodoService.deleteByCategoryId()` added; `TodoComponent.clearTodos()` now scopes to `selectedCategory.id` instead of wiping every category's todos.
+
+Additionally, all Karma unit tests were brought back to green (`ng test`): rewrote the stale `todo.component.spec.ts` (referenced removed `RxCategory.elements` and a settable `currentImportanceLevel`), and fixed 10 other spec files that declared standalone components via the legacy `declarations` array instead of `imports`, adding the DI mocks (`ActivatedRoute`, `Router`, `Location`, services) those components need.
 
 ### Phase 3 — Legacy Cleanup & Migration (1–2 days)
 

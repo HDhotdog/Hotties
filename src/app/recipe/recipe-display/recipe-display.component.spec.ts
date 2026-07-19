@@ -1,5 +1,11 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
+import { RecipeService } from '../recipe.service';
+import { CategoryService } from '../../category/category.service';
+import { LabelService } from '../../label/label-service.service';
 
 import { RecipeDisplayComponent } from './recipe-display.component';
 
@@ -9,8 +15,15 @@ describe('RecipeDisplayComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ RecipeDisplayComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [RecipeDisplayComponent, IonicModule.forRoot()],
+      providers: [
+        {provide: Router, useValue: {navigate: jasmine.createSpy('navigate')}},
+        {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {has: () => false, get: () => null}}}},
+        {provide: Location, useValue: {back: () => {}}},
+        {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([])}},
+        {provide: CategoryService, useValue: {getCategories: () => of([])}},
+        {provide: LabelService, useValue: {getLabelsForRecipe: () => of([])}}
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(RecipeDisplayComponent);

@@ -36,4 +36,8 @@ export class RecipeService {
   public getIngredients(recipeId: string): Observable<RxIngredient[]> {
     return this.ingredientService.getIngredientsForRecipe(recipeId);
   }
+
+  public saveIngredients(recipeId: string, ingredients: RxIngredient[]): Observable<unknown> {
+    return this.ingredientService.saveIngredientsForRecipe(recipeId, ingredients);
+  }
 }

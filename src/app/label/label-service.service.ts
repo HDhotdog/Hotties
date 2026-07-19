@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, switchMap} from 'rxjs';
 import {LabelRepository} from 'src/app/label/label.repository';
 import {RxLabel, RxLabelGroup} from 'src/app/label/models/label';
 import {LabelGroupRepository} from "./label-group.repository";
@@ -14,6 +14,18 @@ export class LabelService {
 
   public getLabelsForRecipe(recipeId: string): Observable<RxLabel[]> {
     return this.labelRepository.findByRecipeId(recipeId);
+  }
+
+  /** Template labels are the label definitions (recipeId "") shown for assignment in the settings/recipe form. */
+  public getTemplateLabels(): Observable<RxLabel[]> {
+    return this.labelRepository.findByRecipeId('');
+  }
+
+  /** Replaces the labels assigned to a recipe with the given list. */
+  public saveLabelsForRecipe(recipeId: string, labels: RxLabel[]): Observable<unknown> {
+    return this.labelRepository.deleteByRecipeId(recipeId).pipe(
+      switchMap(() => this.labelRepository.saveAll(labels))
+    );
   }
 
   public getDistinctLabelNames(): Observable<string[]> {

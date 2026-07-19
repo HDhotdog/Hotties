@@ -123,7 +123,7 @@ export class TodoComponent implements OnInit {
 
   public clearTodos() {
     setTimeout(() => {
-      this.todoService.deleteAll().subscribe();
+      this.todoService.deleteByCategoryId(this.selectedCategory.id).subscribe();
     }, 1100);
   }
 
