@@ -67,7 +67,7 @@ export class RecipeDisplayComponent implements OnInit {
   }
 
   public parseDate(recipe: Recipe): string {
-    let hours = (recipe.preparationTime -  recipe.preparationTime % 60) / recipe.preparationTime;
+    let hours = (recipe.preparationTime - recipe.preparationTime % 60) / 60;
     let minutes = recipe.preparationTime % 60;
     let date: string = "";
     if (hours > 0) {

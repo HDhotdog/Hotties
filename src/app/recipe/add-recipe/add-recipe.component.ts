@@ -63,12 +63,13 @@ export class AddRecipeComponent implements OnInit {
         this._imgSrc = recipe.imgSrc ?? "";
         this._description = recipe.description;
         this._prepTime = recipe.preparationTime;
+        this._hours = Math.floor(recipe.preparationTime / 60);
+        this._minutes = recipe.preparationTime % 60;
         this._ingredients = ingredients;
         this._labels = recipeLabels;
         this._stringLabels = templateLabels
           .filter(template => recipeLabels.some(label => label.name === template.name && label.groupId === template.groupId))
           .map(template => template.id);
-        // this._minutes = recipe.prepTimeMinutes;
         this._imageSelected = !!this._imgSrc;
         this._selectedEmoji = recipe.emoji ?? null;
       });
@@ -81,8 +82,6 @@ export class AddRecipeComponent implements OnInit {
           imgSrc: this._imgSrc,
           description: this._description,
           preparationTime: this._prepTime,
-          // prepTimeHour: this._hours,
-          // prepTimeMinutes: this._minutes,
           emoji: this._selectedEmoji
         };
       });
@@ -103,8 +102,6 @@ export class AddRecipeComponent implements OnInit {
       recipe.description = this._description;
       recipe.preparationTime = this._prepTime;
       recipe.imgSrc = this._imgSrc;
-      // recipe.prepTimeHour = this._hours;
-      // recipe.prepTimeMinutes = this._minutes;
       // recipe.ingredients = this._ingredients;
       // recipe.labels = this._labels;
       recipe.emoji = this._selectedEmoji;
@@ -115,8 +112,6 @@ export class AddRecipeComponent implements OnInit {
         imgSrc: this._imgSrc,
         description: this._description,
         preparationTime: this._prepTime,
-        // prepTimeHour: this._hours,
-        // prepTimeMinutes: this._minutes,
         // ingredients: this._ingredients,
         // labels: this._labels,
         emoji: this._selectedEmoji
@@ -137,8 +132,6 @@ export class AddRecipeComponent implements OnInit {
       || this._recipe.preparationTime !== this._prepTime
       || (this._recipe.imgSrc ?? "") !== this._imgSrc
       || (this._recipe.emoji ?? null) !== this._selectedEmoji;
-    // || this._recipe.prepTimeHour !== this._hours
-    // || this._recipe.prepTimeMinutes !== this._minutes
     // || this._recipe.ingredients !== this._ingredients
     // || this._recipe.labels !== this._labels
   }
@@ -239,6 +232,7 @@ export class AddRecipeComponent implements OnInit {
 
   set hours(hours: number) {
     this._hours = hours;
+    this._prepTime = this._hours * 60 + this._minutes;
   }
 
   get minutes(): number {
@@ -247,6 +241,7 @@ export class AddRecipeComponent implements OnInit {
 
   set minutes(minutes: number) {
     this._minutes = minutes;
+    this._prepTime = this._hours * 60 + this._minutes;
   }
 
   get selectedEmoji(): string | null {

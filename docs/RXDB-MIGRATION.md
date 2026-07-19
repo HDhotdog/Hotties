@@ -58,6 +58,7 @@ The app originally persisted all data as JSON strings in **Capacitor Preferences
 | UI/DB model split (DTO/ACL layer) | ✅ Done | Every entity now has a UI-facing DTO (`Category`, `Todo`, `Suggestion`, `Recipe`, `Ingredient`, `Label`/`LabelGroup`) distinct from its RxDB document type (`RxCategory`, etc.), with mapper functions at the service boundary; components no longer import RxDB document types |
 | Recipe images/emoji | ✅ Done | `imgSrc`/`emoji` restored to the recipe schema (`version: 1`, real migration strategy), `RxRecipe`/`Recipe` DTO, and UI (emoji picker + image upload in the edit form; emoji + image display in the list and detail views). Verified in-browser end-to-end |
 | Schema migrations | ✅ Done | `RxDBMigrationSchemaPlugin` migration is now actually invoked (`runPendingMigrations()` in `database.ts`, generic across all collections) — previously the plugin was loaded but nothing ever called `migrationNeeded()`/`getMigrationState().migratePromise()`, so a version bump alone would have crashed on any existing install. Covered by an integration test that seeds a real v0 recipe document and asserts it migrates to v1 with correct defaults |
+| Hours/Minutes recipe inputs | ✅ Fixed | Two bugs fixed together: (1) the Hours/Minutes inputs in `add-recipe.component.html` never fed into `preparationTime` — the `hours`/`minutes` setters in `add-recipe.component.ts` now also recompute `_prepTime = hours*60 + minutes`, and loading an existing recipe now decomposes `preparationTime` back into hours/minutes so the edit form pre-fills correctly (round-trip verified in-browser: 1h30m in → "1h 30m" shown in list/detail → 1/30 pre-filled on re-edit). (2) `parseDate()` (duplicated in `recipe.component.ts` and `recipe-display.component.ts`) divided by `recipe.preparationTime` instead of `60` when computing hours, which produced nonsense values (and `NaN`/division-by-zero for a `0`-minute recipe) — fixed to divide by `60` |
 
 ### In Progress / Broken
 
@@ -70,7 +71,6 @@ _(none blocking; remaining items are scoped enhancements, see Not Started)_
 | Data migration script | No import path from old Preferences JSON → RxDB. Deliberately skipped: app is pre-release (`package.json` version `0.0.1`, not published), no installs have Preferences data to preserve |
 | Unused `pouchdb-adapter-idb` dependency | Never wired up (predates the rxdb v16 storage-plugin architecture now in use); still listed in `package.json`, not removed in this pass |
 | UI DTOs for `RxSetting` | Not introduced — nothing in the UI layer touches `RxSetting` directly (`SettingsService` already exposes only primitive strings), so there was no boundary to split |
-| Hours/Minutes recipe inputs don't feed `preparationTime` | Found while restoring recipe media fields, out of scope to fix here: `add-recipe.component.html`'s Hours/Minutes inputs are bound to `hours`/`minutes`, but nothing in `add-recipe.component.ts` ever derives `_prepTime` from them — `preparationTime` is only ever saved as whatever `_prepTime` already was (always `0` for new recipes). Pre-existing, unrelated to this migration |
 
 ---
 
