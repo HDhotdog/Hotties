@@ -1,16 +1,22 @@
-import {Injectable} from "@angular/core";
-import {RxLabelGroup} from "./models/label";
-import {AbstractRepository} from "../database/abstract-repository";
-import {DatabaseService} from "../database/database";
+import { Injectable, inject } from '@angular/core';
+import { RxLabelGroup } from './models/label';
+import { AbstractRepository } from '../database/abstract-repository';
+import { DatabaseService } from '../database/database';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LabelGroupRepository extends AbstractRepository<RxLabelGroup> {
-  protected override collectionName: string = "label_groups";
+  protected override database: DatabaseService;
 
-  constructor(protected override database: DatabaseService) {
+  protected override collectionName: string = 'label_groups';
+
+  constructor() {
+    const database = inject(DatabaseService);
+
     super(database);
+
+    this.database = database;
   }
 
   // public findUniqueLabelGroups(): Observable<RxLabelGroup[]> {
@@ -45,4 +51,3 @@ export class LabelGroupRepository extends AbstractRepository<RxLabelGroup> {
   //   );
   // }
 }
-
