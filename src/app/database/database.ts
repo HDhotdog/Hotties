@@ -2,6 +2,7 @@ import {addRxPlugin, createRxDatabase, RxDatabase, RxStorage} from "rxdb";
 import {RxDBDevModePlugin} from "rxdb/plugins/dev-mode";
 import {wrappedValidateAjvStorage} from "rxdb/plugins/validate-ajv";
 import {getRxStorageDexie} from "rxdb/plugins/storage-dexie";
+import {RxDBAttachmentsPlugin} from "rxdb/plugins/attachments";
 import {Injectable} from "@angular/core";
 import {CATEGORY_SCHEMA_LITERAL} from "./schema/category.schema";
 import {TODO_SCHEMA_LITERAL} from "./schema/todo.schema";
@@ -21,6 +22,7 @@ if (!environment.production) {
   addRxPlugin(RxDBDevModePlugin);
 }
 addRxPlugin(RxDBMigrationSchemaPlugin)
+addRxPlugin(RxDBAttachmentsPlugin)
 
 async function isDatabaseSeeded(db: RxDatabase): Promise<boolean> {
   const doc = await db['settings'].findOne('dbSeeded').exec();
@@ -81,10 +83,14 @@ async function seedInitialData(db: RxDatabase) {
  * A no-op for fresh installs and collections whose schema hasn't changed.
  */
 async function runPendingMigrations(db: RxDatabase): Promise<void> {
+  // migratePromise() is safe to call unconditionally: it resolves immediately
+  // if nothing needs migrating. Gating on migrationNeeded() first is racy -
+  // RxDB can auto-start a migration during addCollections() that hasn't
+  // finished yet, so migrationNeeded() can already report false while the
+  // migration is still in flight (e.g. while an async migration strategy is
+  // still running), causing us to skip waiting for it.
   for (const collection of Object.values(db.collections) as any[]) {
-    if (await collection.migrationNeeded()) {
-      await collection.getMigrationState().migratePromise();
-    }
+    await collection.getMigrationState().migratePromise();
   }
 }
 

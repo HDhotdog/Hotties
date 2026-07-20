@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
@@ -12,7 +13,7 @@ import { LabelService } from '../label/label-service.service';
 
 import { FormsModule } from '@angular/forms';
 import { IonicModule, MenuController } from '@ionic/angular';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, forkJoin, map, Observable } from 'rxjs';
 import {
   filterRecipes,
   labelsForGroup as getLabelsForGroup,
@@ -27,7 +28,7 @@ import {
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, FormsModule, RouterModule],
 })
-export class RecipeComponent implements OnInit {
+export class RecipeComponent implements OnInit, OnDestroy {
   private recipeService = inject(RecipeService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -43,6 +44,8 @@ export class RecipeComponent implements OnInit {
   public selectedTime: number | null = null;
   public results: Recipe[] = [];
 
+  private imageUrls = new Map<string, string>();
+
   ngOnInit(): void {
     const recipesObs: Observable<Recipe[]> = this.recipeService.findAll();
     const labelsObs: Observable<Label[]> = this.labelService.getAllLabels();
@@ -54,12 +57,49 @@ export class RecipeComponent implements OnInit {
         this._labels = labels;
         this._labelGroups = labelGroups;
         this.filterRecipes();
+        this.loadImages(recipes);
       }
     );
   }
 
   ionViewWillEnter(): void {
     this.ngOnInit();
+  }
+
+  ngOnDestroy(): void {
+    this.revokeImageUrls();
+  }
+
+  private loadImages(recipes: Recipe[]): void {
+    if (recipes.length === 0) {
+      this.revokeImageUrls();
+      return;
+    }
+
+    forkJoin(
+      recipes.map((recipe) =>
+        this.recipeService
+          .getImageUrl(recipe.id)
+          .pipe(map((url) => ({ id: recipe.id, url })))
+      )
+    ).subscribe((results) => {
+      this.revokeImageUrls();
+      const newImageUrls = new Map<string, string>();
+      results.forEach(({ id, url }) => {
+        if (url) {
+          newImageUrls.set(id, url);
+        }
+      });
+      this.imageUrls = newImageUrls;
+    });
+  }
+
+  private revokeImageUrls(): void {
+    this.imageUrls.forEach((url) => URL.revokeObjectURL(url));
+  }
+
+  public imageUrlFor(recipeId: string): string | undefined {
+    return this.imageUrls.get(recipeId);
   }
 
   public parseDate(recipe: Recipe): string {

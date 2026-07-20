@@ -35,6 +35,20 @@ export class RecipeService {
     return this.recipeRepository.deleteById(id);
   }
 
+  public getImageUrl(id: string): Observable<string | null> {
+    return this.recipeRepository
+      .getImage(id)
+      .pipe(map((blob) => (blob ? URL.createObjectURL(blob) : null)));
+  }
+
+  public saveImage(id: string, blob: Blob): Observable<void> {
+    return this.recipeRepository.saveImage(id, blob);
+  }
+
+  public deleteImage(id: string): Observable<void> {
+    return this.recipeRepository.deleteImage(id);
+  }
+
   public getIngredients(recipeId: string): Observable<Ingredient[]> {
     return this.ingredientService.getIngredientsForRecipe(recipeId);
   }

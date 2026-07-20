@@ -17,7 +17,7 @@ describe('RecipeComponent', () => {
       providers: [
         {
           provide: RecipeService,
-          useValue: {findAll: () => of([])},
+          useValue: {findAll: () => of([]), getImageUrl: () => of(null)},
         },
         {
           provide: LabelService,

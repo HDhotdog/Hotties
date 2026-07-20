@@ -1,8 +1,11 @@
+import {dataUrlToBytes, syncHash} from '../attachment-utils';
+
 export const RECIPE_SCHEMA_LITERAL = {
   schema: {
-    version: 1,
+    version: 2,
     primaryKey: 'id',
     type: 'object',
+    attachments: {},
     properties: {
       id: {
         type: 'string',
@@ -22,10 +25,6 @@ export const RECIPE_SCHEMA_LITERAL = {
         type: 'number',
         default: 0
       },
-      imgSrc: {
-        type: 'string',
-        default: ''
-      },
       emoji: {
         type: ['string', 'null'],
         default: null
@@ -37,6 +36,28 @@ export const RECIPE_SCHEMA_LITERAL = {
     1: (oldDoc: any) => {
       oldDoc.imgSrc = oldDoc.imgSrc ?? '';
       oldDoc.emoji = oldDoc.emoji ?? null;
+      return oldDoc;
+    },
+    // Deliberately synchronous (no `await`): an async migration strategy here
+    // makes RxDB's migration-schema plugin report the collection as "DONE"
+    // before this document's write is actually persisted (reproduced in
+    // database.spec.ts). See attachment-utils.ts `syncHash` for details.
+    2: (oldDoc: any) => {
+      const imgSrc: string = oldDoc.imgSrc ?? '';
+      delete oldDoc.imgSrc;
+
+      if (imgSrc) {
+        const {bytes, mime} = dataUrlToBytes(imgSrc);
+        oldDoc._attachments = {
+          image: {
+            type: mime,
+            data: new Blob([bytes as BlobPart], {type: mime}),
+            length: bytes.length,
+            digest: syncHash(bytes)
+          }
+        };
+      }
+
       return oldDoc;
     }
   }

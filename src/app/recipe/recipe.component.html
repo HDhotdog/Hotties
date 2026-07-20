@@ -66,9 +66,9 @@
             </div>
             <p>{{this.parseDate(recipe)}}</p>
           </div>
-          @if (recipe.imgSrc) {
+          @if (imageUrlFor(recipe.id)) {
             <div class="recipe-preview-image">
-              <ion-img [src]="recipe.imgSrc"></ion-img>
+              <ion-img [src]="imageUrlFor(recipe.id)"></ion-img>
             </div>
           }
           <div class="recipe-preview-labels">

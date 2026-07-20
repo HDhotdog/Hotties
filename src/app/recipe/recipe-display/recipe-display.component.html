@@ -31,8 +31,8 @@
         </div>
         <h3>{{this.parseDate(recipe)}}</h3>
       </div>
-      @if (recipe.imgSrc) {
-        <ion-img [src]="recipe.imgSrc"></ion-img>
+      @if (imageUrl) {
+        <ion-img [src]="imageUrl"></ion-img>
       }
       <div class="ingredients">
         <p class="ingredients-title">Ingredients</p>

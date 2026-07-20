@@ -18,7 +18,7 @@ describe('AddRecipeComponent', () => {
       imports: [AddRecipeComponent, IonicModule.forRoot()],
       providers: [
         {provide: Location, useValue: {back: () => {}}},
-        {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([])}},
+        {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([]), getImageUrl: () => of(null)}},
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {get: () => null}}}},
         {provide: LabelService, useValue: {getTemplateLabels: () => of([]), getLabelsForRecipe: () => of([])}},
         {provide: NgxImageCompressService, useValue: {}}

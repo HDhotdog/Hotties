@@ -39,7 +39,7 @@
         <ion-input [(ngModel)]="this.name" placeholder="Enter recipe name"></ion-input>
       </ion-row>
       <ion-row class="img-input">
-        <ion-img id="recipe-image" src="{{this.imgSrc}}" alt=""></ion-img>
+        <ion-img id="recipe-image" src="{{this.imagePreviewUrl}}" alt=""></ion-img>
         @if (!this.imageSelected) {
           <div class="custom-file-upload">
             <div>
