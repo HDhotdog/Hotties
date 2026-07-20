@@ -41,7 +41,6 @@
     "@ionic/pwa-elements": "^3.3.0",
     "ionicons": "^7.0.0",
     "ngx-image-compress": "^18.1.5",
-    "pouchdb-adapter-idb": "^9.0.0",
     "rxdb": "^17.4.0",
     "rxjs": "^7.8.2",
     "tslib": "^2.3.0",
