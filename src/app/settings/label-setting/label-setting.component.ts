@@ -1,7 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 
 import { IonicModule } from '@ionic/angular';
-import { Label, LabelGroup } from 'src/app/label/models/label.dto';
+import { Label, LabelGroup } from '../../label/models/label.dto';
 import { LabelService } from '../../label/label-service.service';
 import { FormsModule } from '@angular/forms';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,6 +19,7 @@ import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter'
   templateUrl: './label-setting.component.html',
   styleUrls: ['./label-setting.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, FormsModule],
 })
 export class LabelSettingComponent implements OnInit {

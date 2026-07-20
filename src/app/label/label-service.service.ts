@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { map, Observable, switchMap } from 'rxjs';
-import { LabelRepository } from 'src/app/label/label.repository';
+import { LabelRepository } from './label.repository';
 import { LabelGroupRepository } from './label-group.repository';
 import { Label, LabelGroup } from './models/label.dto';
 import {

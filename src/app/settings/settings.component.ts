@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
@@ -7,6 +7,7 @@ import { IonicModule } from '@ionic/angular';
   templateUrl: 'settings.component.html',
   styleUrls: ['settings.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, RouterModule],
 })
 export class SettingsComponent {

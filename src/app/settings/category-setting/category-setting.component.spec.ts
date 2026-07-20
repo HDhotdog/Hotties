@@ -3,7 +3,7 @@ import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../category/category.service';
 
 import { CategorySettingComponent } from './category-setting.component';
 

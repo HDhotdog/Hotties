@@ -3,7 +3,7 @@ import { IonicModule, ToastController } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../../category/category.service';
 
 import { AddCategorySettingComponent } from './add-category-setting.component';
 

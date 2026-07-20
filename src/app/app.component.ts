@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { IonicModule, Platform } from '@ionic/angular';
 
 import { RouterModule } from '@angular/router';
@@ -10,6 +10,7 @@ import { SafeArea } from '@aashu-dubey/capacitor-statusbar-safe-area';
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, RouterModule],
 })
 export class AppComponent {

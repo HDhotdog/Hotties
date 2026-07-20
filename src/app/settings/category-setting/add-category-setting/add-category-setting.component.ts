@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../../category/category.service';
 import { v4 as uuidv4 } from 'uuid';
 import { combineLatest } from 'rxjs';
 import { Category } from '../../../category/category.dto';
@@ -13,6 +18,7 @@ import { Category } from '../../../category/category.dto';
   templateUrl: './add-category-setting.component.html',
   styleUrls: ['./add-category-setting.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, IonicModule, FormsModule, RouterModule],
 })
 export class AddCategorySettingComponent implements OnInit {
