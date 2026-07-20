@@ -1,5 +1,6 @@
 import {firstValueFrom} from 'rxjs';
 import {RxDatabase} from 'rxdb';
+import {TestBed} from '@angular/core/testing';
 import {createTestDatabase} from '../database/test-support/create-test-database';
 import {DatabaseService} from '../database/database';
 import {LabelGroupRepository} from './label-group.repository';
@@ -12,7 +13,10 @@ describe('LabelGroupRepository (integration, in-memory RxDB)', () => {
   beforeEach(async () => {
     const testDb = await createTestDatabase();
     db = testDb.db;
-    repository = new LabelGroupRepository(testDb.accessor as unknown as DatabaseService);
+    TestBed.configureTestingModule({
+      providers: [{provide: DatabaseService, useValue: testDb.accessor}]
+    });
+    repository = TestBed.inject(LabelGroupRepository);
   });
 
   afterEach(async () => {

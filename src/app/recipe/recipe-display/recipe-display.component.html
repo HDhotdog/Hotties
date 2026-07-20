@@ -20,46 +20,54 @@
 </ion-header>
 
 <ion-content>
-  <div class="recipe-wrapper" *ngIf="!isLoading">
-    <div class="recipe-header">
-      <div class="title-container">
-        <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>
-        <h2>{{recipe.name}}</h2>
+  @if (!isLoading) {
+    <div class="recipe-wrapper">
+      <div class="recipe-header">
+        <div class="title-container">
+          @if (recipe.emoji) {
+            <span class="emoji-display">{{ recipe.emoji }}</span>
+          }
+          <h2>{{recipe.name}}</h2>
+        </div>
+        <h3>{{this.parseDate(recipe)}}</h3>
       </div>
-      <h3>{{this.parseDate(recipe)}}</h3>
-    </div>
-
-    <ion-img *ngIf="recipe.imgSrc" [src]="recipe.imgSrc"></ion-img>
-
-    <div class="ingredients">
-      <p class="ingredients-title">Ingredients</p>
-      <ul class="ingredients-items">
-        <li *ngFor="let item of this.ingredients">
-          {{item.name}}
-        </li>
-      </ul>
-      <div class="export-items">
-        <p>Add ingredients to shopping list</p>
-        <ion-button color="success" (click)="exportIngredients()">
-          <ion-icon name="arrow-redo"></ion-icon>
-        </ion-button>
+      @if (recipe.imgSrc) {
+        <ion-img [src]="recipe.imgSrc"></ion-img>
+      }
+      <div class="ingredients">
+        <p class="ingredients-title">Ingredients</p>
+        <ul class="ingredients-items">
+          @for (item of this.ingredients; track item) {
+            <li>
+              {{item.name}}
+            </li>
+          }
+        </ul>
+        <div class="export-items">
+          <p>Add ingredients to shopping list</p>
+          <ion-button color="success" (click)="exportIngredients()">
+            <ion-icon name="arrow-redo"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+      <div class="recipe-description">
+        <p class="recipe-descirption-title">Instructions</p>
+        <p class="recipe-description-content">{{recipe.description}}</p>
+      </div>
+      <div class="recipe-labels">
+        @for (recipeLabel of this.labels; track recipeLabel) {
+          <p class="recipe-label">
+            {{recipeLabel.name}}
+          </p>
+        }
       </div>
     </div>
-
-    <div class="recipe-description">
-      <p class="recipe-descirption-title">Instructions</p>
-      <p class="recipe-description-content">{{recipe.description}}</p>
-    </div>
-
-    <div class="recipe-labels">
-      <p class="recipe-label" *ngFor="let recipeLabel of this.labels">
-        {{recipeLabel.name}}
-      </p>
-    </div>
-  </div>
+  }
 
   <ion-select #selectionList [(ngModel)]="this.selectedCategoryId" (ionChange)="saveIngredients()" class="selection-list">
-    <ion-select-option *ngFor="let category of categories" [value]="category.id">{{category.name}}</ion-select-option>
+    @for (category of categories; track category) {
+      <ion-select-option [value]="category.id">{{category.name}}</ion-select-option>
+    }
   </ion-select>
 
 </ion-content>

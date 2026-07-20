@@ -1,32 +1,45 @@
-import {Injectable} from '@angular/core';
-import {map, Observable, switchMap} from 'rxjs';
-import {LabelRepository} from 'src/app/label/label.repository';
-import {LabelGroupRepository} from "./label-group.repository";
-import {Label, LabelGroup} from './models/label.dto';
-import {toLabel, toLabelGroup, toRxLabel, toRxLabelGroup} from './models/label.mapper';
+import { Injectable, inject } from '@angular/core';
+import { map, Observable, switchMap } from 'rxjs';
+import { LabelRepository } from 'src/app/label/label.repository';
+import { LabelGroupRepository } from './label-group.repository';
+import { Label, LabelGroup } from './models/label.dto';
+import {
+  toLabel,
+  toLabelGroup,
+  toRxLabel,
+  toRxLabelGroup,
+} from './models/label.mapper';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LabelService {
-
-  constructor(private labelRepository: LabelRepository, private labelGroupRepository: LabelGroupRepository) {
-  }
+  private labelRepository = inject(LabelRepository);
+  private labelGroupRepository = inject(LabelGroupRepository);
 
   public getLabelsForRecipe(recipeId: string): Observable<Label[]> {
-    return this.labelRepository.findByRecipeId(recipeId).pipe(map(docs => docs.map(toLabel)));
+    return this.labelRepository
+      .findByRecipeId(recipeId)
+      .pipe(map((docs) => docs.map(toLabel)));
   }
 
   /** Template labels are the label definitions (recipeId "") shown for assignment in the settings/recipe form. */
   public getTemplateLabels(): Observable<Label[]> {
-    return this.labelRepository.findByRecipeId('').pipe(map(docs => docs.map(toLabel)));
+    return this.labelRepository
+      .findByRecipeId('')
+      .pipe(map((docs) => docs.map(toLabel)));
   }
 
   /** Replaces the labels assigned to a recipe with the given list. */
-  public saveLabelsForRecipe(recipeId: string, labels: Label[]): Observable<unknown> {
-    return this.labelRepository.deleteByRecipeId(recipeId).pipe(
-      switchMap(() => this.labelRepository.saveAll(labels.map(toRxLabel)))
-    );
+  public saveLabelsForRecipe(
+    recipeId: string,
+    labels: Label[]
+  ): Observable<unknown> {
+    return this.labelRepository
+      .deleteByRecipeId(recipeId)
+      .pipe(
+        switchMap(() => this.labelRepository.saveAll(labels.map(toRxLabel)))
+      );
   }
 
   public getDistinctLabelNames(): Observable<string[]> {
@@ -34,15 +47,21 @@ export class LabelService {
   }
 
   public getDistinctLabels(): Observable<Label[]> {
-    return this.labelRepository.findUniqueLabels().pipe(map(docs => docs.map(toLabel)));
+    return this.labelRepository
+      .findUniqueLabels()
+      .pipe(map((docs) => docs.map(toLabel)));
   }
 
   public getAllLabels(): Observable<Label[]> {
-    return this.labelRepository.findAll().pipe(map(docs => docs.map(toLabel)));
+    return this.labelRepository
+      .findAll()
+      .pipe(map((docs) => docs.map(toLabel)));
   }
 
   public getAllLabelGroups(): Observable<LabelGroup[]> {
-    return this.labelGroupRepository.findAll().pipe(map(docs => docs.map(toLabelGroup)));
+    return this.labelGroupRepository
+      .findAll()
+      .pipe(map((docs) => docs.map(toLabelGroup)));
   }
 
   public saveLabel(label: Label): Observable<Label> {
@@ -58,7 +77,9 @@ export class LabelService {
   }
 
   public saveLabelGroup(labelGroup: LabelGroup): Observable<LabelGroup> {
-    return this.labelGroupRepository.save(toRxLabelGroup(labelGroup)).pipe(map(toLabelGroup));
+    return this.labelGroupRepository
+      .save(toRxLabelGroup(labelGroup))
+      .pipe(map(toLabelGroup));
   }
 
   public deleteLabelById(labelId: string): Observable<boolean> {

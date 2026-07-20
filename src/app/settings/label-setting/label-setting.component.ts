@@ -1,22 +1,25 @@
-import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {IonicModule} from '@ionic/angular';
-import {Label, LabelGroup} from 'src/app/label/models/label.dto';
-import {LabelService} from '../../label/label-service.service';
-import {FormsModule} from '@angular/forms';
-import {v4 as uuidv4} from 'uuid';
-import {combineLatest} from 'rxjs';
-import {Router} from '@angular/router';
-import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
+import { Component, OnInit, inject } from '@angular/core';
+
+import { IonicModule } from '@ionic/angular';
+import { Label, LabelGroup } from 'src/app/label/models/label.dto';
+import { LabelService } from '../../label/label-service.service';
+import { FormsModule } from '@angular/forms';
+import { v4 as uuidv4 } from 'uuid';
+import { combineLatest } from 'rxjs';
+import { Router } from '@angular/router';
+import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter';
 
 @Component({
   selector: 'app-label-setting-component',
   templateUrl: './label-setting.component.html',
   styleUrls: ['./label-setting.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, FormsModule],
 })
 export class LabelSettingComponent implements OnInit {
+  private router = inject(Router);
+  private labelService = inject(LabelService);
+
   private _newGroupName: string = '';
   private _selectedGroup: LabelGroup | null = null;
   private _newLabelName: string = '';
@@ -25,12 +28,6 @@ export class LabelSettingComponent implements OnInit {
   private _editName: string = '';
   private _labelGroups: LabelGroup[] = [];
   private _labels: Label[] = [];
-
-  constructor(
-    private router: Router,
-    private labelService: LabelService
-  ) {
-  }
 
   ngOnInit() {
     combineLatest([
@@ -59,8 +56,8 @@ export class LabelSettingComponent implements OnInit {
       const newLabel: Label = {
         id: uuidv4(),
         groupId: this._selectedGroup.id,
-        recipeId: "",
-        name: this._newLabelName.trim()
+        recipeId: '',
+        name: this._newLabelName.trim(),
       };
       this.labelService.saveLabel(newLabel);
       this._newLabelName = '';
@@ -73,7 +70,7 @@ export class LabelSettingComponent implements OnInit {
   }
 
   startEditingLabel(group: LabelGroup, label: Label) {
-    this._editingLabel = {group, label};
+    this._editingLabel = { group, label };
     this._editName = label.name;
   }
 
@@ -85,7 +82,10 @@ export class LabelSettingComponent implements OnInit {
       }
       this._editingGroup = null;
     } else if (this._editingLabel) {
-      if (this._editName.trim() && this._editName !== this._editingLabel!.label.name) {
+      if (
+        this._editName.trim() &&
+        this._editName !== this._editingLabel!.label.name
+      ) {
         this._editingLabel!.label.name = this._editName.trim();
         this.labelService.saveLabel(this._editingLabel.label);
       }

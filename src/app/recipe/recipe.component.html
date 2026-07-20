@@ -19,10 +19,14 @@
           [ticks]="true">
         </ion-range>
       </div>
-      <div *ngFor="let group of this.labelGroups" class="label-group">
-        <div class="group-name">{{ group.name }}</div>
-        <ion-checkbox *ngFor="let label of this.labelsForGroup(group.id)" labelPlacement="start" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
-      </div>
+      @for (group of this.labelGroups; track group) {
+        <div class="label-group">
+          <div class="group-name">{{ group.name }}</div>
+          @for (label of this.labelsForGroup(group.id); track label) {
+            <ion-checkbox labelPlacement="start" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
+          }
+        </div>
+      }
     </div>
   </ion-content>
 </ion-menu>
@@ -51,21 +55,29 @@
   <ion-content class="content-wrapper">
     <ion-searchbar [(ngModel)]="search" (ngModelChange)="filterRecipes()"></ion-searchbar>
     <div class="recipes-list-container">
-      <div class="recipe-preview-container" *ngFor="let recipe of this.results" (click)="openRecipe(recipe)">
-        <div class="recipe-preview-title">
-          <div class="title-container">
-            <span class="emoji-display" *ngIf="recipe.emoji">{{ recipe.emoji }}</span>
-            <p>{{recipe.name}}</p>
+      @for (recipe of this.results; track recipe) {
+        <div class="recipe-preview-container" (click)="openRecipe(recipe)">
+          <div class="recipe-preview-title">
+            <div class="title-container">
+              @if (recipe.emoji) {
+                <span class="emoji-display">{{ recipe.emoji }}</span>
+              }
+              <p>{{recipe.name}}</p>
+            </div>
+            <p>{{this.parseDate(recipe)}}</p>
           </div>
-          <p>{{this.parseDate(recipe)}}</p>
+          @if (recipe.imgSrc) {
+            <div class="recipe-preview-image">
+              <ion-img [src]="recipe.imgSrc"></ion-img>
+            </div>
+          }
+          <div class="recipe-preview-labels">
+            @for (label of this.labelsForRecipe(recipe.id); track label) {
+              <div class="recipe-preview-label">{{label.name}}</div>
+            }
+          </div>
         </div>
-        <div class="recipe-preview-image" *ngIf="recipe.imgSrc">
-          <ion-img [src]="recipe.imgSrc"></ion-img>
-        </div>
-        <div class="recipe-preview-labels">
-          <div class="recipe-preview-label" *ngFor="let label of this.labelsForRecipe(recipe.id)">{{label.name}}</div>
-        </div>
-      </div>
+      }
     </div>
   </ion-content>
 </div>

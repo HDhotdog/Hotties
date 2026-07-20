@@ -1,5 +1,6 @@
 import {firstValueFrom} from 'rxjs';
 import {RxDatabase} from 'rxdb';
+import {TestBed} from '@angular/core/testing';
 import {createTestDatabase} from '../test-support/create-test-database';
 import {DatabaseService} from '../database';
 import {SettingsRepository} from './settings.repository';
@@ -11,7 +12,10 @@ describe('SettingsRepository (integration, in-memory RxDB)', () => {
   beforeEach(async () => {
     const testDb = await createTestDatabase();
     db = testDb.db;
-    repository = new SettingsRepository(testDb.accessor as unknown as DatabaseService);
+    TestBed.configureTestingModule({
+      providers: [{provide: DatabaseService, useValue: testDb.accessor}]
+    });
+    repository = TestBed.inject(SettingsRepository);
   });
 
   afterEach(async () => {

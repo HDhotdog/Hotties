@@ -1,18 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-settings',
   templateUrl: 'settings.component.html',
   styleUrls: ['settings.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, RouterModule]
+  imports: [IonicModule, RouterModule],
 })
 export class SettingsComponent {
-
-  constructor(private router: Router, private route: ActivatedRoute) { }
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   public openCacheSetting() {
     this.router.navigate(['cache'], { relativeTo: this.route });

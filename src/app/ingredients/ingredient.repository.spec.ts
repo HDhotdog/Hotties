@@ -1,5 +1,6 @@
 import {firstValueFrom} from 'rxjs';
 import {RxDatabase} from 'rxdb';
+import {TestBed} from '@angular/core/testing';
 import {createTestDatabase} from '../database/test-support/create-test-database';
 import {DatabaseService} from '../database/database';
 import {IngredientRepository} from './ingredient.repository';
@@ -12,7 +13,10 @@ describe('IngredientRepository (integration, in-memory RxDB)', () => {
   beforeEach(async () => {
     const testDb = await createTestDatabase();
     db = testDb.db;
-    repository = new IngredientRepository(testDb.accessor as unknown as DatabaseService);
+    TestBed.configureTestingModule({
+      providers: [{provide: DatabaseService, useValue: testDb.accessor}]
+    });
+    repository = TestBed.inject(IngredientRepository);
   });
 
   afterEach(async () => {

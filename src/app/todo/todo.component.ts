@@ -1,55 +1,62 @@
-import {Component, OnInit} from '@angular/core';
-import {CategoryService} from '../category/category.service';
-import {Suggestion} from './suggestion/suggestion.dto';
-import {Todo} from './todo.dto';
-import {IonicModule} from '@ionic/angular';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {ImportanceLevel} from "./importance-level.enum";
-import {Category} from "../category/category.dto";
-import {v4 as UUIDv4} from 'uuid';
-import {TodoService} from "./todo.service";
-import {SuggestionService} from "./suggestion/suggestion.service";
-import {SuggestionFactory} from "./suggestion/suggestion-factory";
-import {combineLatest} from 'rxjs';
-
+import { Component, OnInit, inject } from '@angular/core';
+import { CategoryService } from '../category/category.service';
+import { Suggestion } from './suggestion/suggestion.dto';
+import { Todo } from './todo.dto';
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ImportanceLevel } from './importance-level.enum';
+import { Category } from '../category/category.dto';
+import { v4 as UUIDv4 } from 'uuid';
+import { TodoService } from './todo.service';
+import { SuggestionService } from './suggestion/suggestion.service';
+import { SuggestionFactory } from './suggestion/suggestion-factory';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-todo',
   templateUrl: 'todo.component.html',
   styleUrls: ['todo.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class TodoComponent implements OnInit {
+  private categoryService = inject(CategoryService);
+  private todoService = inject(TodoService);
+  private suggestionService = inject(SuggestionService);
 
-  private _inputField: string = "";
-  private _categoryInputField: string = "";
+  private _inputField: string = '';
+  private _categoryInputField: string = '';
   private _currentSuggestion: Suggestion = {} as Suggestion;
   private _sortIncreasing: boolean = true;
   private _selectedCategory: Category = {} as Category;
   private _showColorBar: boolean = true;
   private _currentImportanceLevel: ImportanceLevel = ImportanceLevel.NORMAL;
   private suggestion_suffixes: string[] = [
-    "?", "!", " :O", " O:", " owo", " c:", " OwO", " uwu", " :o", " o:", " :D"
-  ]
+    '?',
+    '!',
+    ' :O',
+    ' O:',
+    ' owo',
+    ' c:',
+    ' OwO',
+    ' uwu',
+    ' :o',
+    ' o:',
+    ' :D',
+  ];
   private _isLoading: boolean = true;
   private _importanceLevels = Object.keys(ImportanceLevel);
   private _importanceColors: { [key: string]: string } = {
     [ImportanceLevel.LOW]: '#ffd700',
     [ImportanceLevel.NORMAL]: '#007bff',
     [ImportanceLevel.HIGH]: '#ff0000',
-    [ImportanceLevel.VERY_HIGH]: '#ff00ff'
+    [ImportanceLevel.VERY_HIGH]: '#ff00ff',
   };
 
   private _categories: Category[] = [];
   private _suggestions: Suggestion[] = [];
   private _tasks: Todo[] = [];
-
-  constructor(private categoryService: CategoryService,
-              private todoService: TodoService,
-              private suggestionService: SuggestionService) {
-  }
 
   async ngOnInit() {
     this.init();
@@ -64,43 +71,47 @@ export class TodoComponent implements OnInit {
     const categories = this.categoryService.getCategories();
     const selectedCategoryId = this.categoryService.getSelectedCategoryId();
 
-    combineLatest([categories, selectedCategoryId]).subscribe(([categories, selectedCategoryId]) => {
-      this._categories = categories;
-      if (selectedCategoryId != null) {
-        this._selectedCategory = categories.find((category) => category.id === selectedCategoryId) ?? categories[0];
-      } else {
-        this._selectedCategory = categories[0];
+    combineLatest([categories, selectedCategoryId]).subscribe(
+      ([categories, selectedCategoryId]) => {
+        this._categories = categories;
+        if (selectedCategoryId != null) {
+          this._selectedCategory =
+            categories.find((category) => category.id === selectedCategoryId) ??
+            categories[0];
+        } else {
+          this._selectedCategory = categories[0];
+        }
+        this._categoryInputField = this._selectedCategory.id;
+        this._currentSuggestion = {
+          id: UUIDv4(),
+          categoryId: this.selectedCategory.id,
+          suggestion: 'Cookies',
+          suffix: '! :D',
+        };
+        this.refreshTodos();
+        this.refreshSuggestions();
       }
-      this._categoryInputField = this._selectedCategory.id;
-      this._currentSuggestion = {
-        id: UUIDv4(),
-        categoryId: this.selectedCategory.id,
-        suggestion: "Cookies",
-        suffix: "! :D"
-      }
-      this.refreshTodos();
-      this.refreshSuggestions();
-    })
+    );
   }
 
   public refreshTodos(): void {
     this._isLoading = true;
-    this.todoService.findByCategoryId(this.selectedCategory.id).subscribe(
-      (tasks) => {
+    this.todoService
+      .findByCategoryId(this.selectedCategory.id)
+      .subscribe((tasks) => {
         this._tasks = tasks;
         this._isLoading = false;
-      }
-    )
+      });
   }
 
   public refreshSuggestions(): void {
     this._isLoading = true;
-    this.suggestionService.findByCategoryId(this.selectedCategory.id).subscribe(
-      (suggestions) => {
+    this.suggestionService
+      .findByCategoryId(this.selectedCategory.id)
+      .subscribe((suggestions) => {
         this._suggestions = suggestions;
         this._isLoading = false;
-      }
-    )
+      });
   }
 
   public addTodo(task: string) {
@@ -109,7 +120,7 @@ export class TodoComponent implements OnInit {
       categoryId: this.selectedCategory.id,
       name: task.trim() ? task : this._currentSuggestion.suggestion,
       done: false,
-      importance: this._currentImportanceLevel || ImportanceLevel.NORMAL
+      importance: this._currentImportanceLevel || ImportanceLevel.NORMAL,
     };
 
     this.todoService.save(newTodo).subscribe();
@@ -118,7 +129,7 @@ export class TodoComponent implements OnInit {
       this.saveSuggestion(task);
     }
 
-    this._inputField = "";
+    this._inputField = '';
     this.generateSuggestion();
   }
 
@@ -135,34 +146,53 @@ export class TodoComponent implements OnInit {
 
   public generateSuggestion(): void {
     if (this._suggestions.length == 0) {
-      this.suggestionService.save(SuggestionFactory.createSuggestionWithoutSuffix("Cookies", this.selectedCategory.id))
+      this.suggestionService
+        .save(
+          SuggestionFactory.createSuggestionWithoutSuffix(
+            'Cookies',
+            this.selectedCategory.id
+          )
+        )
         .subscribe((suggestion) => {
           this._currentSuggestion = suggestion;
         });
     } else {
-      const suggestion = this._suggestions[Math.floor(Math.random() * this._suggestions.length)];
+      const suggestion =
+        this._suggestions[Math.floor(Math.random() * this._suggestions.length)];
 
-      const suffix = this.suggestion_suffixes[Math.floor(Math.random() * this.suggestion_suffixes.length)];
+      const suffix =
+        this.suggestion_suffixes[
+          Math.floor(Math.random() * this.suggestion_suffixes.length)
+        ];
       this._currentSuggestion = {
         id: suggestion.id,
         categoryId: suggestion.categoryId,
         suggestion: suggestion.suggestion,
-        suffix: suffix
-      }
+        suffix: suffix,
+      };
 
       this.refreshSuggestions();
     }
-
   }
 
   private saveSuggestion(suggestionText: string) {
     if (this._selectedCategory.saveSuggestions) {
-      const included: boolean = this._suggestions
-        .filter((suggestion) => suggestion.suggestion.toLowerCase() == suggestionText.trim().toLowerCase()).length > 0
+      const included: boolean =
+        this._suggestions.filter(
+          (suggestion) =>
+            suggestion.suggestion.toLowerCase() ==
+            suggestionText.trim().toLowerCase()
+        ).length > 0;
 
       if (!included) {
-        this.suggestionService.save(SuggestionFactory.createSuggestionWithoutSuffix(suggestionText, this.selectedCategory.id))
-          .subscribe()
+        this.suggestionService
+          .save(
+            SuggestionFactory.createSuggestionWithoutSuffix(
+              suggestionText,
+              this.selectedCategory.id
+            )
+          )
+          .subscribe();
       }
     }
   }
@@ -189,11 +219,13 @@ export class TodoComponent implements OnInit {
 
   public changeCategory() {
     const selectedCategory = this.categories.find(
-      c => c.id === this.categoryInputField
+      (c) => c.id === this.categoryInputField
     );
-    this._selectedCategory = selectedCategory!
-    this.categoryService.saveCurrentCategory(this._selectedCategory).subscribe();
-    this.refreshTodos()
+    this._selectedCategory = selectedCategory!;
+    this.categoryService
+      .saveCurrentCategory(this._selectedCategory)
+      .subscribe();
+    this.refreshTodos();
     this.generateSuggestion();
   }
 
@@ -203,22 +235,24 @@ export class TodoComponent implements OnInit {
 
   public getTodoBackgroundColor(importance: ImportanceLevel) {
     return {
-      '--indicator-color': this._importanceColors[importance] || this._importanceColors[ImportanceLevel.NORMAL]
+      '--indicator-color':
+        this._importanceColors[importance] ||
+        this._importanceColors[ImportanceLevel.NORMAL],
     };
   }
 
   public getCircleColorBackground(color: string) {
     const importanceLevel = this.getCircleColor(color);
-    return {'background-color': this._importanceColors[importanceLevel]};
+    return { 'background-color': this._importanceColors[importanceLevel] };
   }
 
   public getCircleColor(color: string): ImportanceLevel {
     const enumEntries = Object.entries(ImportanceLevel);
-    return enumEntries.filter(entry => entry.includes(color))[0][1];
+    return enumEntries.filter((entry) => entry.includes(color))[0][1];
   }
 
   public isCurrentLevel(color: string) {
-    return this._currentImportanceLevel === this.getCircleColor(color)
+    return this._currentImportanceLevel === this.getCircleColor(color);
   }
 
   public setCurrentImportanceLevel(level: string) {

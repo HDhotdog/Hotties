@@ -1,21 +1,18 @@
 import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { MenuController } from '@ionic/angular';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 @Component({
   selector: 'app-tabs',
   templateUrl: 'tabs.page.html',
   styleUrls: ['tabs.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, RouterModule]
+  imports: [IonicModule, RouterModule],
 })
 export class TabsPage {
-  constructor(
-    private menu: MenuController,
-  ) {
-  }
+  private menu = inject(MenuController);
 
   openMenu() {
     this.menu.open('main-menu');
