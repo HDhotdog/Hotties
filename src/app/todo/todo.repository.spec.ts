@@ -41,6 +41,17 @@ describe('TodoRepository (integration, in-memory RxDB)', () => {
     expect(cat1Todos.map(t => t.id).sort()).toEqual(['t1', 't2']);
   });
 
+  it('findByCategoryId() returns todos in the order they were added, not by id', async () => {
+    // ids are chosen so that alphabetical/UUID ordering would NOT match insertion order
+    await firstValueFrom(repository.save(todo({id: 'z-first', categoryId: 'cat-1', name: 'Milk'})));
+    await firstValueFrom(repository.save(todo({id: 'm-second', categoryId: 'cat-1', name: 'Eggs'})));
+    await firstValueFrom(repository.save(todo({id: 'a-third', categoryId: 'cat-1', name: 'Bread'})));
+
+    const cat1Todos = await firstValueFrom(repository.findByCategoryId('cat-1'));
+
+    expect(cat1Todos.map(t => t.id)).toEqual(['z-first', 'm-second', 'a-third']);
+  });
+
   it('findByCategoryId() returns an empty array when the category has no todos', async () => {
     const result = await firstValueFrom(repository.findByCategoryId('unknown-category'));
     expect(result).toEqual([]);
