@@ -1,4 +1,4 @@
-# RxDB 16 → 17 Migration — Plan
+# RxDB 16 → 17 Migration — Status: Complete
 
 ## Context
 
@@ -28,17 +28,17 @@ Surveyed the RxDB 17.0.0–17.4.0 changelogs and release notes, and diffed this 
 
 ## Plan
 
-| Phase | Area | Notes |
-|-------|------|-------|
-| 0 | Baseline | Confirm `master` is green (`ng build`, `ng lint`, `npx jest`) before touching anything |
-| 1 | Bump `rxdb` | `rxdb@^16.20.0` → `^17.4.0` in `package.json`, `npm install`, resolve any type errors from the compiler |
-| 2 | Automated verification | `npx ng build`, `npx ng lint`, `npx jest` (exercises `storage-memory`, not `storage-dexie` — doesn't prove production storage compatibility by itself) |
-| 3 | **Manual production-storage verification** | In a browser preview: (a) load the app fresh, confirm seed data and full todo/recipe/category/label CRUD still work end-to-end; (b) **critical** — reuse a browser profile/IndexedDB database that already has data written by the current RxDB 16 build (don't wipe storage first), reload against the RxDB 17 build, and confirm it opens with no Dexie/schema errors and all existing data is intact and queryable |
-| 4 | Final validation & docs | Re-run full lint/test/build, update this doc's status, commit |
+| Phase | Area | Status | Notes |
+|-------|------|--------|-------|
+| 0 | Baseline | ✅ Done | `master` was green (`ng build`, `ng lint`, `npx jest`) before touching anything |
+| 1 | Bump `rxdb` | ✅ Done | `rxdb@^16.20.0` → `^17.4.0` in `package.json`; `npm install` succeeded with no peer-dependency conflicts and no compiler type errors |
+| 2 | Automated verification | ✅ Done | `npx ng build`, `npx ng lint`, `npx jest` (56/56 tests, 22 suites) all pass unchanged |
+| 3 | **Manual production-storage verification** | ✅ Done | Built and ran the app on RxDB 16 in a browser, captured a raw IndexedDB dump of real `todos`/`categories` data (via `indexedDB.open()` + `getAll()`, bypassing the UI). Swapped to RxDB 17.4.0, reloaded the *same* browser origin (same IndexedDB, not wiped), and re-dumped the same stores. The dumps were **byte-for-byte identical** — same `id`, `_rev`, `_meta.lwt`, all fields — and the app rendered "Edeka"/"Cookies" from that pre-existing data with no Dexie/schema/console errors. Confirms the release notes: Dexie storage needs no explicit migration step |
+| 4 | Final validation & docs | ✅ Done | Full lint/test/build re-run clean on RxDB 17.4.0; this doc updated |
 
 ## Rollback
 
-Single-commit change (`rxdb` version bump plus whatever type fixes surface) — `git revert` if Phase 3's manual check turns up data-loss or load failures against pre-existing IndexedDB data.
+Single-commit change (`rxdb` version bump) — `git revert` if a data-loss or load failure against pre-existing IndexedDB data turns up later. None was found during Phase 3.
 
 ## Out of scope
 
