@@ -1,32 +1,34 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
 import { IonicModule } from '@ionic/angular';
 
 import { FormsModule } from '@angular/forms';
-import {Suggestion} from "../../todo/suggestion/suggestion.dto";
+import { Suggestion } from '../../todo/suggestion/suggestion.dto';
 
 @Component({
   selector: 'app-suggestion-setting',
   templateUrl: './suggestion-setting.component.html',
   styleUrls: ['./suggestion-setting.component.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule]
+  imports: [IonicModule, FormsModule],
 })
 export class SuggestionSettingComponent implements OnInit {
+  suggestionService = inject(SuggestionService);
+  private router = inject(Router);
 
   private _suggestions: Suggestion[] = [];
 
-  constructor(public suggestionService: SuggestionService, private router: Router) {
+  constructor() {
+    const suggestionService = this.suggestionService;
+
     this.suggestionService = suggestionService;
   }
 
   ngOnInit(): void {
-    this.suggestionService.findAll().subscribe(
-      (suggestions) => {
-        this._suggestions = suggestions;
-      }
-    );
+    this.suggestionService.findAll().subscribe((suggestions) => {
+      this._suggestions = suggestions;
+    });
   }
 
   async ionViewWillEnter() {
@@ -39,7 +41,9 @@ export class SuggestionSettingComponent implements OnInit {
   }
 
   public removeSuggestion(idx: number) {
-    this.suggestionService.deleteById(this._suggestions[idx].categoryId).subscribe();
+    this.suggestionService
+      .deleteById(this._suggestions[idx].categoryId)
+      .subscribe();
   }
 
   get suggestions(): Suggestion[] {

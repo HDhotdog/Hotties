@@ -1,25 +1,22 @@
-
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
 import { CategoryService } from 'src/app/category/category.service';
-import {Category} from "../../category/category.dto";
+import { Category } from '../../category/category.dto';
 
 @Component({
   selector: 'app-category-setting',
   templateUrl: './category-setting.component.html',
   styleUrls: ['./category-setting.component.scss'],
   standalone: true,
-  imports: [IonicModule, RouterModule]
+  imports: [IonicModule, RouterModule],
 })
 export class CategorySettingComponent {
+  private categoryService = inject(CategoryService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   private _categories: Category[] = [];
-
-  constructor(
-    private categoryService: CategoryService,
-    private router: Router,
-    private route: ActivatedRoute) { }
 
   async ionViewWillEnter() {
     this.categoryService.getCategories().subscribe((categories) => {
@@ -28,11 +25,11 @@ export class CategorySettingComponent {
   }
 
   public addNewCategory() {
-    this.router.navigate(['new'], { relativeTo: this.route })
+    this.router.navigate(['new'], { relativeTo: this.route });
   }
 
   public editCategory(id: string) {
-    this.router.navigate(['new', id], { relativeTo: this.route })
+    this.router.navigate(['new', id], { relativeTo: this.route });
   }
 
   public navigateBack() {
@@ -42,7 +39,9 @@ export class CategorySettingComponent {
 
   public deleteCategory(id: string) {
     this.categoryService.deleteCategory(id).subscribe();
-    this._categories = this._categories.filter((category) => category.id !== id);
+    this._categories = this._categories.filter(
+      (category) => category.id !== id
+    );
   }
 
   // handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {

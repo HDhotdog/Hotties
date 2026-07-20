@@ -1,34 +1,32 @@
-import {CommonModule} from '@angular/common';
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {IonicModule, ToastController} from '@ionic/angular';
-import {FormsModule} from '@angular/forms';
-import {CategoryService} from 'src/app/category/category.service';
-import {v4 as uuidv4} from 'uuid';
-import {combineLatest} from 'rxjs';
-import {Category} from "../../../category/category.dto";
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { CategoryService } from 'src/app/category/category.service';
+import { v4 as uuidv4 } from 'uuid';
+import { combineLatest } from 'rxjs';
+import { Category } from '../../../category/category.dto';
 
 @Component({
   selector: 'app-add-category-setting',
   templateUrl: './add-category-setting.component.html',
   styleUrls: ['./add-category-setting.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
 })
 export class AddCategorySettingComponent implements OnInit {
+  private router = inject(Router);
+  private categoryService = inject(CategoryService);
+  private toastCtrl = inject(ToastController);
+  private route = inject(ActivatedRoute);
 
-  private _name: string = "";
+  private _name: string = '';
   private _saveSuggestions: boolean = true;
   private _previousInputs: Category = {} as Category;
   private _category: Category | null = null;
   private _categories: Category[] = [];
   private _id: string | null = null;
-
-  constructor(private router: Router,
-              private categoryService: CategoryService,
-              private toastCtrl: ToastController,
-              private route: ActivatedRoute) {
-  }
 
   ngOnInit(): void {
     this._id = this.route.snapshot.paramMap.get('id');
@@ -38,16 +36,18 @@ export class AddCategorySettingComponent implements OnInit {
       // combineLatest (not forkJoin): getCategoryById()/getCategories() are live queries
       // (RxDB `.$`) that never complete, so forkJoin would never emit.
       const categoryObservable = this.categoryService.getCategoryById(this._id);
-      combineLatest([categoryObservable, categoriesObservable]).subscribe(([category, categories]) => {
-        this._category = category;
-        this._categories = categories;
-        this._name = category.name;
-        this._saveSuggestions = category.saveSuggestions;
-      });
+      combineLatest([categoryObservable, categoriesObservable]).subscribe(
+        ([category, categories]) => {
+          this._category = category;
+          this._categories = categories;
+          this._name = category.name;
+          this._saveSuggestions = category.saveSuggestions;
+        }
+      );
     } else {
-      categoriesObservable.subscribe(categories => {
+      categoriesObservable.subscribe((categories) => {
         this._categories = categories;
-        this._name = "";
+        this._name = '';
         this._saveSuggestions = true;
       });
     }
@@ -59,16 +59,19 @@ export class AddCategorySettingComponent implements OnInit {
   }
 
   public saveCategory() {
-    if (this._categories.filter(category => category.name == this._name).length > 0) {
+    if (
+      this._categories.filter((category) => category.name == this._name)
+        .length > 0
+    ) {
       let toast = this.toastCtrl.create({
-        message: "There already exists a category with this name",
+        message: 'There already exists a category with this name',
         duration: 2000,
-        position: "bottom",
-        color: "danger"
+        position: 'bottom',
+        color: 'danger',
       });
-      toast.then(toast => {
+      toast.then((toast) => {
         toast.present();
-      })
+      });
     } else {
       let category: Category;
       if (this._category) {
@@ -79,8 +82,8 @@ export class AddCategorySettingComponent implements OnInit {
         category = {
           id: uuidv4(),
           name: this._name,
-          saveSuggestions: this._saveSuggestions
-        }
+          saveSuggestions: this._saveSuggestions,
+        };
       }
       this.categoryService.save(category).subscribe(() => {
         this.navigateBack();
@@ -89,12 +92,14 @@ export class AddCategorySettingComponent implements OnInit {
   }
 
   public inputChanged(): boolean {
-    const changed = this._name != this._category?.name || this._saveSuggestions != this._category?.saveSuggestions;
+    const changed =
+      this._name != this._category?.name ||
+      this._saveSuggestions != this._category?.saveSuggestions;
     return changed;
   }
 
   public editingCategory(): boolean {
-    return this.route.snapshot.paramMap.get("id") != null;
+    return this.route.snapshot.paramMap.get('id') != null;
   }
 
   set categories(categories: Category[]) {

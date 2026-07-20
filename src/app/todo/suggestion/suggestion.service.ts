@@ -1,31 +1,37 @@
-import {Injectable} from '@angular/core';
-import {SuggestionRepository} from "./suggestion.repository";
-import {map, Observable} from "rxjs";
-import {Suggestion} from "./suggestion.dto";
-import {toSuggestion, toRxSuggestion} from "./suggestion.mapper";
+import { Injectable, inject } from '@angular/core';
+import { SuggestionRepository } from './suggestion.repository';
+import { map, Observable } from 'rxjs';
+import { Suggestion } from './suggestion.dto';
+import { toSuggestion, toRxSuggestion } from './suggestion.mapper';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SuggestionService {
-
-  constructor(private suggestionRepository: SuggestionRepository) {
-  }
+  private suggestionRepository = inject(SuggestionRepository);
 
   public findByCategoryId(categoryId: string): Observable<Suggestion[]> {
-    return this.suggestionRepository.findByCategoryId(categoryId).pipe(map(docs => docs.map(toSuggestion)));
+    return this.suggestionRepository
+      .findByCategoryId(categoryId)
+      .pipe(map((docs) => docs.map(toSuggestion)));
   }
 
   public save(suggestion: Suggestion): Observable<Suggestion> {
-    return this.suggestionRepository.save(toRxSuggestion(suggestion)).pipe(map(toSuggestion));
+    return this.suggestionRepository
+      .save(toRxSuggestion(suggestion))
+      .pipe(map(toSuggestion));
   }
 
   public saveAll(suggestions: Suggestion[]): Observable<Suggestion[]> {
-    return this.suggestionRepository.saveAll(suggestions.map(toRxSuggestion)).pipe(map(docs => docs.map(toSuggestion)));
+    return this.suggestionRepository
+      .saveAll(suggestions.map(toRxSuggestion))
+      .pipe(map((docs) => docs.map(toSuggestion)));
   }
 
   public findAll(): Observable<Suggestion[]> {
-    return this.suggestionRepository.findAll().pipe(map(docs => docs.map(toSuggestion)));
+    return this.suggestionRepository
+      .findAll()
+      .pipe(map((docs) => docs.map(toSuggestion)));
   }
 
   public clearSuggestions(): Observable<number> {

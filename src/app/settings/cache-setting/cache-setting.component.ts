@@ -1,35 +1,33 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CategoryService } from 'src/app/category/category.service';
 import { IonicModule } from '@ionic/angular';
 
 import { v4 as uuidv4 } from 'uuid';
 import { switchMap } from 'rxjs';
-import {Category} from "../../category/category.dto";
+import { Category } from '../../category/category.dto';
 @Component({
   selector: 'app-cache-setting',
   templateUrl: './cache-setting.component.html',
   styleUrls: ['./cache-setting.component.scss'],
   standalone: true,
-  imports: [IonicModule]
+  imports: [IonicModule],
 })
 export class CacheSettingComponent {
-
-  constructor(private categoryService: CategoryService,
-    private router: Router) {
-  }
-
+  private categoryService = inject(CategoryService);
+  private router = inject(Router);
 
   public clearCategoryCache() {
     const category: Category = {
       id: uuidv4(),
-      name: "Edeka",
-      saveSuggestions: true
-    }
+      name: 'Edeka',
+      saveSuggestions: true,
+    };
 
-    this.categoryService.deleteAllCategories().pipe(
-      switchMap(() => this.categoryService.initCategories([category]))
-    ).subscribe();
+    this.categoryService
+      .deleteAllCategories()
+      .pipe(switchMap(() => this.categoryService.initCategories([category])))
+      .subscribe();
   }
 
   public navigateBack() {

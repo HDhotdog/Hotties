@@ -38,6 +38,12 @@
       }
     },
     {
+      "files": ["**/*.repository.ts"],
+      "rules": {
+        "@angular-eslint/prefer-inject": "off"
+      }
+    },
+    {
       "files": ["*.html"],
       "extends": ["plugin:@angular-eslint/template/recommended"],
       "rules": {}

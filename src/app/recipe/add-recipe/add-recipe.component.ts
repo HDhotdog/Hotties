@@ -1,51 +1,56 @@
-import {CommonModule} from '@angular/common';
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {FormsModule} from '@angular/forms';
-import {IonicModule} from '@ionic/angular';
-import {Ingredient} from '../../ingredients/ingredient.dto';
-import {Label} from '../../label/models/label.dto';
-import {Recipe} from '../models/recipe.dto';
-import {RecipeService} from '../recipe.service';
-import {v4 as uuidv4} from 'uuid';
-import {LabelService} from "../../label/label-service.service";
-import {NgxImageCompressService} from 'ngx-image-compress';
-import {EmojiModule} from '@ctrl/ngx-emoji-mart/ngx-emoji';
-import {PickerModule} from '@ctrl/ngx-emoji-mart';
-import {combineLatest, forkJoin} from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { Ingredient } from '../../ingredients/ingredient.dto';
+import { Label } from '../../label/models/label.dto';
+import { Recipe } from '../models/recipe.dto';
+import { RecipeService } from '../recipe.service';
+import { v4 as uuidv4 } from 'uuid';
+import { LabelService } from '../../label/label-service.service';
+import { NgxImageCompressService } from 'ngx-image-compress';
+import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { combineLatest, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-add-recipe',
   templateUrl: './add-recipe.component.html',
   styleUrls: ['./add-recipe.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule, EmojiModule, PickerModule]
+  imports: [
+    CommonModule,
+    IonicModule,
+    FormsModule,
+    RouterModule,
+    EmojiModule,
+    PickerModule,
+  ],
 })
 export class AddRecipeComponent implements OnInit {
+  private router = inject(Router);
+  private recipeService = inject(RecipeService);
+  private route = inject(ActivatedRoute);
+  private labelService = inject(LabelService);
+  private imageCompress = inject(NgxImageCompressService);
 
-  private _name: string = "";
-  private _description: string = "";
+  private _name: string = '';
+  private _description: string = '';
   private _hours: number = 0;
   private _minutes: number = 0;
   private _prepTime: number = 0;
-  private _ingredient: string = "";
+  private _ingredient: string = '';
   private _ingredients: Ingredient[] = [];
   private _recipe: Recipe = {} as Recipe;
   private _stringLabels: string[] = [];
   private _templateLabels: Label[] = [];
   private _labels: Label[] = [];
-  private _imgSrc: string = "";
+  private _imgSrc: string = '';
   private _imageSelected: boolean = false;
   private _showEmojiPicker: boolean = false;
   private _selectedEmoji: string | null = null;
-  private _newLabel: string = "";
-
-  constructor(private router: Router,
-              private recipeService: RecipeService,
-              private route: ActivatedRoute,
-              private labelService: LabelService,
-              private imageCompress: NgxImageCompressService) {
-  }
+  private _newLabel: string = '';
 
   ngOnInit(): void {
     const index = this.route.snapshot.paramMap.get('id');
@@ -56,11 +61,16 @@ export class AddRecipeComponent implements OnInit {
       const recipeLabels = this.labelService.getLabelsForRecipe(index);
       // combineLatest (not forkJoin): findById()/getIngredients()/getTemplateLabels()/getLabelsForRecipe()
       // are live queries (RxDB `.$`) that never complete, so forkJoin would never emit.
-      combineLatest([recipe, ingredients, templateLabels, recipeLabels]).subscribe(([recipe, ingredients, templateLabels, recipeLabels]) => {
+      combineLatest([
+        recipe,
+        ingredients,
+        templateLabels,
+        recipeLabels,
+      ]).subscribe(([recipe, ingredients, templateLabels, recipeLabels]) => {
         this._templateLabels = templateLabels;
         this._recipe = recipe;
         this._name = recipe.name;
-        this._imgSrc = recipe.imgSrc ?? "";
+        this._imgSrc = recipe.imgSrc ?? '';
         this._description = recipe.description;
         this._prepTime = recipe.preparationTime;
         this._hours = Math.floor(recipe.preparationTime / 60);
@@ -68,13 +78,19 @@ export class AddRecipeComponent implements OnInit {
         this._ingredients = ingredients;
         this._labels = recipeLabels;
         this._stringLabels = templateLabels
-          .filter(template => recipeLabels.some(label => label.name === template.name && label.groupId === template.groupId))
-          .map(template => template.id);
+          .filter((template) =>
+            recipeLabels.some(
+              (label) =>
+                label.name === template.name &&
+                label.groupId === template.groupId
+            )
+          )
+          .map((template) => template.id);
         this._imageSelected = !!this._imgSrc;
         this._selectedEmoji = recipe.emoji ?? null;
       });
     } else {
-      this.labelService.getTemplateLabels().subscribe(templateLabels => {
+      this.labelService.getTemplateLabels().subscribe((templateLabels) => {
         this._templateLabels = templateLabels;
         this._recipe = {
           id: uuidv4(),
@@ -82,7 +98,7 @@ export class AddRecipeComponent implements OnInit {
           imgSrc: this._imgSrc,
           description: this._description,
           preparationTime: this._prepTime,
-          emoji: this._selectedEmoji
+          emoji: this._selectedEmoji,
         };
       });
     }
@@ -122,12 +138,18 @@ export class AddRecipeComponent implements OnInit {
         preparationTime: this._prepTime,
         // ingredients: this._ingredients,
         // labels: this._labels,
-        emoji: this._selectedEmoji
-      }
+        emoji: this._selectedEmoji,
+      };
     }
     const savedRecipe = this.recipeService.save(recipe);
-    const savedLabels = this.labelService.saveLabelsForRecipe(recipe.id, this._labels);
-    const savedIngredients = this.recipeService.saveIngredients(recipe.id, this._ingredients);
+    const savedLabels = this.labelService.saveLabelsForRecipe(
+      recipe.id,
+      this._labels
+    );
+    const savedIngredients = this.recipeService.saveIngredients(
+      recipe.id,
+      this._ingredients
+    );
 
     forkJoin([savedRecipe, savedLabels, savedIngredients]).subscribe(() => {
       this.navigateBack();
@@ -135,11 +157,13 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public inputChanged(): boolean {
-    return this._recipe.name !== this._name
-      || this._recipe.description !== this._description
-      || this._recipe.preparationTime !== this._prepTime
-      || (this._recipe.imgSrc ?? "") !== this._imgSrc
-      || (this._recipe.emoji ?? null) !== this._selectedEmoji;
+    return (
+      this._recipe.name !== this._name ||
+      this._recipe.description !== this._description ||
+      this._recipe.preparationTime !== this._prepTime ||
+      (this._recipe.imgSrc ?? '') !== this._imgSrc ||
+      (this._recipe.emoji ?? null) !== this._selectedEmoji
+    );
     // || this._recipe.ingredients !== this._ingredients
     // || this._recipe.labels !== this._labels
   }
@@ -149,24 +173,26 @@ export class AddRecipeComponent implements OnInit {
       id: uuidv4(),
       recipeId: this._recipe.id,
       name: this._ingredient,
-    })
-    this._ingredient = "";
+    });
+    this._ingredient = '';
   }
 
   public removeIngredient(ingredient: Ingredient) {
-    const index = this._ingredients.indexOf(ingredient)
-    this._ingredients.splice(index, 1)
+    const index = this._ingredients.indexOf(ingredient);
+    this._ingredients.splice(index, 1);
   }
 
   public handleLabelChange(): void {
     this._labels = this._stringLabels
-      .map(templateId => this._templateLabels.find(template => template.id === templateId))
+      .map((templateId) =>
+        this._templateLabels.find((template) => template.id === templateId)
+      )
       .filter((template): template is Label => !!template)
-      .map(template => ({
+      .map((template) => ({
         id: uuidv4(),
         recipeId: this._recipe.id,
         groupId: template.groupId,
-        name: template.name
+        name: template.name,
       }));
   }
 
@@ -175,22 +201,20 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public deleteImage() {
-    this._imgSrc = "";
+    this._imgSrc = '';
     this._imageSelected = false;
   }
 
   private uploadCompressedFile() {
     const MAX_MEGABYTE = 2;
-    this.imageCompress
-      .uploadAndGetImageWithMaxSize(MAX_MEGABYTE)
-      .then(
-        (result: string) => {
-          this._imgSrc = result;
-        },
-        (result: string) => {
-          this._imgSrc = result;
-        }
-      );
+    this.imageCompress.uploadAndGetImageWithMaxSize(MAX_MEGABYTE).then(
+      (result: string) => {
+        this._imgSrc = result;
+      },
+      (result: string) => {
+        this._imgSrc = result;
+      }
+    );
   }
 
   public toggleEmojiPicker() {

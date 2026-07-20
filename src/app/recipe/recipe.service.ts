@@ -1,25 +1,26 @@
-import {Injectable} from '@angular/core';
-import {RecipeRepository} from './recipe.repository';
-import {map, Observable} from 'rxjs';
-import {IngredientService} from "../ingredients/ingredient.service";
-import {Ingredient} from "../ingredients/ingredient.dto";
-import {Recipe} from './models/recipe.dto';
-import {toRecipe, toRxRecipe} from './models/recipe.mapper';
+import { Injectable, inject } from '@angular/core';
+import { RecipeRepository } from './recipe.repository';
+import { map, Observable } from 'rxjs';
+import { IngredientService } from '../ingredients/ingredient.service';
+import { Ingredient } from '../ingredients/ingredient.dto';
+import { Recipe } from './models/recipe.dto';
+import { toRecipe, toRxRecipe } from './models/recipe.mapper';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RecipeService {
-
-  constructor(private recipeRepository: RecipeRepository, private ingredientService: IngredientService) {
-  }
+  private recipeRepository = inject(RecipeRepository);
+  private ingredientService = inject(IngredientService);
 
   public save(recipe: Recipe): Observable<Recipe> {
     return this.recipeRepository.save(toRxRecipe(recipe)).pipe(map(toRecipe));
   }
 
   public findAll(): Observable<Recipe[]> {
-    return this.recipeRepository.findAll().pipe(map(docs => docs.map(toRecipe)));
+    return this.recipeRepository
+      .findAll()
+      .pipe(map((docs) => docs.map(toRecipe)));
   }
 
   public findById(id: string): Observable<Recipe> {
@@ -38,7 +39,13 @@ export class RecipeService {
     return this.ingredientService.getIngredientsForRecipe(recipeId);
   }
 
-  public saveIngredients(recipeId: string, ingredients: Ingredient[]): Observable<unknown> {
-    return this.ingredientService.saveIngredientsForRecipe(recipeId, ingredients);
+  public saveIngredients(
+    recipeId: string,
+    ingredients: Ingredient[]
+  ): Observable<unknown> {
+    return this.ingredientService.saveIngredientsForRecipe(
+      recipeId,
+      ingredients
+    );
   }
 }
