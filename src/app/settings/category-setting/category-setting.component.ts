@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
@@ -10,7 +10,7 @@ import {Category} from "../../category/category.dto";
   templateUrl: './category-setting.component.html',
   styleUrls: ['./category-setting.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule]
+  imports: [IonicModule, RouterModule]
 })
 export class CategorySettingComponent {
 

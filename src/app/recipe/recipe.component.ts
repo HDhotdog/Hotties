@@ -4,7 +4,7 @@ import {Recipe} from './models/recipe.dto';
 import {Label, LabelGroup} from '../label/models/label.dto';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {LabelService} from "../label/label-service.service";
-import {CommonModule} from '@angular/common';
+
 import {FormsModule} from '@angular/forms';
 import {IonicModule, MenuController} from '@ionic/angular';
 import {combineLatest, Observable} from 'rxjs';
@@ -15,7 +15,7 @@ import {filterRecipes, labelsForGroup as getLabelsForGroup, labelsForRecipe as g
   templateUrl: 'recipe.component.html',
   styleUrls: ['recipe.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
+  imports: [IonicModule, FormsModule, RouterModule]
 })
 export class RecipeComponent implements OnInit {
   private _recipes: Recipe[] = [];

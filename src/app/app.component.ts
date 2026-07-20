@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {IonicModule, Platform} from '@ionic/angular';
-import {CommonModule} from '@angular/common';
+
 import {RouterModule} from '@angular/router';
 import {Keyboard} from '@capacitor/keyboard';
 import {SafeArea} from '@aashu-dubey/capacitor-statusbar-safe-area';
@@ -10,7 +10,7 @@ import {SafeArea} from '@aashu-dubey/capacitor-statusbar-safe-area';
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, RouterModule]
+  imports: [IonicModule, RouterModule]
 })
 export class AppComponent {
   constructor(

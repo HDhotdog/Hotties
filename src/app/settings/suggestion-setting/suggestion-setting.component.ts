@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
 import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {Suggestion} from "../../todo/suggestion/suggestion.dto";
 
@@ -11,7 +11,7 @@ import {Suggestion} from "../../todo/suggestion/suggestion.dto";
   templateUrl: './suggestion-setting.component.html',
   styleUrls: ['./suggestion-setting.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, FormsModule]
 })
 export class SuggestionSettingComponent implements OnInit {
 

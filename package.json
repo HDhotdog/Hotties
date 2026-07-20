@@ -16,16 +16,16 @@
   "private": true,
   "dependencies": {
     "@aashu-dubey/capacitor-statusbar-safe-area": "^4.0.0",
-    "@angular/animations": "^19.2.0",
+    "@angular/animations": "^20.3.26",
     "@angular/cdk": "^19.2.1",
-    "@angular/common": "^19.2.0",
-    "@angular/compiler": "^19.2.0",
-    "@angular/core": "^19.2.0",
-    "@angular/forms": "^19.2.0",
+    "@angular/common": "^20.3.26",
+    "@angular/compiler": "^20.3.26",
+    "@angular/core": "^20.3.26",
+    "@angular/forms": "^20.3.26",
     "@angular/material": "19.2.1",
-    "@angular/platform-browser": "^19.2.0",
-    "@angular/platform-browser-dynamic": "^19.2.0",
-    "@angular/router": "^19.2.0",
+    "@angular/platform-browser": "^20.3.26",
+    "@angular/platform-browser-dynamic": "^20.3.26",
+    "@angular/router": "^20.3.26",
     "@capacitor/android": "7.0.1",
     "@capacitor/app": "^7.0.0",
     "@capacitor/assets": "^3.0.5",
@@ -51,15 +51,15 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^19.2.0",
     "@angular-eslint/builder": "^19.1.0",
     "@angular-eslint/eslint-plugin": "^19.1.0",
     "@angular-eslint/eslint-plugin-template": "^19.1.0",
     "@angular-eslint/schematics": "^19.1.0",
     "@angular-eslint/template-parser": "^19.1.0",
-    "@angular/cli": "^19.2.0",
-    "@angular/compiler-cli": "^19.2.0",
-    "@angular/language-service": "^19.2.0",
+    "@angular/build": "^20.3.32",
+    "@angular/cli": "^20.3.32",
+    "@angular/compiler-cli": "^20.3.26",
+    "@angular/language-service": "^20.3.26",
     "@capacitor/cli": "^7.0.1",
     "@ionic/angular-toolkit": "^12.1.1",
     "@types/jest": "^29.5.14",
@@ -75,7 +75,7 @@
     "jest-preset-angular": "^14.6.0",
     "license-webpack-plugin": "^2.3.0",
     "ts-node": "^10.9.2",
-    "typescript": "5.7.2"
+    "typescript": "5.9.3"
   },
   "description": "Hot cooking for hot people!"
 }

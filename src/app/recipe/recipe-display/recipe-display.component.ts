@@ -1,6 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
-import {CommonModule} from '@angular/common';
+
 import {RecipeService} from '../recipe.service';
 import {Recipe} from '../models/recipe.dto';
 import {CategoryService} from 'src/app/category/category.service';
@@ -18,7 +18,7 @@ import {LabelService} from "../../label/label-service.service";
   templateUrl: './recipe-display.component.html',
   styleUrls: ['./recipe-display.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
+  imports: [IonicModule, FormsModule, RouterModule]
 })
 export class RecipeDisplayComponent implements OnInit {
 

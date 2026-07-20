@@ -23,30 +23,37 @@
       <ion-row id="data-row">
         <div class="emoji-container">
           <ion-button class="emoji-button" (click)="toggleEmojiPicker()">
-            <span *ngIf="selectedEmoji" class="emoji-display">{{ selectedEmoji }}</span>
-            <ion-icon *ngIf="!selectedEmoji" name="happy-outline"></ion-icon>
+            @if (selectedEmoji) {
+              <span class="emoji-display">{{ selectedEmoji }}</span>
+            }
+            @if (!selectedEmoji) {
+              <ion-icon name="happy-outline"></ion-icon>
+            }
           </ion-button>
-          <div *ngIf="showEmojiPicker" class="emoji-picker">
-            <emoji-mart (emojiSelect)="addEmoji($event)" [darkMode]="true"></emoji-mart>
-          </div>
+          @if (showEmojiPicker) {
+            <div class="emoji-picker">
+              <emoji-mart (emojiSelect)="addEmoji($event)" [darkMode]="true"></emoji-mart>
+            </div>
+          }
         </div>
         <ion-input [(ngModel)]="this.name" placeholder="Enter recipe name"></ion-input>
       </ion-row>
       <ion-row class="img-input">
         <ion-img id="recipe-image" src="{{this.imgSrc}}" alt=""></ion-img>
-        <div class="custom-file-upload" *ngIf="!this.imageSelected;else delete_button">
-          <div>
-            {{"Upload image"}}
+        @if (!this.imageSelected) {
+          <div class="custom-file-upload">
+            <div>
+              {{"Upload image"}}
+            </div>
+            <ion-fab-button size="small" color="primary" class="upload-btn" (click)="uploadFile()">
+              <ion-icon name="attach"></ion-icon>
+            </ion-fab-button>
           </div>
-          <ion-fab-button size="small" color="primary" class="upload-btn" (click)="uploadFile()">
-            <ion-icon name="attach"></ion-icon>
-          </ion-fab-button>
-        </div>
-        <ng-template #delete_button class="custom-file-upload">
+        } @else {
           <ion-fab-button size="small" color="danger" class="upload-btn" (click)="deleteImage()">
             <ion-icon name="trash"></ion-icon>
           </ion-fab-button>
-        </ng-template>
+        }
       </ion-row>
       <ion-row class="textarea-input">
         <ion-textarea [(ngModel)]="description" placeholder="Enter description"></ion-textarea>
@@ -70,18 +77,22 @@
           </ion-button>
         </div>
         <hr>
-          <div *ngFor="let ingredient of this.ingredients" class="ingredient">
-            <ion-label>{{ingredient.name}}</ion-label>
-            <ion-button (click)="removeIngredient(ingredient)" color="danger" shape="round">
-              <ion-icon name="trash"></ion-icon>
-            </ion-button>
-          </div>
-      </ion-row>
-      <ion-row class="label-row">
-        <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
-          <ion-select-option *ngFor="let label of this.availableLabels" value="{{label.id}}">{{label.name}}</ion-select-option>
-        </ion-select>
-      </ion-row>
-    </ion-grid>
-  </div>
-</ion-content>
+          @for (ingredient of this.ingredients; track ingredient) {
+            <div class="ingredient">
+              <ion-label>{{ingredient.name}}</ion-label>
+              <ion-button (click)="removeIngredient(ingredient)" color="danger" shape="round">
+                <ion-icon name="trash"></ion-icon>
+              </ion-button>
+            </div>
+          }
+        </ion-row>
+        <ion-row class="label-row">
+          <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
+            @for (label of this.availableLabels; track label) {
+              <ion-select-option value="{{label.id}}">{{label.name}}</ion-select-option>
+            }
+          </ion-select>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </ion-content>

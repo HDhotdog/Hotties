@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CategoryService } from 'src/app/category/category.service';
 import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+
 import { v4 as uuidv4 } from 'uuid';
 import { switchMap } from 'rxjs';
 import {Category} from "../../category/category.dto";
@@ -11,7 +11,7 @@ import {Category} from "../../category/category.dto";
   templateUrl: './cache-setting.component.html',
   styleUrls: ['./cache-setting.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule]
 })
 export class CacheSettingComponent {
 

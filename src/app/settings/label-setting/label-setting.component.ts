@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {IonicModule} from '@ionic/angular';
 import {Label, LabelGroup} from 'src/app/label/models/label.dto';
 import {LabelService} from '../../label/label-service.service';
@@ -14,7 +14,7 @@ import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
   templateUrl: './label-setting.component.html',
   styleUrls: ['./label-setting.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, FormsModule]
 })
 export class LabelSettingComponent implements OnInit {
   private _newGroupName: string = '';
