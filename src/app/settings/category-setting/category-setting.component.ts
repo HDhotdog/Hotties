@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../category/category.service';
 import { Category } from '../../category/category.dto';
 
 @Component({

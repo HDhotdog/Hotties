@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../category/category.service';
 
 import { CacheSettingComponent } from './cache-setting.component';
 

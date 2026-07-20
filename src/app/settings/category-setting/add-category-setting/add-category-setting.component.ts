@@ -3,7 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../../category/category.service';
 import { v4 as uuidv4 } from 'uuid';
 import { combineLatest } from 'rxjs';
 import { Category } from '../../../category/category.dto';

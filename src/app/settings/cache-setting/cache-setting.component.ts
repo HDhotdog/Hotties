@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../category/category.service';
 import { IonicModule } from '@ionic/angular';
 
 import { v4 as uuidv4 } from 'uuid';

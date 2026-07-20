@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { RecipeService } from '../recipe.service';
 import { Recipe } from '../models/recipe.dto';
-import { CategoryService } from 'src/app/category/category.service';
+import { CategoryService } from '../../category/category.service';
 import { IonicModule, IonSelect } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { combineLatest } from 'rxjs';
