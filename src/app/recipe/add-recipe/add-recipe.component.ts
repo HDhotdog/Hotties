@@ -224,17 +224,19 @@ export class AddRecipeComponent implements OnInit {
 
   private uploadCompressedFile() {
     const MAX_MEGABYTE = 2;
-    this.imageCompress.uploadAndGetImageWithMaxSize(MAX_MEGABYTE).then(
-      (result: string) => {
-        this._imagePreviewUrl = result;
-        this._pendingImageBlob = dataUrlToBlob(result);
-        this._imageRemoved = false;
-        this._imageSelected = true;
-      },
-      (result: string) => {
-        this._imagePreviewUrl = result;
-      }
-    );
+    // uploadAndGetImageWithMaxSize() rejects (rather than resolving) when it
+    // can't shrink the file further after the first compression pass - common
+    // for already-small images - but the promise still carries a usable
+    // data URL in both cases, so both branches accept the image the same way.
+    const acceptImage = (result: string) => {
+      this._imagePreviewUrl = result;
+      this._pendingImageBlob = dataUrlToBlob(result);
+      this._imageRemoved = false;
+      this._imageSelected = true;
+    };
+    this.imageCompress
+      .uploadAndGetImageWithMaxSize(MAX_MEGABYTE)
+      .then(acceptImage, acceptImage);
   }
 
   public toggleEmojiPicker() {

@@ -33,4 +33,35 @@ describe('AddRecipeComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('uploadFile()', () => {
+    // A 1x1 transparent PNG.
+    const TINY_PNG_DATA_URL =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+    it('selects the image when the compress service resolves', async () => {
+      const imageCompress = TestBed.inject(NgxImageCompressService) as any;
+      imageCompress.uploadAndGetImageWithMaxSize = () => Promise.resolve(TINY_PNG_DATA_URL);
+
+      component.uploadFile();
+      await fixture.whenStable();
+
+      expect(component.imageSelected).toBe(true);
+      expect(component.imagePreviewUrl).toBe(TINY_PNG_DATA_URL);
+    });
+
+    it('still selects the image when the compress service rejects (e.g. it could not shrink the file further)', async () => {
+      // NgxImageCompressService rejects instead of resolving once it can't
+      // reduce the file size any more - common for already-small images -
+      // but the rejection still carries a usable data URL (see uploadCompressedFile()).
+      const imageCompress = TestBed.inject(NgxImageCompressService) as any;
+      imageCompress.uploadAndGetImageWithMaxSize = () => Promise.reject(TINY_PNG_DATA_URL);
+
+      component.uploadFile();
+      await fixture.whenStable();
+
+      expect(component.imageSelected).toBe(true);
+      expect(component.imagePreviewUrl).toBe(TINY_PNG_DATA_URL);
+    });
+  });
 });
