@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { RecipeService } from '../recipe.service';
@@ -17,6 +23,7 @@ import { LabelService } from '../../label/label-service.service';
   templateUrl: './recipe-display.component.html',
   styleUrls: ['./recipe-display.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, FormsModule, RouterModule],
 })
 export class RecipeDisplayComponent implements OnInit {

@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion.dto';
 import { Todo } from './todo.dto';
@@ -18,6 +23,7 @@ import { combineLatest } from 'rxjs';
   templateUrl: 'todo.component.html',
   styleUrls: ['todo.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, CommonModule, FormsModule],
 })
 export class TodoComponent implements OnInit {

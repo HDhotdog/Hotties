@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CategoryService } from '../../category/category.service';
 import { IonicModule } from '@ionic/angular';
@@ -11,6 +11,7 @@ import { Category } from '../../category/category.dto';
   templateUrl: './cache-setting.component.html',
   styleUrls: ['./cache-setting.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule],
 })
 export class CacheSettingComponent {

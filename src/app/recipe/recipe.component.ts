@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { RecipeService } from './recipe.service';
 import { Recipe } from './models/recipe.dto';
 import { Label, LabelGroup } from '../label/models/label.dto';
@@ -19,6 +24,7 @@ import {
   templateUrl: 'recipe.component.html',
   styleUrls: ['recipe.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, FormsModule, RouterModule],
 })
 export class RecipeComponent implements OnInit {

@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
 import { IonicModule } from '@ionic/angular';
@@ -11,6 +16,7 @@ import { Suggestion } from '../../todo/suggestion/suggestion.dto';
   templateUrl: './suggestion-setting.component.html',
   styleUrls: ['./suggestion-setting.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, FormsModule],
 })
 export class SuggestionSettingComponent implements OnInit {
