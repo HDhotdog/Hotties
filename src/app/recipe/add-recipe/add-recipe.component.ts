@@ -17,7 +17,8 @@ import { LabelService } from '../../label/label-service.service';
 import { NgxImageCompressService } from 'ngx-image-compress';
 import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
-import { combineLatest, forkJoin } from 'rxjs';
+import { combineLatest, forkJoin, of } from 'rxjs';
+import { dataUrlToBlob } from '../../database/attachment-utils';
 
 @Component({
   selector: 'app-add-recipe',
@@ -52,7 +53,9 @@ export class AddRecipeComponent implements OnInit {
   private _stringLabels: string[] = [];
   private _templateLabels: Label[] = [];
   private _labels: Label[] = [];
-  private _imgSrc: string = '';
+  private _imagePreviewUrl: string = '';
+  private _pendingImageBlob: Blob | null = null;
+  private _imageRemoved: boolean = false;
   private _imageSelected: boolean = false;
   private _showEmojiPicker: boolean = false;
   private _selectedEmoji: string | null = null;
@@ -76,7 +79,6 @@ export class AddRecipeComponent implements OnInit {
         this._templateLabels = templateLabels;
         this._recipe = recipe;
         this._name = recipe.name;
-        this._imgSrc = recipe.imgSrc ?? '';
         this._description = recipe.description;
         this._prepTime = recipe.preparationTime;
         this._hours = Math.floor(recipe.preparationTime / 60);
@@ -92,8 +94,11 @@ export class AddRecipeComponent implements OnInit {
             )
           )
           .map((template) => template.id);
-        this._imageSelected = !!this._imgSrc;
         this._selectedEmoji = recipe.emoji ?? null;
+      });
+      this.recipeService.getImageUrl(index).subscribe((url) => {
+        this._imagePreviewUrl = url ?? '';
+        this._imageSelected = !!url;
       });
     } else {
       this.labelService.getTemplateLabels().subscribe((templateLabels) => {
@@ -101,7 +106,6 @@ export class AddRecipeComponent implements OnInit {
         this._recipe = {
           id: uuidv4(),
           name: this._name,
-          imgSrc: this._imgSrc,
           description: this._description,
           preparationTime: this._prepTime,
           emoji: this._selectedEmoji,
@@ -131,7 +135,6 @@ export class AddRecipeComponent implements OnInit {
       recipe.name = this._name;
       recipe.description = this._description;
       recipe.preparationTime = this._prepTime;
-      recipe.imgSrc = this._imgSrc;
       // recipe.ingredients = this._ingredients;
       // recipe.labels = this._labels;
       recipe.emoji = this._selectedEmoji;
@@ -139,7 +142,6 @@ export class AddRecipeComponent implements OnInit {
       recipe = {
         id: this._recipe.id,
         name: this._name,
-        imgSrc: this._imgSrc,
         description: this._description,
         preparationTime: this._prepTime,
         // ingredients: this._ingredients,
@@ -158,7 +160,13 @@ export class AddRecipeComponent implements OnInit {
     );
 
     forkJoin([savedRecipe, savedLabels, savedIngredients]).subscribe(() => {
-      this.navigateBack();
+      const imageOp = this._pendingImageBlob
+        ? this.recipeService.saveImage(recipe.id, this._pendingImageBlob)
+        : this._imageRemoved
+          ? this.recipeService.deleteImage(recipe.id)
+          : of(void 0);
+
+      imageOp.subscribe(() => this.navigateBack());
     });
   }
 
@@ -167,7 +175,8 @@ export class AddRecipeComponent implements OnInit {
       this._recipe.name !== this._name ||
       this._recipe.description !== this._description ||
       this._recipe.preparationTime !== this._prepTime ||
-      (this._recipe.imgSrc ?? '') !== this._imgSrc ||
+      this._pendingImageBlob !== null ||
+      this._imageRemoved ||
       (this._recipe.emoji ?? null) !== this._selectedEmoji
     );
     // || this._recipe.ingredients !== this._ingredients
@@ -207,20 +216,27 @@ export class AddRecipeComponent implements OnInit {
   }
 
   public deleteImage() {
-    this._imgSrc = '';
+    this._imagePreviewUrl = '';
+    this._pendingImageBlob = null;
+    this._imageRemoved = true;
     this._imageSelected = false;
   }
 
   private uploadCompressedFile() {
     const MAX_MEGABYTE = 2;
-    this.imageCompress.uploadAndGetImageWithMaxSize(MAX_MEGABYTE).then(
-      (result: string) => {
-        this._imgSrc = result;
-      },
-      (result: string) => {
-        this._imgSrc = result;
-      }
-    );
+    // uploadAndGetImageWithMaxSize() rejects (rather than resolving) when it
+    // can't shrink the file further after the first compression pass - common
+    // for already-small images - but the promise still carries a usable
+    // data URL in both cases, so both branches accept the image the same way.
+    const acceptImage = (result: string) => {
+      this._imagePreviewUrl = result;
+      this._pendingImageBlob = dataUrlToBlob(result);
+      this._imageRemoved = false;
+      this._imageSelected = true;
+    };
+    this.imageCompress
+      .uploadAndGetImageWithMaxSize(MAX_MEGABYTE)
+      .then(acceptImage, acceptImage);
   }
 
   public toggleEmojiPicker() {
@@ -252,8 +268,8 @@ export class AddRecipeComponent implements OnInit {
     this._ingredients = ingredients;
   }
 
-  get imgSrc(): string {
-    return this._imgSrc;
+  get imagePreviewUrl(): string {
+    return this._imagePreviewUrl;
   }
 
   get description(): string {

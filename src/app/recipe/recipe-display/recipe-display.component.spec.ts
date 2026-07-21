@@ -20,7 +20,7 @@ describe('RecipeDisplayComponent', () => {
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {has: () => false, get: () => null}}}},
         {provide: Location, useValue: {back: () => {}}},
-        {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([])}},
+        {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([]), getImageUrl: () => of(null)}},
         {provide: CategoryService, useValue: {getCategories: () => of([])}},
         {provide: LabelService, useValue: {getLabelsForRecipe: () => of([])}}
       ]

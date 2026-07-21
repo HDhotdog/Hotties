@@ -65,6 +65,7 @@ yarn-error.log
 /libpeerconnection.log
 testem.log
 /typings
+/.playwright
 
 # System files
 .DS_Store

@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ViewChild,
   inject,
   ChangeDetectionStrategy,
@@ -26,7 +27,7 @@ import { LabelService } from '../../label/label-service.service';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, FormsModule, RouterModule],
 })
-export class RecipeDisplayComponent implements OnInit {
+export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private recipeService = inject(RecipeService);
@@ -39,6 +40,7 @@ export class RecipeDisplayComponent implements OnInit {
   private _categories: Category[] = [];
   private _ingredients: Ingredient[] = [];
   private _labels: Label[] = [];
+  private _imageUrl: string | null = null;
 
   @ViewChild('selectionList', { static: false })
   public selectionList!: IonSelect;
@@ -62,6 +64,14 @@ export class RecipeDisplayComponent implements OnInit {
             this.selectedCategoryId = this.categories[0].id;
           }
           this._isLoading = false;
+
+          if (this._imageUrl) {
+            URL.revokeObjectURL(this._imageUrl);
+            this._imageUrl = null;
+          }
+          this.recipeService.getImageUrl(recipeId).subscribe((url) => {
+            this._imageUrl = url;
+          });
         }
       );
     }
@@ -69,6 +79,12 @@ export class RecipeDisplayComponent implements OnInit {
 
   public ionViewWillEnter(): void {
     this.ngOnInit();
+  }
+
+  public ngOnDestroy(): void {
+    if (this._imageUrl) {
+      URL.revokeObjectURL(this._imageUrl);
+    }
   }
 
   public parseDate(recipe: Recipe): string {
@@ -115,6 +131,10 @@ export class RecipeDisplayComponent implements OnInit {
 
   get recipe(): Recipe {
     return this._recipe;
+  }
+
+  get imageUrl(): string | null {
+    return this._imageUrl;
   }
 
   get isLoading(): boolean {
