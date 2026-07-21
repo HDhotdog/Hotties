@@ -90,6 +90,19 @@ ionic cap open android
 
 App ID: `io.ionic.hotties`
 
+### App Icon
+
+The Android app icon is generated from `resources/icon.png` via `@capacitor/assets`. The `android/` folder is gitignored, so the generated `mipmap-*` icons live only on your local machine — once generated, they persist across normal builds (`npm run export`, `npm run android:install`) since those only sync web assets, not icons.
+
+You only need to regenerate the icon when:
+- You change `resources/icon.png`, or
+- The `android/` folder was deleted or freshly added (e.g. after a clean clone)
+
+```bash
+npx cap add android          # only if android/ doesn't exist yet
+npx capacitor-assets generate --android
+```
+
 ## Project Structure
 
 ```
