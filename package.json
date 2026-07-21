@@ -11,7 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "ng lint",
-    "export": "ionic build && ionic cap copy && npx cap sync android && ionic cap open android"
+    "export": "ionic build && ionic cap copy && npx cap sync android && ionic cap open android",
+    "android:install": "powershell -ExecutionPolicy Bypass -File scripts/install-android.ps1"
   },
   "private": true,
   "dependencies": {
