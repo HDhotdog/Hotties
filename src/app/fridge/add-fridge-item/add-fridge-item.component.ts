@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
+  OnDestroy,
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
@@ -17,6 +18,8 @@ const MIN_QUANTITY = 0;
 const MAX_QUANTITY = 999;
 const YEARS_BEFORE_TODAY = 1;
 const YEARS_AFTER_TODAY = 5;
+const AUTO_SAVE_DELAY_MS = 500;
+const SAVE_PULSE_DURATION_MS = 300;
 
 const MONTH_NAMES = [
   'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
@@ -28,6 +31,8 @@ export interface PickerOption<T> {
   label: string;
 }
 
+export type SaveStatus = 'saved' | 'unsaved';
+
 @Component({
   selector: 'app-add-fridge-item',
   templateUrl: './add-fridge-item.component.html',
@@ -36,7 +41,7 @@ export interface PickerOption<T> {
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, IonicModule, FormsModule, RouterModule],
 })
-export class AddFridgeItemComponent implements OnInit {
+export class AddFridgeItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private fridgeService = inject(FridgeService);
   private route = inject(ActivatedRoute);
@@ -58,6 +63,11 @@ export class AddFridgeItemComponent implements OnInit {
   private _pickerDay: number;
   private _pickerMonth: number;
   private _pickerYear: number;
+
+  private _saveStatus: SaveStatus = 'saved';
+  private _savePulse: boolean = false;
+  private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+  private pulseTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     const today = new Date();
@@ -93,23 +103,23 @@ export class AddFridgeItemComponent implements OnInit {
     }
   }
 
-  public navigateBack(): void {
-    void this.router.navigate(['/tabs/fridge']);
+  ngOnDestroy(): void {
+    // Don't drop the last 500ms of edits if the user navigates away
+    // (e.g. hardware back button) before the debounce fires.
+    this.flushPendingSave();
+    if (this.pulseTimer) {
+      clearTimeout(this.pulseTimer);
+    }
   }
 
-  public saveItem(): void {
-    const item: FridgeItem = {
-      id: this._item.id,
-      name: this._name,
-      amount: this._amount,
-      quantity: this._quantity,
-      expiryDate: this._expiryDate,
-    };
-    this.fridgeService.save(item).subscribe(() => this.navigateBack());
+  public navigateBack(): void {
+    this.flushPendingSave();
+    void this.router.navigate(['/tabs/fridge']);
   }
 
   public clearExpiryDate(): void {
     this._expiryDate = null;
+    this.scheduleAutoSave();
   }
 
   public incrementQuantity(): void {
@@ -156,6 +166,7 @@ export class AddFridgeItemComponent implements OnInit {
     const mm = String(this._pickerMonth).padStart(2, '0');
     const dd = String(this._pickerDay).padStart(2, '0');
     this._expiryDate = `${this._pickerYear}-${mm}-${dd}`;
+    this.scheduleAutoSave();
   }
 
   private refreshDayOptions(): void {
@@ -164,6 +175,55 @@ export class AddFridgeItemComponent implements OnInit {
     if (this._pickerDay > daysInMonth) {
       this._pickerDay = daysInMonth;
     }
+  }
+
+  /** Debounces a save 500ms after the last change; restarts on every subsequent edit. */
+  private scheduleAutoSave(): void {
+    this.setSaveStatus('unsaved');
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+    }
+    this.autoSaveTimer = setTimeout(() => {
+      this.autoSaveTimer = null;
+      this.persist();
+    }, AUTO_SAVE_DELAY_MS);
+  }
+
+  /** Saves immediately if a debounced save is pending, skipping the wait. */
+  private flushPendingSave(): void {
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = null;
+      this.persist();
+    }
+  }
+
+  private persist(): void {
+    const item: FridgeItem = {
+      id: this._item.id,
+      name: this._name,
+      amount: this._amount,
+      quantity: this._quantity,
+      expiryDate: this._expiryDate,
+    };
+    this.fridgeService.save(item).subscribe(() => {
+      this._item = item;
+      this.setSaveStatus('saved');
+    });
+  }
+
+  private setSaveStatus(status: SaveStatus): void {
+    if (this._saveStatus === status) {
+      return;
+    }
+    this._saveStatus = status;
+    this._savePulse = true;
+    if (this.pulseTimer) {
+      clearTimeout(this.pulseTimer);
+    }
+    this.pulseTimer = setTimeout(() => {
+      this._savePulse = false;
+    }, SAVE_PULSE_DURATION_MS);
   }
 
   get dayOptions(): number[] {
@@ -182,12 +242,21 @@ export class AddFridgeItemComponent implements OnInit {
     return this._pickerYear;
   }
 
+  get saveStatus(): SaveStatus {
+    return this._saveStatus;
+  }
+
+  get savePulse(): boolean {
+    return this._savePulse;
+  }
+
   get name(): string {
     return this._name;
   }
 
   set name(name: string) {
     this._name = name;
+    this.scheduleAutoSave();
   }
 
   get amount(): AmountUnit {
@@ -196,6 +265,7 @@ export class AddFridgeItemComponent implements OnInit {
 
   set amount(amount: AmountUnit) {
     this._amount = amount;
+    this.scheduleAutoSave();
   }
 
   get quantity(): number {
@@ -204,6 +274,7 @@ export class AddFridgeItemComponent implements OnInit {
 
   set quantity(quantity: number) {
     this._quantity = Math.min(MAX_QUANTITY, Math.max(MIN_QUANTITY, Math.trunc(quantity) || 0));
+    this.scheduleAutoSave();
   }
 
   get expiryDate(): string | null {
@@ -212,5 +283,6 @@ export class AddFridgeItemComponent implements OnInit {
 
   set expiryDate(expiryDate: string | null) {
     this._expiryDate = expiryDate;
+    this.scheduleAutoSave();
   }
 }

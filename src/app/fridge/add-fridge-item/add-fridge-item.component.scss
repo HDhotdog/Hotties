@@ -132,9 +132,37 @@
   margin: 0;
 }
 
-.save-button-active {
+.save-status-button {
   ion-icon {
-    color: var(--ion-color-success);
+    transition: color 0.3s ease;
+  }
+
+  &.save-status-saved {
+    ion-icon {
+      color: var(--ion-color-success);
+    }
+  }
+
+  &.save-status-unsaved {
+    ion-icon {
+      color: #e6a400;
+    }
+  }
+
+  &.save-status-pulse {
+    animation: save-status-pulse 0.3s ease;
+  }
+}
+
+@keyframes save-status-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 

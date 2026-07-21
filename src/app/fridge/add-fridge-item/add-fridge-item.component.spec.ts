@@ -9,12 +9,15 @@ import { AmountUnit } from '../../shared/amount-unit.enum';
 describe('AddFridgeItemComponent', () => {
   let component: AddFridgeItemComponent;
   let fixture: ComponentFixture<AddFridgeItemComponent>;
+  let saveSpy: jest.Mock;
 
   beforeEach(waitForAsync(() => {
+    saveSpy = jest.fn(() => of(undefined));
+
     TestBed.configureTestingModule({
       imports: [AddFridgeItemComponent, IonicModule.forRoot()],
       providers: [
-        { provide: FridgeService, useValue: { findById: () => of(undefined), save: () => of(undefined) } },
+        { provide: FridgeService, useValue: { findById: () => of(undefined), save: saveSpy } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } },
       ],
     }).compileComponents();
@@ -127,6 +130,86 @@ describe('AddFridgeItemComponent', () => {
       expect(component.pickerYear).toBe(2027);
       expect(component.pickerMonth).toBe(11);
       expect(component.pickerDay).toBe(20);
+    });
+  });
+
+  describe('autosave', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('starts out saved', () => {
+      expect(component.saveStatus).toBe('saved');
+    });
+
+    it('flips to unsaved immediately on a change', () => {
+      component.name = 'Butter';
+
+      expect(component.saveStatus).toBe('unsaved');
+      expect(saveSpy).not.toHaveBeenCalled();
+    });
+
+    it('saves automatically 500ms after the last change', () => {
+      component.name = 'Butter';
+      jest.advanceTimersByTime(500);
+
+      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+      expect(component.saveStatus).toBe('saved');
+    });
+
+    it('does not save before the 500ms delay has elapsed', () => {
+      component.name = 'Butter';
+      jest.advanceTimersByTime(499);
+
+      expect(saveSpy).not.toHaveBeenCalled();
+    });
+
+    it('restarts the debounce timer on every subsequent edit', () => {
+      component.name = 'But';
+      jest.advanceTimersByTime(300);
+      component.name = 'Butter';
+      jest.advanceTimersByTime(300);
+
+      expect(saveSpy).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(200);
+
+      expect(saveSpy).toHaveBeenCalledTimes(1);
+      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+    });
+
+    it('quantity changes trigger the same autosave debounce', () => {
+      component.incrementQuantity();
+      jest.advanceTimersByTime(500);
+
+      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ quantity: 2 }));
+    });
+
+    it('navigateBack() flushes a pending save immediately instead of waiting', () => {
+      component.name = 'Butter';
+
+      component.navigateBack();
+
+      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+    });
+
+    it('does not call save again on navigateBack() if nothing is pending', () => {
+      component.navigateBack();
+
+      expect(saveSpy).not.toHaveBeenCalled();
+    });
+
+    it('briefly pulses when the save status changes', () => {
+      component.name = 'Butter';
+      expect(component.savePulse).toBe(true);
+
+      jest.advanceTimersByTime(300);
+
+      expect(component.savePulse).toBe(false);
     });
   });
 });
