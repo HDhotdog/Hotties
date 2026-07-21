@@ -3,7 +3,8 @@ import { Ingredient } from '../ingredients/ingredient.dto';
 import { Todo } from '../todo/todo.dto';
 import { CategoryRepository } from './category.repository';
 import { map, Observable } from 'rxjs';
-import { ImportanceLevel } from '../todo/importance-level.enum';
+import { ItemType } from '../todo/item-type.enum';
+import { AmountUnit } from '../shared/amount-unit.enum';
 import { v4 as UUIDv4 } from 'uuid';
 import { TodoService } from '../todo/todo.service';
 import { SettingsService } from '../database/settings/settings.service';
@@ -78,7 +79,8 @@ export class CategoryService {
       categoryId: categoryId,
       name: ingredient.name,
       done: false,
-      importance: ImportanceLevel.NORMAL,
+      type: ItemType.FOOD,
+      amount: AmountUnit.PIECE,
     };
   }
 }

@@ -1,0 +1,31 @@
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+ion-input {
+  background-color: #1f1f1f;
+  border-radius: 10px;
+  padding-left: 10px;
+}
+
+.amount-row, .expiry-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.save-button-active {
+  ion-icon {
+    color: var(--ion-color-success);
+  }
+}

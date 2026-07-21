@@ -1,9 +1,11 @@
-import {ImportanceLevel} from "./importance-level.enum";
+import {ItemType} from "./item-type.enum";
+import {AmountUnit} from "../shared/amount-unit.enum";
 
 export interface RxToDo {
   id: string;
   categoryId: string;
   name: string;
-  importance: ImportanceLevel,
+  type: ItemType;
+  amount: AmountUnit;
   done: boolean
 }

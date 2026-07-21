@@ -1,8 +1,9 @@
-import {ImportanceLevel} from "../../todo/importance-level.enum";
+import {ItemType} from "../../todo/item-type.enum";
+import {AmountUnit} from "../../shared/amount-unit.enum";
 
 export const TODO_SCHEMA_LITERAL = {
   schema: {
-    version: 0,
+    version: 1,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -20,16 +21,30 @@ export const TODO_SCHEMA_LITERAL = {
         maxLength: 255,
         default: 'task name',
       },
-      importance: {
+      type: {
         type: 'string',
-        default: ImportanceLevel.NORMAL
+        default: ItemType.FOOD
+      },
+      amount: {
+        type: 'string',
+        default: AmountUnit.PIECE
       },
       done: {
         type: 'boolean',
         default: false,
       }
     },
-    required: ['id', 'categoryId', 'name', 'importance', 'done'],
+    required: ['id', 'categoryId', 'name', 'type', 'amount', 'done'],
+  },
+  migrationStrategies: {
+    // v0 todos used a color-coded "importance" field; there's no reliable way
+    // to reclassify those into food/usable/permanent, so existing todos default
+    // to FOOD (the primary use case) with a placeholder amount.
+    1: (oldDoc: any) => {
+      delete oldDoc.importance;
+      oldDoc.type = ItemType.FOOD;
+      oldDoc.amount = AmountUnit.PIECE;
+      return oldDoc;
+    }
   }
 };
-

@@ -16,6 +16,10 @@ const routes: Routes = [
         loadChildren: () => import('../recipe/recipe.module').then(m => m.RecipeModule)
       },
       {
+        path: 'fridge',
+        loadChildren: () => import('../fridge/fridge.module').then(m => m.FridgeModule)
+      },
+      {
         path: 'settings',
         loadChildren: () => import('../settings/settings.module').then(m => m.SettingsComponentModule)
       },

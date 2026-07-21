@@ -5,7 +5,8 @@ import {createTestDatabase} from '../database/test-support/create-test-database'
 import {DatabaseService} from '../database/database';
 import {TodoRepository} from './todo.repository';
 import {RxToDo} from './rxToDo';
-import {ImportanceLevel} from './importance-level.enum';
+import {ItemType} from './item-type.enum';
+import {AmountUnit} from '../shared/amount-unit.enum';
 
 describe('TodoRepository (integration, in-memory RxDB)', () => {
   let db: RxDatabase;
@@ -28,7 +29,8 @@ describe('TodoRepository (integration, in-memory RxDB)', () => {
     id: 't1',
     categoryId: 'cat-1',
     name: 'Milk',
-    importance: ImportanceLevel.NORMAL,
+    type: ItemType.FOOD,
+    amount: AmountUnit.PIECE,
     done: false,
     ...overrides
   });

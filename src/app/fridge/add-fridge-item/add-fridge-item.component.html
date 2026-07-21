@@ -1,0 +1,49 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Fridge item</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveItem()" [ngClass]="{'save-button-active': this.inputChanged()}"
+        [disabled]="!this.inputChanged()">
+        <ion-icon name="save"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <ion-row>
+      <ion-input [(ngModel)]="this.name" placeholder="Enter item name"></ion-input>
+    </ion-row>
+
+    <ion-row class="amount-row">
+      <ion-label>Amount:</ion-label>
+      <ion-select [(ngModel)]="this.amount">
+        @for (unit of this.amountUnits; track unit) {
+          <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-row>
+
+    <ion-row class="expiry-row">
+      <ion-label>Expiry date:</ion-label>
+      <ion-datetime-button datetime="expiry"></ion-datetime-button>
+      @if (this.expiryDate) {
+        <ion-button fill="clear" (click)="clearExpiryDate()">
+          <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-row>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="expiry" presentation="date" [(ngModel)]="this.expiryDate"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+  </div>
+</ion-content>
