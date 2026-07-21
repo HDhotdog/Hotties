@@ -21,7 +21,7 @@ describe('FridgeComponent', () => {
   const category: Category = {id: 'cat-1', name: 'Edeka', saveSuggestions: true};
   const today = new Date();
   const items: FridgeItem[] = [
-    {id: 'f1', name: 'Milk', amount: AmountUnit.LITER, expiryDate: null}
+    {id: 'f1', name: 'Milk', amount: AmountUnit.LITER, quantity: 2, expiryDate: null}
   ];
 
   beforeEach(async () => {
@@ -125,9 +125,9 @@ describe('FridgeComponent sorting', () => {
   };
 
   const items: FridgeItem[] = [
-    {id: 'f1', name: 'Zucchini', amount: AmountUnit.PIECE, expiryDate: inDays(5)},
-    {id: 'f2', name: 'Apples', amount: AmountUnit.KILOGRAM, expiryDate: null},
-    {id: 'f3', name: 'Milk', amount: AmountUnit.LITER, expiryDate: inDays(1)},
+    {id: 'f1', name: 'Zucchini', amount: AmountUnit.PIECE, quantity: 3, expiryDate: inDays(5)},
+    {id: 'f2', name: 'Apples', amount: AmountUnit.KILOGRAM, quantity: 1, expiryDate: null},
+    {id: 'f3', name: 'Milk', amount: AmountUnit.LITER, quantity: 1, expiryDate: inDays(1)},
   ];
 
   beforeEach(async () => {

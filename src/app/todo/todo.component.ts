@@ -157,6 +157,7 @@ export class TodoComponent implements OnInit {
           id: UUIDv4(),
           name: todo.name,
           amount: todo.amount,
+          quantity: 1,
           expiryDate: null,
         })
         .subscribe();

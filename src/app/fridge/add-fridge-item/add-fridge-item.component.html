@@ -17,32 +17,76 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    <ion-row>
-      <ion-input [(ngModel)]="this.name" placeholder="Enter item name"></ion-input>
-    </ion-row>
+    <ion-input class="name-input" [(ngModel)]="this.name" placeholder="Item name"></ion-input>
 
-    <ion-row class="amount-row">
-      <ion-label>Amount:</ion-label>
-      <ion-select [(ngModel)]="this.amount">
-        @for (unit of this.amountUnits; track unit) {
-          <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
-        }
-      </ion-select>
-    </ion-row>
+    <div class="card quantity-card">
+      <div class="card-section">
+        <span class="subtle-label">Quantity</span>
+        <div class="quantity-control">
+          <ion-button fill="clear" class="quantity-step" (click)="decrementQuantity()">
+            <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+          </ion-button>
+          <ion-input class="quantity-input" [(ngModel)]="this.quantity" type="number" min="0" max="999"></ion-input>
+          <ion-button fill="clear" class="quantity-step" (click)="incrementQuantity()">
+            <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+      <div class="card-section align-end">
+        <span class="subtle-label">Unit</span>
+        <ion-select [(ngModel)]="this.amount" interface="popover" class="unit-select">
+          @for (unit of this.amountUnits; track unit) {
+            <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
+          }
+        </ion-select>
+      </div>
+    </div>
 
-    <ion-row class="expiry-row">
-      <ion-label>Expiry date:</ion-label>
-      <ion-datetime-button datetime="expiry"></ion-datetime-button>
-      @if (this.expiryDate) {
-        <ion-button fill="clear" (click)="clearExpiryDate()">
-          <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
+    <div class="card expiry-card">
+      <div class="expiry-info">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Expiry date</span>
+      </div>
+      <div class="expiry-control">
+        <ion-button id="expiry-trigger" fill="clear" class="expiry-trigger-button">
+          @if (this.expiryDate) {
+            <span>{{ this.expiryDate | date:'d. MMM y' }}</span>
+          } @else {
+            <span class="no-date-label">No date set</span>
+          }
         </ion-button>
-      }
-    </ion-row>
+        @if (this.expiryDate) {
+          <ion-button fill="clear" class="clear-date-button" (click)="clearExpiryDate()">
+            <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
+          </ion-button>
+        }
+      </div>
+    </div>
 
-    <ion-modal [keepContentsMounted]="true">
+    <ion-modal #expiryModal trigger="expiry-trigger" [keepContentsMounted]="true" class="datetime-modal"
+      (willPresent)="initDatePicker()">
       <ng-template>
-        <ion-datetime id="expiry" presentation="date" [(ngModel)]="this.expiryDate"></ion-datetime>
+        <div class="picker-header">
+          <ion-button fill="clear" (click)="expiryModal.dismiss()">Cancel</ion-button>
+          <ion-button fill="clear" (click)="confirmDatePicker(); expiryModal.dismiss()">Done</ion-button>
+        </div>
+        <ion-picker>
+          <ion-picker-column [value]="this.pickerDay" (ionChange)="onPickerDayChange($event)">
+            @for (day of this.dayOptions; track day) {
+              <ion-picker-column-option [value]="day">{{ day }}</ion-picker-column-option>
+            }
+          </ion-picker-column>
+          <ion-picker-column [value]="this.pickerMonth" (ionChange)="onPickerMonthChange($event)">
+            @for (month of this.monthOptions; track month.value) {
+              <ion-picker-column-option [value]="month.value">{{ month.label }}</ion-picker-column-option>
+            }
+          </ion-picker-column>
+          <ion-picker-column [value]="this.pickerYear" (ionChange)="onPickerYearChange($event)">
+            @for (year of this.yearOptions; track year) {
+              <ion-picker-column-option [value]="year">{{ year }}</ion-picker-column-option>
+            }
+          </ion-picker-column>
+        </ion-picker>
       </ng-template>
     </ion-modal>
   </div>

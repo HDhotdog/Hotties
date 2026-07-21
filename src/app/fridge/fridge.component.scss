@@ -46,6 +46,23 @@
   }
 }
 
+.fridge-item-quantity {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 3px;
+  flex-shrink: 0;
+  width: 92px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.fridge-item-quantity-value {
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
 .fridge-item-info {
   display: flex;
   flex-direction: column;
@@ -58,8 +75,10 @@
 }
 
 .fridge-item-amount {
-  font-size: 13px;
+  font-size: 1.26rem;
+  font-weight: 600;
   opacity: 0.7;
+  line-height: 1.1;
 }
 
 .fridge-item-expiry {

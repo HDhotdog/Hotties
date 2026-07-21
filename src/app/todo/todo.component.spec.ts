@@ -61,7 +61,7 @@ describe('TodoComponent', () => {
       findById: jest.fn(),
       deleteById: jest.fn()
     } as unknown as jest.Mocked<FridgeService>;
-    fridgeService.save.mockReturnValue(of({id: 'f1', name: 'Milk', amount: AmountUnit.PIECE, expiryDate: null}));
+    fridgeService.save.mockReturnValue(of({id: 'f1', name: 'Milk', amount: AmountUnit.PIECE, quantity: 1, expiryDate: null}));
 
     await TestBed.configureTestingModule({
       imports: [TodoComponent, IonicModule.forRoot()],
@@ -113,6 +113,7 @@ describe('TodoComponent', () => {
     expect(fridgeService.save).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Task 1',
       amount: AmountUnit.PIECE,
+      quantity: 1,
       expiryDate: null
     }));
   });

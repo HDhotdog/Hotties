@@ -5,4 +5,5 @@ export interface RxFridgeItem {
   name: string;
   expiryDate: string | null;
   amount: AmountUnit;
+  quantity: number;
 }

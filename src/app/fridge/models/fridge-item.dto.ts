@@ -6,4 +6,5 @@ export interface FridgeItem {
   name: string;
   expiryDate: string | null;
   amount: AmountUnit;
+  quantity: number;
 }

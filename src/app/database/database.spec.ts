@@ -267,3 +267,50 @@ describe('todo schema migration (v0 -> v1, importance to type/amount)', () => {
     expect(migrated?.toJSON().importance).toBeUndefined();
   });
 });
+
+describe('fridge item schema migration (v0 -> v1, adding quantity)', () => {
+  let db: RxDatabase;
+
+  afterEach(async () => {
+    if (db) {
+      await db.close();
+    }
+  });
+
+  it('migrates a pre-existing v0 fridge item (no quantity) to v1 defaulting to quantity 1', async () => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+
+    // Simulate an existing install on the old (pre-quantity) fridge item schema.
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    await oldDb.addCollections({
+      fridge_items: {
+        schema: {
+          version: 0,
+          primaryKey: 'id',
+          type: 'object',
+          properties: {
+            id: {type: 'string', maxLength: 255},
+            name: {type: 'string', minLength: 1, maxLength: 255},
+            expiryDate: {type: ['string', 'null']},
+            amount: {type: 'string'}
+          },
+          required: ['id', 'name', 'amount']
+        }
+      }
+    });
+    await oldDb['fridge_items'].upsert({id: 'f1', name: 'Milk', expiryDate: null, amount: 'l'});
+    await oldDb.close();
+
+    // Re-open with the current (v1) schema against the same underlying storage.
+    db = await createHottiesDatabase(storage, dbName);
+
+    const migrated = await db['fridge_items'].findOne('f1').exec();
+    expect(migrated?.toJSON()).toMatchObject({
+      id: 'f1',
+      name: 'Milk',
+      amount: 'l',
+      quantity: 1
+    });
+  });
+});
