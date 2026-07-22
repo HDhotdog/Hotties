@@ -5,7 +5,9 @@ import {TodoComponent} from './todo.component';
 import {CategoryService} from '../category/category.service';
 import {TodoService} from './todo.service';
 import {SuggestionService} from './suggestion/suggestion.service';
-import {ImportanceLevel} from './importance-level.enum';
+import {FridgeService} from '../fridge/fridge.service';
+import {ItemType} from './item-type.enum';
+import {AmountUnit} from '../shared/amount-unit.enum';
 import {Category} from '../category/category.dto';
 import {Todo} from './todo.dto';
 
@@ -15,10 +17,11 @@ describe('TodoComponent', () => {
   let todoService: jest.Mocked<TodoService>;
   let categoryService: jest.Mocked<CategoryService>;
   let suggestionService: jest.Mocked<SuggestionService>;
+  let fridgeService: jest.Mocked<FridgeService>;
 
   const category: Category = {id: 'cat-1', name: 'Edeka', saveSuggestions: true};
   const tasks: Todo[] = [
-    {id: 't1', categoryId: 'cat-1', name: 'Task 1', done: false, importance: ImportanceLevel.NORMAL}
+    {id: 't1', categoryId: 'cat-1', name: 'Task 1', done: false, type: ItemType.FOOD, amount: AmountUnit.PIECE}
   ];
 
   beforeEach(async () => {
@@ -52,12 +55,21 @@ describe('TodoComponent', () => {
     suggestionService.findByCategoryId.mockReturnValue(of([]));
     suggestionService.save.mockReturnValue(of({id: 's1', categoryId: 'cat-1', suggestion: 'Cookies', suffix: '! :D'}));
 
+    fridgeService = {
+      save: jest.fn(),
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      deleteById: jest.fn()
+    } as unknown as jest.Mocked<FridgeService>;
+    fridgeService.save.mockReturnValue(of({id: 'f1', name: 'Milk', amount: AmountUnit.PIECE, quantity: 1, expiryDate: null}));
+
     await TestBed.configureTestingModule({
       imports: [TodoComponent, IonicModule.forRoot()],
       providers: [
         {provide: CategoryService, useValue: categoryService},
         {provide: TodoService, useValue: todoService},
-        {provide: SuggestionService, useValue: suggestionService}
+        {provide: SuggestionService, useValue: suggestionService},
+        {provide: FridgeService, useValue: fridgeService}
       ]
     }).compileComponents();
 
@@ -75,14 +87,14 @@ describe('TodoComponent', () => {
     expect(component.categoryTasks).toEqual(tasks);
   });
 
-  it('saves a new todo for the selected category with the current importance level', () => {
-    component.setCurrentImportanceLevel('HIGH');
-    component.addTodo('Buy milk');
+  it('saves a new todo for the selected category with the current item type', () => {
+    component.setCurrentItemType(ItemType.USABLE);
+    component.addTodo('Buy trash bags');
 
     expect(todoService.save).toHaveBeenCalledWith(expect.objectContaining({
       categoryId: 'cat-1',
-      name: 'Buy milk',
-      importance: ImportanceLevel.HIGH
+      name: 'Buy trash bags',
+      type: ItemType.USABLE
     }));
   });
 
@@ -93,6 +105,23 @@ describe('TodoComponent', () => {
 
     expect(todoService.deleteById).toHaveBeenCalledWith('t1');
     expect(todoService.findByCategoryId.mock.calls.length).toBeGreaterThan(findByCategoryIdCallsBefore);
+  });
+
+  it('moves a food todo to the fridge when marked as done', () => {
+    component.markAsDone(tasks[0]);
+
+    expect(fridgeService.save).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'Task 1',
+      amount: AmountUnit.PIECE,
+      quantity: 1,
+      expiryDate: null
+    }));
+  });
+
+  it('does not move a non-food todo to the fridge when marked as done', () => {
+    component.markAsDone({...tasks[0], type: ItemType.PERMANENT});
+
+    expect(fridgeService.save).not.toHaveBeenCalled();
   });
 
   it('clears todos scoped to the currently selected category only', () => {
@@ -108,12 +137,12 @@ describe('TodoComponent', () => {
     }
   });
 
-  it('tracks which importance level is currently selected', () => {
-    expect(component.isCurrentLevel('NORMAL')).toBe(true);
+  it('tracks which item type is currently selected', () => {
+    expect(component.isCurrentType(ItemType.FOOD)).toBe(true);
 
-    component.setCurrentImportanceLevel('VERY_HIGH');
+    component.setCurrentItemType(ItemType.PERMANENT);
 
-    expect(component.isCurrentLevel('VERY_HIGH')).toBe(true);
-    expect(component.isCurrentLevel('NORMAL')).toBe(false);
+    expect(component.isCurrentType(ItemType.PERMANENT)).toBe(true);
+    expect(component.isCurrentType(ItemType.FOOD)).toBe(false);
   });
 });

@@ -1,0 +1,47 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="add-button" (click)="newItem()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Fridge</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="sort-button" (click)="toggleSortBy()">
+        <ion-icon name="{{this.sortBy === 'expiry' ? 'calendar-outline' : 'text-outline'}}"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="content-wrapper">
+  @if (!this.isLoading) {
+    <div class="fridge-list-container">
+      @if (this.items.length === 0) {
+        <p class="empty-state">Your fridge is empty.</p>
+      }
+      @for (item of this.items; track item) {
+        <div class="fridge-item" [ngStyle]="getIndicatorColor(item)">
+          <div class="fridge-item-quantity" (click)="editItem(item)">
+            <span class="fridge-item-quantity-value">{{ item.quantity }}</span>
+            <span class="fridge-item-amount">{{ item.amount }}</span>
+          </div>
+          <div class="fridge-item-info" (click)="editItem(item)">
+            <span class="fridge-item-name">{{ item.name }}</span>
+            @if (item.expiryDate) {
+              <span class="fridge-item-expiry">{{ expiryLabel(item) }}</span>
+            }
+          </div>
+          <div class="fridge-item-actions">
+            <ion-button fill="clear" class="reorder-button" (click)="reorder(item)">
+              <ion-icon slot="icon-only" name="cart-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" class="delete-button" (click)="deleteItem(item)">
+              <ion-icon slot="icon-only" name="trash" color="danger"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>

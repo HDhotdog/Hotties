@@ -15,6 +15,7 @@ import {v4 as UUIDv4} from 'uuid';
 import {LABEL_SCHEMA_LITERAL} from "./schema/label.schema";
 import {LABEL_GROUP_SCHEMA_LITERAL} from "./schema/label-groups.schema";
 import {INGREDIENT_SCHEMA_LITERAL} from "./schema/ingredient.schema";
+import {FRIDGE_ITEM_SCHEMA_LITERAL} from "./schema/fridge-item.schema";
 import {RxLabel, RxLabelGroup} from "../label/models/label";
 import {environment} from "../../environments/environment";
 
@@ -113,7 +114,8 @@ export async function createHottiesDatabase(storage: RxStorage<any, any>, dbName
     recipes: RECIPE_SCHEMA_LITERAL,
     labels: LABEL_SCHEMA_LITERAL,
     label_groups: LABEL_GROUP_SCHEMA_LITERAL,
-    ingredients: INGREDIENT_SCHEMA_LITERAL
+    ingredients: INGREDIENT_SCHEMA_LITERAL,
+    fridge_items: FRIDGE_ITEM_SCHEMA_LITERAL
   });
 
   await runPendingMigrations(db);

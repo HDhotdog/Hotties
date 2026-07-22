@@ -10,12 +10,14 @@ import { Todo } from './todo.dto';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ImportanceLevel } from './importance-level.enum';
+import { ItemType } from './item-type.enum';
+import { AmountUnit } from '../shared/amount-unit.enum';
 import { Category } from '../category/category.dto';
 import { v4 as UUIDv4 } from 'uuid';
 import { TodoService } from './todo.service';
 import { SuggestionService } from './suggestion/suggestion.service';
 import { SuggestionFactory } from './suggestion/suggestion-factory';
+import { FridgeService } from '../fridge/fridge.service';
 import { combineLatest } from 'rxjs';
 
 @Component({
@@ -30,6 +32,7 @@ export class TodoComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private todoService = inject(TodoService);
   private suggestionService = inject(SuggestionService);
+  private fridgeService = inject(FridgeService);
 
   private _inputField: string = '';
   private _categoryInputField: string = '';
@@ -37,7 +40,8 @@ export class TodoComponent implements OnInit {
   private _sortIncreasing: boolean = true;
   private _selectedCategory: Category = {} as Category;
   private _showColorBar: boolean = true;
-  private _currentImportanceLevel: ImportanceLevel = ImportanceLevel.NORMAL;
+  private _currentItemType: ItemType = ItemType.FOOD;
+  private _currentAmount: AmountUnit = AmountUnit.PIECE;
   private suggestion_suffixes: string[] = [
     '?',
     '!',
@@ -52,12 +56,12 @@ export class TodoComponent implements OnInit {
     ' :D',
   ];
   private _isLoading: boolean = true;
-  private _importanceLevels = Object.keys(ImportanceLevel);
-  private _importanceColors: { [key: string]: string } = {
-    [ImportanceLevel.LOW]: '#ffd700',
-    [ImportanceLevel.NORMAL]: '#007bff',
-    [ImportanceLevel.HIGH]: '#ff0000',
-    [ImportanceLevel.VERY_HIGH]: '#ff00ff',
+  private _itemTypes = Object.values(ItemType);
+  private _amountUnits = Object.values(AmountUnit);
+  private _typeColors: { [key in ItemType]: string } = {
+    [ItemType.FOOD]: '#2e7d32',
+    [ItemType.USABLE]: '#e6a400',
+    [ItemType.PERMANENT]: '#546e7a',
   };
 
   private _categories: Category[] = [];
@@ -126,7 +130,8 @@ export class TodoComponent implements OnInit {
       categoryId: this.selectedCategory.id,
       name: task.trim() ? task : this._currentSuggestion.suggestion,
       done: false,
-      importance: this._currentImportanceLevel || ImportanceLevel.NORMAL,
+      type: this._currentItemType || ItemType.FOOD,
+      amount: this._currentAmount || AmountUnit.PIECE,
     };
 
     this.todoService.save(newTodo).subscribe();
@@ -146,6 +151,17 @@ export class TodoComponent implements OnInit {
   }
 
   public markAsDone(todo: Todo) {
+    if (todo.type === ItemType.FOOD) {
+      this.fridgeService
+        .save({
+          id: UUIDv4(),
+          name: todo.name,
+          amount: todo.amount,
+          quantity: 1,
+          expiryDate: null,
+        })
+        .subscribe();
+    }
     this.todoService.deleteById(todo.id).subscribe();
     this.refreshTodos();
   }
@@ -239,30 +255,22 @@ export class TodoComponent implements OnInit {
     this._showColorBar = !this._showColorBar;
   }
 
-  public getTodoBackgroundColor(importance: ImportanceLevel) {
+  public getTodoBackgroundColor(type: ItemType) {
     return {
-      '--indicator-color':
-        this._importanceColors[importance] ||
-        this._importanceColors[ImportanceLevel.NORMAL],
+      '--indicator-color': this._typeColors[type] || this._typeColors[ItemType.FOOD],
     };
   }
 
-  public getCircleColorBackground(color: string) {
-    const importanceLevel = this.getCircleColor(color);
-    return { 'background-color': this._importanceColors[importanceLevel] };
+  public getCircleColorBackground(type: ItemType) {
+    return { 'background-color': this._typeColors[type] };
   }
 
-  public getCircleColor(color: string): ImportanceLevel {
-    const enumEntries = Object.entries(ImportanceLevel);
-    return enumEntries.filter((entry) => entry.includes(color))[0][1];
+  public isCurrentType(type: ItemType): boolean {
+    return this._currentItemType === type;
   }
 
-  public isCurrentLevel(color: string) {
-    return this._currentImportanceLevel === this.getCircleColor(color);
-  }
-
-  public setCurrentImportanceLevel(level: string) {
-    this._currentImportanceLevel = this.getCircleColor(level);
+  public setCurrentItemType(type: ItemType): void {
+    this._currentItemType = type;
   }
 
   get categories(): Category[] {
@@ -297,12 +305,24 @@ export class TodoComponent implements OnInit {
     return this._showColorBar;
   }
 
-  get currentImportanceLevel(): ImportanceLevel {
-    return this._currentImportanceLevel;
+  get currentItemType(): ItemType {
+    return this._currentItemType;
   }
 
-  get importanceLevels(): string[] {
-    return this._importanceLevels;
+  get itemTypes(): ItemType[] {
+    return this._itemTypes;
+  }
+
+  get currentAmount(): AmountUnit {
+    return this._currentAmount;
+  }
+
+  set currentAmount(amount: AmountUnit) {
+    this._currentAmount = amount;
+  }
+
+  get amountUnits(): AmountUnit[] {
+    return this._amountUnits;
   }
 
   get isLoading(): boolean {
