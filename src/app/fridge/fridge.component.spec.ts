@@ -92,6 +92,38 @@ describe('FridgeComponent', () => {
     expect(component.expiryStatus({...items[0], expiryDate: futureDate.toISOString()})).toBe('fine');
   });
 
+  it('expiryLabel() is empty when no expiry date is set', () => {
+    expect(component.expiryLabel(items[0])).toBe('');
+  });
+
+  it('expiryLabel() reads "exp. today" for a date expiring today', () => {
+    expect(component.expiryLabel({...items[0], expiryDate: today.toISOString()})).toBe('exp. today');
+  });
+
+  it('expiryLabel() reads "exp. in 1 day" for tomorrow', () => {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    expect(component.expiryLabel({...items[0], expiryDate: tomorrow.toISOString()})).toBe('exp. in 1 day');
+  });
+
+  it('expiryLabel() reads "exp. in x days" for further-out dates', () => {
+    const futureDate = new Date(today);
+    futureDate.setDate(futureDate.getDate() + 5);
+    expect(component.expiryLabel({...items[0], expiryDate: futureDate.toISOString()})).toBe('exp. in 5 days');
+  });
+
+  it('expiryLabel() reads "expired 1 day ago" for yesterday', () => {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    expect(component.expiryLabel({...items[0], expiryDate: yesterday.toISOString()})).toBe('expired 1 day ago');
+  });
+
+  it('expiryLabel() reads "expired x days ago" for further-past dates', () => {
+    const pastDate = new Date(today);
+    pastDate.setDate(pastDate.getDate() - 5);
+    expect(component.expiryLabel({...items[0], expiryDate: pastDate.toISOString()})).toBe('expired 5 days ago');
+  });
+
   it('reorder() creates a new food todo with the item\'s name and amount', () => {
     component.reorder(items[0]);
 

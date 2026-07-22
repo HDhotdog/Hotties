@@ -29,7 +29,7 @@
           <div class="fridge-item-info" (click)="editItem(item)">
             <span class="fridge-item-name">{{ item.name }}</span>
             @if (item.expiryDate) {
-              <span class="fridge-item-expiry">exp. {{ item.expiryDate | date:'d. MMM y' }}</span>
+              <span class="fridge-item-expiry">{{ expiryLabel(item) }}</span>
             }
           </div>
           <div class="fridge-item-actions">

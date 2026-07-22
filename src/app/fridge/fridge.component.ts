@@ -124,11 +124,7 @@ export class FridgeComponent implements OnInit {
     if (!item.expiryDate) {
       return 'none';
     }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(item.expiryDate);
-    expiry.setHours(0, 0, 0, 0);
-    const daysUntilExpiry = Math.round((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilExpiry = this.daysUntilExpiry(item.expiryDate);
 
     if (daysUntilExpiry < 0) {
       return 'expired';
@@ -137,6 +133,35 @@ export class FridgeComponent implements OnInit {
       return 'soon';
     }
     return 'fine';
+  }
+
+  public expiryLabel(item: FridgeItem): string {
+    if (!item.expiryDate) {
+      return '';
+    }
+    const days = this.daysUntilExpiry(item.expiryDate);
+
+    if (days === 0) {
+      return 'exp. today';
+    }
+    if (days === 1) {
+      return 'exp. in 1 day';
+    }
+    if (days > 1) {
+      return `exp. in ${days} days`;
+    }
+    if (days === -1) {
+      return 'expired 1 day ago';
+    }
+    return `expired ${-days} days ago`;
+  }
+
+  private daysUntilExpiry(expiryDate: string): number {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiry = new Date(expiryDate);
+    expiry.setHours(0, 0, 0, 0);
+    return Math.round((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   public getIndicatorColor(item: FridgeItem) {
