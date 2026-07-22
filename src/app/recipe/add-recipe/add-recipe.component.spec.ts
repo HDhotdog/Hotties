@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { NgxImageCompressService } from 'ngx-image-compress';
 import { RecipeService } from '../recipe.service';
 import { LabelService } from '../../label/label-service.service';
+import { ItemService } from '../../item/item.service';
 
 import { AddRecipeComponent } from './add-recipe.component';
 
@@ -21,7 +22,8 @@ describe('AddRecipeComponent', () => {
         {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([]), getImageUrl: () => of(null)}},
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {get: () => null}}}},
         {provide: LabelService, useValue: {getTemplateLabels: () => of([]), getLabelsForRecipe: () => of([])}},
-        {provide: NgxImageCompressService, useValue: {}}
+        {provide: NgxImageCompressService, useValue: {}},
+        {provide: ItemService, useValue: {findAll: () => of([])}}
       ]
     }).compileComponents();
 

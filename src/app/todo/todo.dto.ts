@@ -9,4 +9,6 @@ export interface Todo {
   type: ItemType;
   amount: AmountUnit;
   done: boolean;
+  itemId?: string | null;
+  quantity: number;
 }

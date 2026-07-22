@@ -1,0 +1,36 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="add-button" (click)="newItem()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Items</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="content-wrapper">
+  @if (this.errorMessage) {
+    <p class="error-state">{{ this.errorMessage }}</p>
+  }
+  @if (!this.isLoading) {
+    <div class="item-list-container">
+      @if (this.items.length === 0) {
+        <p class="empty-state">No items yet.</p>
+      }
+      @for (item of this.items; track item.id) {
+        <div class="item-row">
+          <div class="item-info" (click)="editItem(item)">
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-package">{{ item.amount }} {{ item.unit }}@if (item.price !== null) { &middot; {{ item.price | currency:'EUR' }} }</span>
+          </div>
+          <div class="item-actions">
+            <ion-button fill="clear" class="delete-button" [disabled]="!item.deletable" (click)="deleteItem(item)">
+              <ion-icon slot="icon-only" name="trash" [color]="item.deletable ? 'danger' : 'medium'"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>

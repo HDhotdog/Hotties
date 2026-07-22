@@ -22,6 +22,11 @@
         <ion-label>Fridge</ion-label>
       </ion-item>
 
+      <ion-item button routerLink="/tabs/items" routerDirection="root" (click)="closeMenu()">
+        <ion-icon slot="start" aria-hidden="true" name="pricetags-outline"></ion-icon>
+        <ion-label>Items</ion-label>
+      </ion-item>
+
       <ion-item button routerLink="/tabs/settings" routerDirection="root" (click)="closeMenu()">
         <ion-icon slot="start" aria-hidden="true" name="settings-outline"></ion-icon>
         <ion-label>Settings</ion-label>

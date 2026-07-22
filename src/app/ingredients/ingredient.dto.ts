@@ -3,4 +3,5 @@ export interface Ingredient {
   id: string;
   recipeId: string;
   name: string;
+  itemId?: string | null;
 }

@@ -20,7 +20,12 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    <ion-input class="name-input" [(ngModel)]="this.name" placeholder="Item name"></ion-input>
+    <app-item-autocomplete
+      [value]="this.name"
+      (valueChange)="this.name = $event"
+      placeholder="Item name"
+      inputClass="name-input"
+    ></app-item-autocomplete>
 
     <div class="card quantity-card">
       <div class="card-section">

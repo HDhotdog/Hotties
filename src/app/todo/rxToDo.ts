@@ -7,5 +7,7 @@ export interface RxToDo {
   name: string;
   type: ItemType;
   amount: AmountUnit;
-  done: boolean
+  done: boolean;
+  itemId: string | null;
+  quantity: number;
 }

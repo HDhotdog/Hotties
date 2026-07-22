@@ -27,6 +27,7 @@ describe('IngredientRepository (integration, in-memory RxDB)', () => {
     id: 'i1',
     recipeId: 'recipe-1',
     name: 'Milk',
+    itemId: null,
     ...overrides
   });
 

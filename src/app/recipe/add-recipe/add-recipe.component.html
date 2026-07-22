@@ -71,7 +71,12 @@
       </ion-row>
       <ion-row class="ingredient-section">
         <div class="ingredient-input">
-          <ion-input placeholder="Enter ingredient" [(ngModel)]="this.ingredient" (keyup.enter)="addIngredient()"></ion-input>
+          <app-item-autocomplete
+            [value]="this.ingredient"
+            (valueChange)="this.ingredient = $event"
+            placeholder="Enter ingredient"
+            (enter)="addIngredient()"
+          ></app-item-autocomplete>
           <ion-button shape="round" (click)="addIngredient()">
             <ion-icon name="add"></ion-icon>
           </ion-button>

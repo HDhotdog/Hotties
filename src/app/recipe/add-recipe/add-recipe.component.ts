@@ -19,6 +19,7 @@ import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
 import { combineLatest, forkJoin, of } from 'rxjs';
 import { dataUrlToBlob } from '../../database/attachment-utils';
+import { ItemAutocompleteComponent } from '../../item/item-autocomplete/item-autocomplete.component';
 
 @Component({
   selector: 'app-add-recipe',
@@ -33,6 +34,7 @@ import { dataUrlToBlob } from '../../database/attachment-utils';
     RouterModule,
     EmojiModule,
     PickerModule,
+    ItemAutocompleteComponent,
   ],
 })
 export class AddRecipeComponent implements OnInit {

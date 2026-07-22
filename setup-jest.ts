@@ -29,5 +29,21 @@ if (typeof Blob !== 'undefined' && !Blob.prototype.text) {
   };
 }
 
+// jsdom doesn't implement IntersectionObserver, which ion-picker-column (used by
+// the fridge item's expiry-date picker) needs in its componentWillLoad. Ionic
+// only uses it to lazily scroll picker columns into view, which doesn't matter
+// in tests, so a no-op stub is enough.
+if (typeof globalThis.IntersectionObserver === 'undefined') {
+  class NoopIntersectionObserver {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  }
+  Object.defineProperty(globalThis, 'IntersectionObserver', {value: NoopIntersectionObserver});
+}
+
 setupZoneTestEnv();
 disableWarnings();

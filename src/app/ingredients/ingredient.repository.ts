@@ -31,6 +31,20 @@ export class IngredientRepository extends AbstractRepository<RxIngredient> {
     );
   }
 
+  /** One-shot check (not live) - used by ItemService.deleteById to decide whether
+   * an item can be deleted; a live query here would leak a subscription on every
+   * delete attempt. */
+  public findByItemId(itemId: string): Observable<RxIngredient[]> {
+    return this.getCollection().pipe(
+      switchMap(
+        (col) =>
+          from(col.find({
+            selector: { itemId },
+          }).exec())
+      )
+    );
+  }
+
   public deleteByRecipeId(recipeId: string): Observable<number> {
     return this.getCollection().pipe(
       switchMap((col) => from(col.find({ selector: { recipeId } }).remove())),

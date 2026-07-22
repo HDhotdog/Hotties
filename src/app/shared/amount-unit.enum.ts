@@ -6,7 +6,7 @@ export enum AmountUnit {
   MILLILITER = 'ml',
   HUNDRED_MILLILITER = '100ml',
   LITER = 'l',
-  PACKAGE = 'Packung',
+  PACKAGE = 'Pck',
   BUNCH = 'Bund',
   PINCH = 'Prise',
 }
