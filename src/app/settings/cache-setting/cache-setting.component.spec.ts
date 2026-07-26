@@ -5,7 +5,7 @@ import { CategoryService } from '../../category/category.service';
 
 import { CacheSettingComponent } from './cache-setting.component';
 
-describe('CacheSettingComponent', () => {
+describe('InfoComponent', () => {
   let component: CacheSettingComponent;
   let fixture: ComponentFixture<CacheSettingComponent>;
 

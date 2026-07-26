@@ -25,4 +25,8 @@ export class SettingsComponent {
   public openLabelSetting() {
     this.router.navigate(['label'], { relativeTo: this.route });
   }
+
+  public openInfoSetting() {
+    this.router.navigate(['info'], { relativeTo: this.route });
+  }
 }
