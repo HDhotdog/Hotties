@@ -34,6 +34,14 @@ export class TodoRepository extends AbstractRepository<RxToDo> {
     );
   }
 
+  /** One-shot check (not live) - used by ItemService to decide whether an item
+   * can be deleted; a live query here would leak a subscription on every check. */
+  public findByItemId(itemId: string): Observable<RxToDo[]> {
+    return this.getCollection().pipe(
+      switchMap((col) => from(col.find({ selector: { itemId } }).exec()))
+    );
+  }
+
   public deleteByCategoryId(categoryId: string): Observable<number> {
     return this.getCollection().pipe(
       switchMap((col) => from(col.find({ selector: { categoryId } }).remove())),

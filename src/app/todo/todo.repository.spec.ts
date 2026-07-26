@@ -32,6 +32,8 @@ describe('TodoRepository (integration, in-memory RxDB)', () => {
     type: ItemType.FOOD,
     amount: AmountUnit.PIECE,
     done: false,
+    itemId: null,
+    quantity: 1,
     ...overrides
   });
 

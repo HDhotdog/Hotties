@@ -16,8 +16,10 @@ import {LABEL_SCHEMA_LITERAL} from "./schema/label.schema";
 import {LABEL_GROUP_SCHEMA_LITERAL} from "./schema/label-groups.schema";
 import {INGREDIENT_SCHEMA_LITERAL} from "./schema/ingredient.schema";
 import {FRIDGE_ITEM_SCHEMA_LITERAL} from "./schema/fridge-item.schema";
+import {ITEM_SCHEMA_LITERAL} from "./schema/item.schema";
 import {RxLabel, RxLabelGroup} from "../label/models/label";
 import {environment} from "../../environments/environment";
+import {AmountUnit} from "../shared/amount-unit.enum";
 
 if (!environment.production) {
   addRxPlugin(RxDBDevModePlugin);
@@ -96,6 +98,57 @@ async function runPendingMigrations(db: RxDatabase): Promise<void> {
 }
 
 /**
+ * Finds an `items` row matching `name` (case/whitespace-insensitive) or creates one,
+ * caching lookups in `itemsByName` so repeated names across collections converge on
+ * the same item instead of creating a duplicate per collection. See
+ * docs/ITEM-ENTITY-PLAN.md for why this matching is intentionally simple (no
+ * fuzzy-matching across languages/variants - that's a manual cleanup step).
+ */
+async function findOrCreateItemId(
+  db: RxDatabase,
+  name: string,
+  itemsByName: Map<string, string>
+): Promise<string> {
+  const normalized = name.trim().toLowerCase();
+  const cached = itemsByName.get(normalized);
+  if (cached) {
+    return cached;
+  }
+
+  const id = UUIDv4();
+  await db['items'].upsert({id, name: name.trim(), price: null, unit: AmountUnit.PIECE, amount: 1});
+  itemsByName.set(normalized, id);
+  return id;
+}
+
+/**
+ * Backfills `itemId` on any `ingredients`/`fridge_items`/`todos` doc left over from
+ * their schema migrations (which default `itemId` to null). Runs after schema
+ * migrations complete; a no-op once every doc has an `itemId`. Deliberately not part
+ * of the schema migrationStrategies themselves, since those must stay synchronous in
+ * this RxDB version (see the comment on recipe.schema.ts's v2 strategy) and this
+ * backfill needs to read/write the `items` collection.
+ */
+async function backfillItemLinks(db: RxDatabase): Promise<void> {
+  const existingItems = await db['items'].find().exec();
+  const itemsByName = new Map<string, string>();
+  for (const doc of existingItems as any[]) {
+    const normalized = (doc.name as string).trim().toLowerCase();
+    if (!itemsByName.has(normalized)) {
+      itemsByName.set(normalized, doc.id);
+    }
+  }
+
+  for (const collectionName of ['ingredients', 'fridge_items', 'todos']) {
+    const unlinked = await db[collectionName].find({selector: {itemId: null}}).exec();
+    for (const doc of unlinked as any[]) {
+      const itemId = await findOrCreateItemId(db, doc.name, itemsByName);
+      await doc.patch({itemId});
+    }
+  }
+}
+
+/**
  * Creates and seeds a Hotties RxDatabase for the given storage. Extracted from
  * `DatabaseService` so tests can build an equivalent database against an
  * in-memory storage instead of the production IndexedDB (Dexie) adapter.
@@ -115,10 +168,12 @@ export async function createHottiesDatabase(storage: RxStorage<any, any>, dbName
     labels: LABEL_SCHEMA_LITERAL,
     label_groups: LABEL_GROUP_SCHEMA_LITERAL,
     ingredients: INGREDIENT_SCHEMA_LITERAL,
-    fridge_items: FRIDGE_ITEM_SCHEMA_LITERAL
+    fridge_items: FRIDGE_ITEM_SCHEMA_LITERAL,
+    items: ITEM_SCHEMA_LITERAL
   });
 
   await runPendingMigrations(db);
+  await backfillItemLinks(db);
   await seedInitialData(db);
 
   return db;

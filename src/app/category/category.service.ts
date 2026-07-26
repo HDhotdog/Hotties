@@ -79,8 +79,12 @@ export class CategoryService {
       categoryId: categoryId,
       name: ingredient.name,
       done: false,
+      // type/amount are placeholders - TodoService.save() overrides them from
+      // the linked item, which itemId (when set) already points to.
       type: ItemType.FOOD,
       amount: AmountUnit.PIECE,
+      itemId: ingredient.itemId ?? null,
+      quantity: 1,
     };
   }
 }

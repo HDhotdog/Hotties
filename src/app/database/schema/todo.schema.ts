@@ -3,7 +3,7 @@ import {AmountUnit} from "../../shared/amount-unit.enum";
 
 export const TODO_SCHEMA_LITERAL = {
   schema: {
-    version: 1,
+    version: 3,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -32,7 +32,16 @@ export const TODO_SCHEMA_LITERAL = {
       done: {
         type: 'boolean',
         default: false,
-      }
+      },
+      itemId: {
+        type: ['string', 'null'],
+        default: null,
+      },
+      quantity: {
+        type: 'number',
+        minimum: 1,
+        default: 1,
+      },
     },
     required: ['id', 'categoryId', 'name', 'type', 'amount', 'done'],
   },
@@ -44,6 +53,17 @@ export const TODO_SCHEMA_LITERAL = {
       delete oldDoc.importance;
       oldDoc.type = ItemType.FOOD;
       oldDoc.amount = AmountUnit.PIECE;
+      return oldDoc;
+    },
+    // v1 todos have no link to the shared `items` collection yet;
+    // see docs/ITEM-ENTITY-PLAN.md for the name-matching backfill that fills this in.
+    2: (oldDoc: any) => {
+      oldDoc.itemId = null;
+      return oldDoc;
+    },
+    // v2 todos predate summing up repeated adds into a single row's quantity.
+    3: (oldDoc: any) => {
+      oldDoc.quantity = 1;
       return oldDoc;
     }
   }

@@ -1,11 +1,6 @@
 <ion-header [translucent]="true">
   @if (!this.isLoading) {
     <ion-toolbar class="toolbar">
-      <ion-buttons slot="start">
-        <ion-button (click)="toggleColorBar()">
-          <ion-icon name="{{this.showColorBar ? 'eye' : 'eye-off'}}"></ion-icon>
-        </ion-button>
-      </ion-buttons>
       <ion-grid>
         <ion-row>
           <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()">
@@ -34,6 +29,7 @@
         @for (todo of this.categoryTasks ; track todo) {
           <div class="todo-wrapper">
             <div class="todo" [ngStyle]="getTodoBackgroundColor(todo.type)">
+              <span class="todo-quantity">{{ todo.quantity }}</span>
               <span class="todo-text">{{ todo.name }}</span>
               <ion-button fill="clear" class="check-button" (click)="markAsDone(todo)">
                 <ion-icon name="checkmark-outline"></ion-icon>
@@ -45,29 +41,18 @@
     }
 
     <div class="input-container">
-      @if (this.showColorBar) {
-        <div class="color-buttons">
-          @for (type of this.itemTypes; track type) {
-            <div
-              class="color-circle"
-              [ngStyle]="getCircleColorBackground(type)"
-              [ngClass]="{'circle-border': isCurrentType(type)}"
-              (click)="setCurrentItemType(type)">
-            </div>
-          }
-        </div>
-        <ion-select class="amount-select" [(ngModel)]="currentAmount" interface="popover">
-          @for (unit of this.amountUnits; track unit) {
-            <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
-          }
-        </ion-select>
-      }
       <div class="lower-input-fields">
         <ion-button class="delete-button" fill="clear" (click)="clearTodos()">
           <ion-icon slot="icon-only" name="trash" color="danger"></ion-icon>
         </ion-button>
-        <ion-input placeholder="{{getCurrentSuggestion}}" [(ngModel)]="inputField"
-        (keyup.enter)="addTodo(inputField)"></ion-input>
+        <app-item-autocomplete
+          [value]="inputField"
+          (valueChange)="inputField = $event"
+          [placeholder]="getCurrentSuggestion"
+          (enter)="addTodo(inputField)"
+          [openUpward]="true"
+          [selectSubmits]="true"
+        ></app-item-autocomplete>
         <ion-button class="add-button" fill="clear" (click)="addTodo(inputField)">
           <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
         </ion-button>

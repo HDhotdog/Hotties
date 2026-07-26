@@ -11,14 +11,17 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ItemType } from './item-type.enum';
-import { AmountUnit } from '../shared/amount-unit.enum';
+import { ITEM_TYPE_COLORS } from './item-type-colors';
 import { Category } from '../category/category.dto';
 import { v4 as UUIDv4 } from 'uuid';
 import { TodoService } from './todo.service';
 import { SuggestionService } from './suggestion/suggestion.service';
 import { SuggestionFactory } from './suggestion/suggestion-factory';
 import { FridgeService } from '../fridge/fridge.service';
+import { ItemService } from '../item/item.service';
+import { AmountUnit } from '../shared/amount-unit.enum';
 import { combineLatest } from 'rxjs';
+import { ItemAutocompleteComponent } from '../item/item-autocomplete/item-autocomplete.component';
 
 @Component({
   selector: 'app-todo',
@@ -26,22 +29,20 @@ import { combineLatest } from 'rxjs';
   styleUrls: ['todo.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule],
+  imports: [IonicModule, CommonModule, FormsModule, ItemAutocompleteComponent],
 })
 export class TodoComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private todoService = inject(TodoService);
   private suggestionService = inject(SuggestionService);
   private fridgeService = inject(FridgeService);
+  private itemService = inject(ItemService);
 
   private _inputField: string = '';
   private _categoryInputField: string = '';
   private _currentSuggestion: Suggestion = {} as Suggestion;
   private _sortIncreasing: boolean = true;
   private _selectedCategory: Category = {} as Category;
-  private _showColorBar: boolean = true;
-  private _currentItemType: ItemType = ItemType.FOOD;
-  private _currentAmount: AmountUnit = AmountUnit.PIECE;
   private suggestion_suffixes: string[] = [
     '?',
     '!',
@@ -56,13 +57,6 @@ export class TodoComponent implements OnInit {
     ' :D',
   ];
   private _isLoading: boolean = true;
-  private _itemTypes = Object.values(ItemType);
-  private _amountUnits = Object.values(AmountUnit);
-  private _typeColors: { [key in ItemType]: string } = {
-    [ItemType.FOOD]: '#2e7d32',
-    [ItemType.USABLE]: '#e6a400',
-    [ItemType.PERMANENT]: '#546e7a',
-  };
 
   private _categories: Category[] = [];
   private _suggestions: Suggestion[] = [];
@@ -124,17 +118,34 @@ export class TodoComponent implements OnInit {
       });
   }
 
+  /**
+   * Adding an item that's already on the list (in this category) sums into its
+   * existing quantity instead of creating a duplicate row. Brand-new items
+   * default to `Packung` (see TodoService.resolveItem), and type/amount always
+   * mirror the linked item rather than being chosen here.
+   */
   public addTodo(task: string) {
-    const newTodo: Todo = {
-      id: UUIDv4(),
-      categoryId: this.selectedCategory.id,
-      name: task.trim() ? task : this._currentSuggestion.suggestion,
-      done: false,
-      type: this._currentItemType || ItemType.FOOD,
-      amount: this._currentAmount || AmountUnit.PIECE,
-    };
+    const name = task.trim() ? task : this._currentSuggestion.suggestion;
 
-    this.todoService.save(newTodo).subscribe();
+    this.itemService.findOrCreateByName(name, AmountUnit.PACKAGE).subscribe((item) => {
+      const existing = this._tasks.find((t) => t.itemId === item.id);
+
+      if (existing) {
+        this.todoService.save({ ...existing, quantity: existing.quantity + 1 }).subscribe(() => this.refreshTodos());
+      } else {
+        const newTodo: Todo = {
+          id: UUIDv4(),
+          categoryId: this.selectedCategory.id,
+          name: item.name,
+          done: false,
+          type: item.type,
+          amount: item.unit,
+          itemId: item.id,
+          quantity: 1,
+        };
+        this.todoService.save(newTodo).subscribe(() => this.refreshTodos());
+      }
+    });
 
     if (task.trim()) {
       this.saveSuggestion(task);
@@ -157,8 +168,9 @@ export class TodoComponent implements OnInit {
           id: UUIDv4(),
           name: todo.name,
           amount: todo.amount,
-          quantity: 1,
+          quantity: todo.quantity,
           expiryDate: null,
+          itemId: todo.itemId,
         })
         .subscribe();
     }
@@ -251,26 +263,10 @@ export class TodoComponent implements OnInit {
     this.generateSuggestion();
   }
 
-  public toggleColorBar() {
-    this._showColorBar = !this._showColorBar;
-  }
-
   public getTodoBackgroundColor(type: ItemType) {
     return {
-      '--indicator-color': this._typeColors[type] || this._typeColors[ItemType.FOOD],
+      '--indicator-color': ITEM_TYPE_COLORS[type] || ITEM_TYPE_COLORS[ItemType.FOOD],
     };
-  }
-
-  public getCircleColorBackground(type: ItemType) {
-    return { 'background-color': this._typeColors[type] };
-  }
-
-  public isCurrentType(type: ItemType): boolean {
-    return this._currentItemType === type;
-  }
-
-  public setCurrentItemType(type: ItemType): void {
-    this._currentItemType = type;
   }
 
   get categories(): Category[] {
@@ -299,30 +295,6 @@ export class TodoComponent implements OnInit {
 
   get selectedCategory(): Category {
     return this._selectedCategory;
-  }
-
-  get showColorBar(): boolean {
-    return this._showColorBar;
-  }
-
-  get currentItemType(): ItemType {
-    return this._currentItemType;
-  }
-
-  get itemTypes(): ItemType[] {
-    return this._itemTypes;
-  }
-
-  get currentAmount(): AmountUnit {
-    return this._currentAmount;
-  }
-
-  set currentAmount(amount: AmountUnit) {
-    this._currentAmount = amount;
-  }
-
-  get amountUnits(): AmountUnit[] {
-    return this._amountUnits;
   }
 
   get isLoading(): boolean {

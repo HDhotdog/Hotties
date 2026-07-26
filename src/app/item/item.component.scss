@@ -1,0 +1,73 @@
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.content-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.item-list-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  opacity: 0.6;
+  margin-top: 40px;
+}
+
+.error-state {
+  text-align: center;
+  color: var(--ion-color-danger);
+  padding: 8px 20px 0;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px 8px 16px;
+  border-radius: 4px;
+  min-height: 44px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  cursor: pointer;
+}
+
+.item-name {
+  font-size: 16px;
+}
+
+.item-package {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.item-actions {
+  display: flex;
+  flex-direction: row;
+
+  ion-button {
+    --padding-start: 5px;
+    --padding-end: 5px;
+    height: 30px;
+    margin: 0;
+  }
+}
+
+.add-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
+}

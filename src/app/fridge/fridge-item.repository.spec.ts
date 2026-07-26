@@ -30,6 +30,7 @@ describe('FridgeItemRepository (integration, in-memory RxDB)', () => {
     expiryDate: null,
     amount: AmountUnit.LITER,
     quantity: 1,
+    itemId: null,
     ...overrides
   });
 

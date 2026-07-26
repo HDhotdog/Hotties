@@ -24,19 +24,25 @@ export abstract class AbstractRepository<T> {
     );
   }
 
+  /**
+   * One-shot lookup by id (does not stay subscribed to future changes). Every
+   * current caller uses this to prefill a form once in ngOnInit and never
+   * unsubscribes; a live query here would leak a subscription for the
+   * component's whole lifetime (and beyond, since Angular doesn't auto-unsubscribe
+   * plain .subscribe() calls) that throws "not found" the moment the document is
+   * later deleted elsewhere - which then surfaces as an uncaught error disrupting
+   * an unrelated change-detection cycle.
+   */
   public findById(id: string): Observable<T> {
     return this.getCollection().pipe(
-      switchMap(col =>
-        col.findOne(id).$.pipe(
-          switchMap(doc => {
-            if (doc) {
-              return of(doc);
-            } else {
-              return throwError(() => new Error(`Document with id "${id}" not found`));
-            }
-          })
-        )
-      )
+      switchMap(col => from(col.findOne(id).exec())),
+      switchMap(doc => {
+        if (doc) {
+          return of(doc);
+        } else {
+          return throwError(() => new Error(`Document with id "${id}" not found`));
+        }
+      })
     );
   }
 

@@ -116,6 +116,8 @@ export class FridgeComponent implements OnInit {
         type: ItemType.FOOD,
         amount: item.amount,
         done: false,
+        itemId: item.itemId,
+        quantity: 1,
       })
       .subscribe();
   }

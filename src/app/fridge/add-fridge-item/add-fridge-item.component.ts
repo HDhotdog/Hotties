@@ -13,6 +13,7 @@ import { FridgeItem } from '../models/fridge-item.dto';
 import { FridgeService } from '../fridge.service';
 import { AmountUnit } from '../../shared/amount-unit.enum';
 import { v4 as uuidv4 } from 'uuid';
+import { ItemAutocompleteComponent } from '../../item/item-autocomplete/item-autocomplete.component';
 
 const MIN_QUANTITY = 0;
 const MAX_QUANTITY = 999;
@@ -39,7 +40,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   styleUrls: ['./add-fridge-item.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule, ItemAutocompleteComponent],
 })
 export class AddFridgeItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -66,6 +67,7 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
 
   private _saveStatus: SaveStatus = 'saved';
   private _savePulse: boolean = false;
+  private _isNew: boolean = true;
   private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
   private pulseTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -84,6 +86,7 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
+    this._isNew = !id;
     if (id) {
       this.fridgeService.findById(id).subscribe((item) => {
         this._item = item;
@@ -177,9 +180,17 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Debounces a save 500ms after the last change; restarts on every subsequent edit. */
+  /**
+   * Debounces a save 500ms after the last change; restarts on every subsequent
+   * edit. Only for editing an existing item - a brand-new item isn't saved
+   * until the user navigates away (see flushPendingSave), so an abandoned
+   * "new item" form doesn't leave a half-filled entry behind.
+   */
   private scheduleAutoSave(): void {
     this.setSaveStatus('unsaved');
+    if (this._isNew) {
+      return;
+    }
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
     }
@@ -194,6 +205,8 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
       this.autoSaveTimer = null;
+      this.persist();
+    } else if (this._isNew && this.inputChanged()) {
       this.persist();
     }
   }

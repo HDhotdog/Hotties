@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { AddFridgeItemComponent } from './add-fridge-item.component';
 import { FridgeService } from '../fridge.service';
+import { ItemService } from '../../item/item.service';
 import { AmountUnit } from '../../shared/amount-unit.enum';
 
 describe('AddFridgeItemComponent', () => {
@@ -18,6 +19,7 @@ describe('AddFridgeItemComponent', () => {
       imports: [AddFridgeItemComponent, IonicModule.forRoot()],
       providers: [
         { provide: FridgeService, useValue: { findById: () => of(undefined), save: saveSpy } },
+        { provide: ItemService, useValue: { findAll: () => of([]) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } },
       ],
     }).compileComponents();
@@ -73,67 +75,7 @@ describe('AddFridgeItemComponent', () => {
     expect(component.inputChanged()).toBe(true);
   });
 
-  describe('date picker', () => {
-    const change = (value: number) => ({ detail: { value } }) as CustomEvent<{ value: number }>;
-
-    it('offers 12 months and a range of years spanning past/future', () => {
-      expect(component.monthOptions).toHaveLength(12);
-      expect(component.monthOptions[0]).toEqual({ value: 1, label: 'Jan' });
-      expect(component.monthOptions[11]).toEqual({ value: 12, label: 'Dez' });
-      expect(component.yearOptions.length).toBeGreaterThan(1);
-    });
-
-    it('offers 31 days for a 31-day month', () => {
-      component.onPickerMonthChange(change(1)); // January
-
-      expect(component.dayOptions).toHaveLength(31);
-    });
-
-    it('offers 28 days for February in a non-leap year', () => {
-      component.onPickerYearChange(change(2025));
-      component.onPickerMonthChange(change(2));
-
-      expect(component.dayOptions).toHaveLength(28);
-    });
-
-    it('offers 29 days for February in a leap year', () => {
-      component.onPickerYearChange(change(2024));
-      component.onPickerMonthChange(change(2));
-
-      expect(component.dayOptions).toHaveLength(29);
-    });
-
-    it('clamps the selected day down when switching to a shorter month', () => {
-      component.onPickerMonthChange(change(1)); // January (31 days)
-      component.onPickerDayChange(change(31));
-
-      component.onPickerMonthChange(change(4)); // April (30 days)
-
-      expect(component.pickerDay).toBe(30);
-    });
-
-    it('confirmDatePicker() builds an ISO date string from the picker columns', () => {
-      component.onPickerYearChange(change(2026));
-      component.onPickerMonthChange(change(3));
-      component.onPickerDayChange(change(5));
-
-      component.confirmDatePicker();
-
-      expect(component.expiryDate).toBe('2026-03-05');
-    });
-
-    it('initDatePicker() seeds the columns from the currently set expiry date', () => {
-      component.expiryDate = '2027-11-20';
-
-      component.initDatePicker();
-
-      expect(component.pickerYear).toBe(2027);
-      expect(component.pickerMonth).toBe(11);
-      expect(component.pickerDay).toBe(20);
-    });
-  });
-
-  describe('autosave', () => {
+  describe('new item (no autosave while typing)', () => {
     beforeEach(() => {
       jest.useFakeTimers();
     });
@@ -153,43 +95,21 @@ describe('AddFridgeItemComponent', () => {
       expect(saveSpy).not.toHaveBeenCalled();
     });
 
-    it('saves automatically 500ms after the last change', () => {
+    it('does not save automatically while typing, even after the old debounce delay', () => {
       component.name = 'Butter';
       jest.advanceTimersByTime(500);
 
-      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
-      expect(component.saveStatus).toBe('saved');
-    });
-
-    it('does not save before the 500ms delay has elapsed', () => {
-      component.name = 'Butter';
-      jest.advanceTimersByTime(499);
-
       expect(saveSpy).not.toHaveBeenCalled();
     });
 
-    it('restarts the debounce timer on every subsequent edit', () => {
-      component.name = 'But';
-      jest.advanceTimersByTime(300);
-      component.name = 'Butter';
-      jest.advanceTimersByTime(300);
-
-      expect(saveSpy).not.toHaveBeenCalled();
-
-      jest.advanceTimersByTime(200);
-
-      expect(saveSpy).toHaveBeenCalledTimes(1);
-      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
-    });
-
-    it('quantity changes trigger the same autosave debounce', () => {
+    it('does not save automatically on a quantity change either', () => {
       component.incrementQuantity();
       jest.advanceTimersByTime(500);
 
-      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ quantity: 2 }));
+      expect(saveSpy).not.toHaveBeenCalled();
     });
 
-    it('navigateBack() flushes a pending save immediately instead of waiting', () => {
+    it('navigateBack() saves the new item once something has changed', () => {
       component.name = 'Butter';
 
       component.navigateBack();
@@ -197,7 +117,7 @@ describe('AddFridgeItemComponent', () => {
       expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
     });
 
-    it('does not call save again on navigateBack() if nothing is pending', () => {
+    it('navigateBack() does not save an untouched new item', () => {
       component.navigateBack();
 
       expect(saveSpy).not.toHaveBeenCalled();
@@ -210,6 +130,92 @@ describe('AddFridgeItemComponent', () => {
       jest.advanceTimersByTime(300);
 
       expect(component.savePulse).toBe(false);
+    });
+  });
+
+  describe('editing an existing item (autosave while typing)', () => {
+    let editSaveSpy: jest.Mock;
+    let editComponent: AddFridgeItemComponent;
+    let editFixture: ComponentFixture<AddFridgeItemComponent>;
+
+    const existingItem = {
+      id: 'f1', name: 'Milk', amount: AmountUnit.LITER, quantity: 1, expiryDate: null,
+    };
+
+    beforeEach(waitForAsync(() => {
+      TestBed.resetTestingModule();
+      editSaveSpy = jest.fn(() => of(undefined));
+
+      TestBed.configureTestingModule({
+        imports: [AddFridgeItemComponent, IonicModule.forRoot()],
+        providers: [
+          { provide: FridgeService, useValue: { findById: () => of(existingItem), save: editSaveSpy } },
+          { provide: ItemService, useValue: { findAll: () => of([]) } },
+          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'f1' } } } },
+        ],
+      }).compileComponents();
+
+      editFixture = TestBed.createComponent(AddFridgeItemComponent);
+      editComponent = editFixture.componentInstance;
+      editFixture.detectChanges();
+    }));
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('saves automatically 500ms after the last change', () => {
+      editComponent.name = 'Butter';
+      jest.advanceTimersByTime(500);
+
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+      expect(editComponent.saveStatus).toBe('saved');
+    });
+
+    it('does not save before the 500ms delay has elapsed', () => {
+      editComponent.name = 'Butter';
+      jest.advanceTimersByTime(499);
+
+      expect(editSaveSpy).not.toHaveBeenCalled();
+    });
+
+    it('restarts the debounce timer on every subsequent edit', () => {
+      editComponent.name = 'But';
+      jest.advanceTimersByTime(300);
+      editComponent.name = 'Butter';
+      jest.advanceTimersByTime(300);
+
+      expect(editSaveSpy).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(200);
+
+      expect(editSaveSpy).toHaveBeenCalledTimes(1);
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+    });
+
+    it('quantity changes trigger the same autosave debounce', () => {
+      editComponent.incrementQuantity();
+      jest.advanceTimersByTime(500);
+
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ quantity: 2 }));
+    });
+
+    it('navigateBack() flushes a pending save immediately instead of waiting', () => {
+      editComponent.name = 'Butter';
+
+      editComponent.navigateBack();
+
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+    });
+
+    it('does not call save again on navigateBack() if nothing is pending', () => {
+      editComponent.navigateBack();
+
+      expect(editSaveSpy).not.toHaveBeenCalled();
     });
   });
 });

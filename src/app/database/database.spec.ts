@@ -17,8 +17,8 @@ describe('createHottiesDatabase() seeding', () => {
     db = await createHottiesDatabase(getRxStorageMemory(), `test-db-${uuidv4()}`);
 
     expect(Object.keys(db.collections).sort()).toEqual([
-      'categories', 'fridge_items', 'ingredients', 'label_groups', 'labels', 'recipes', 'settings', 'suggestions', 'todos'
-    ]);
+      'categories', 'fridge_items', 'ingredients', 'items', 'label_groups', 'labels', 'recipes', 'settings', 'suggestions', 'todos'
+    ].sort());
   });
 
   it('seeds exactly one default "Edeka" category on first init', async () => {
