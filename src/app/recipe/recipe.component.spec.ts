@@ -5,6 +5,7 @@ import {of} from 'rxjs';
 import {RecipeComponent} from './recipe.component';
 import {RecipeService} from './recipe.service';
 import {LabelService} from '../label/label-service.service';
+import {FridgeService} from '../fridge/fridge.service';
 import {ActivatedRoute, Router} from '@angular/router';
 
 describe('RecipeComponent', () => {
@@ -17,7 +18,7 @@ describe('RecipeComponent', () => {
       providers: [
         {
           provide: RecipeService,
-          useValue: {findAll: () => of([]), getImageUrl: () => of(null)},
+          useValue: {findAll: () => of([]), getImageUrl: () => of(null), getIngredients: () => of([])},
         },
         {
           provide: LabelService,
@@ -25,6 +26,10 @@ describe('RecipeComponent', () => {
             getAllLabels: () => of([]),
             getAllLabelGroups: () => of([]),
           },
+        },
+        {
+          provide: FridgeService,
+          useValue: {findAll: () => of([])},
         },
         {
           provide: Router,

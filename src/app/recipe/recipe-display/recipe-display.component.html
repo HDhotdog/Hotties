@@ -52,7 +52,11 @@
       </div>
       <div class="recipe-description">
         <p class="recipe-descirption-title">Instructions</p>
-        <p class="recipe-description-content">{{recipe.description}}</p>
+        @if (recipe.description) {
+          <p class="recipe-description-content">{{recipe.description}}</p>
+        } @else {
+          <p class="recipe-description-empty">This recipe doesn't have instructions yet. Edit the recipe to add some.</p>
+        }
       </div>
       @if (this.labels.length) {
         <div class="recipe-labels">
