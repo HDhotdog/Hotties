@@ -10,15 +10,22 @@ import { Recipe } from './models/recipe.dto';
 import { Label, LabelGroup } from '../label/models/label.dto';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LabelService } from '../label/label-service.service';
+import { FridgeService } from '../fridge/fridge.service';
 
 import { FormsModule } from '@angular/forms';
 import { IonicModule, MenuController } from '@ionic/angular';
 import { combineLatest, forkJoin, map, Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
 import {
   filterRecipes,
   labelsForGroup as getLabelsForGroup,
   labelsForRecipe as getLabelsForRecipe,
 } from './recipe-filter';
+
+export interface IngredientAvailability {
+  total: number;
+  available: number;
+}
 
 @Component({
   selector: 'app-recipe',
@@ -34,6 +41,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   labelService = inject(LabelService);
   private menuController = inject(MenuController);
+  private fridgeService = inject(FridgeService);
 
   private _recipes: Recipe[] = [];
   private _labels: Label[] = [];
@@ -45,19 +53,28 @@ export class RecipeComponent implements OnInit, OnDestroy {
   public results: Recipe[] = [];
 
   private imageUrls = new Map<string, string>();
+  private ingredientAvailability = new Map<string, IngredientAvailability>();
 
   ngOnInit(): void {
     const recipesObs: Observable<Recipe[]> = this.recipeService.findAll();
     const labelsObs: Observable<Label[]> = this.labelService.getAllLabels();
     const labelGroupsObs: Observable<LabelGroup[]> =
       this.labelService.getAllLabelGroups();
-    combineLatest([recipesObs, labelsObs, labelGroupsObs]).subscribe(
-      ([recipes, labels, labelGroups]) => {
+    const fridgeItemsObs = this.fridgeService.findAll();
+    combineLatest([recipesObs, labelsObs, labelGroupsObs, fridgeItemsObs]).subscribe(
+      ([recipes, labels, labelGroups, fridgeItems]) => {
         this._recipes = recipes;
         this._labels = labels;
         this._labelGroups = labelGroups;
         this.filterRecipes();
         this.loadImages(recipes);
+
+        const fridgeItemIds = new Set(
+          fridgeItems
+            .filter((item) => item.quantity > 0 && item.itemId)
+            .map((item) => item.itemId!)
+        );
+        this.loadIngredientAvailability(recipes, fridgeItemIds);
       }
     );
   }
@@ -100,6 +117,43 @@ export class RecipeComponent implements OnInit, OnDestroy {
 
   public imageUrlFor(recipeId: string): string | undefined {
     return this.imageUrls.get(recipeId);
+  }
+
+  /**
+   * For each recipe, counts its distinct ingredients and how many of them
+   * are currently stocked in the fridge (matched by itemId), so the list can
+   * show e.g. "7/9 available" without the user opening the recipe.
+   */
+  private loadIngredientAvailability(recipes: Recipe[], fridgeItemIds: Set<string>): void {
+    if (recipes.length === 0) {
+      this.ingredientAvailability = new Map();
+      return;
+    }
+
+    forkJoin(
+      recipes.map((recipe) =>
+        // take(1): getIngredients() is a live query that never completes, but
+        // this is just a one-off snapshot to compute the list preview's counts.
+        this.recipeService.getIngredients(recipe.id).pipe(
+          take(1),
+          map((ingredients) => ({
+            id: recipe.id,
+            total: ingredients.length,
+            available: ingredients.filter(
+              (ingredient) => ingredient.itemId && fridgeItemIds.has(ingredient.itemId)
+            ).length,
+          }))
+        )
+      )
+    ).subscribe((results) => {
+      const availability = new Map<string, IngredientAvailability>();
+      results.forEach(({ id, total, available }) => availability.set(id, { total, available }));
+      this.ingredientAvailability = availability;
+    });
+  }
+
+  public ingredientAvailabilityFor(recipeId: string): IngredientAvailability | undefined {
+    return this.ingredientAvailability.get(recipeId);
   }
 
   public parseDate(recipe: Recipe): string {

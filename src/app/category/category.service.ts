@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Ingredient } from '../ingredients/ingredient.dto';
 import { Todo } from '../todo/todo.dto';
 import { CategoryRepository } from './category.repository';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of, switchMap, take } from 'rxjs';
 import { ItemType } from '../todo/item-type.enum';
 import { AmountUnit } from '../shared/amount-unit.enum';
 import { v4 as UUIDv4 } from 'uuid';
@@ -63,17 +63,51 @@ export class CategoryService {
     return this.settingsService.setSelectedCategoryId(category.id);
   }
 
+  /**
+   * Adds each ingredient's amount to the shopping list for `categoryId`. An
+   * ingredient whose item already has a todo in that category sums into its
+   * existing quantity instead of creating a duplicate row (mirrors
+   * TodoComponent.addTodo's dedup behavior); everything else becomes a new todo.
+   */
   public addIngredientsToCategory(
     categoryId: string,
     ingredients: Ingredient[]
   ): Observable<unknown> {
-    const toDos: Todo[] = ingredients.map((item) =>
-      this.ingredientToTodo(categoryId, item)
+    if (ingredients.length === 0) {
+      return of(void 0);
+    }
+
+    // Collapse multiple ingredients linked to the same item (e.g. two
+    // recipes both calling for flour) into a single quantity to add, keyed
+    // by itemId - falling back to name for legacy ingredients with no link.
+    const additionsByKey = new Map<string, number>();
+    const ingredientByKey = new Map<string, Ingredient>();
+    for (const ingredient of ingredients) {
+      const key = ingredient.itemId ?? ingredient.name;
+      additionsByKey.set(key, (additionsByKey.get(key) ?? 0) + ingredient.amount);
+      ingredientByKey.set(key, ingredient);
+    }
+
+    // take(1): a one-off snapshot to diff against, not a live subscription -
+    // findByCategoryId() never completes, so this only reads the current state.
+    return this.todoService.findByCategoryId(categoryId).pipe(
+      take(1),
+      switchMap((existingTodos) => {
+        const toSave: Todo[] = [];
+        for (const [key, amountToAdd] of additionsByKey) {
+          const existing = existingTodos.find((todo) => (todo.itemId ?? todo.name) === key);
+          if (existing) {
+            toSave.push({ ...existing, quantity: existing.quantity + amountToAdd });
+          } else {
+            toSave.push(this.ingredientToTodo(categoryId, ingredientByKey.get(key)!, amountToAdd));
+          }
+        }
+        return this.todoService.saveAll(toSave);
+      })
     );
-    return this.todoService.saveAll(toDos);
   }
 
-  private ingredientToTodo(categoryId: string, ingredient: Ingredient): Todo {
+  private ingredientToTodo(categoryId: string, ingredient: Ingredient, quantity: number): Todo {
     return {
       id: UUIDv4(),
       categoryId: categoryId,
@@ -84,7 +118,7 @@ export class CategoryService {
       type: ItemType.FOOD,
       amount: AmountUnit.PIECE,
       itemId: ingredient.itemId ?? null,
-      quantity: 1,
+      quantity,
     };
   }
 }

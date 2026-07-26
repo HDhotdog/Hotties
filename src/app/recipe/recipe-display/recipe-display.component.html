@@ -35,39 +35,76 @@
         <ion-img [src]="imageUrl"></ion-img>
       }
       <div class="ingredients">
-        <p class="ingredients-title">Ingredients</p>
-        <ul class="ingredients-items">
-          @for (item of this.ingredients; track item) {
-            <li>
-              {{item.name}}
-            </li>
-          }
-        </ul>
-        <div class="export-items">
-          <p>Add ingredients to shopping list</p>
-          <ion-button color="success" (click)="exportIngredients()">
-            <ion-icon name="arrow-redo"></ion-icon>
+        <div class="ingredients-header">
+          <p class="ingredients-title">Ingredients</p>
+          <ion-button id="export-trigger" fill="clear" class="export-button">
+            <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
           </ion-button>
+        </div>
+        <div class="ingredients-items">
+          @for (item of this.ingredients; track item) {
+            <div class="ingredient-row">
+              <span class="ingredient-amount">{{item.amount}} <span class="ingredient-unit">{{item.unit}}</span></span>
+              <span class="ingredient-name">{{item.name}}</span>
+            </div>
+          }
         </div>
       </div>
       <div class="recipe-description">
         <p class="recipe-descirption-title">Instructions</p>
-        <p class="recipe-description-content">{{recipe.description}}</p>
-      </div>
-      <div class="recipe-labels">
-        @for (recipeLabel of this.labels; track recipeLabel) {
-          <p class="recipe-label">
-            {{recipeLabel.name}}
-          </p>
+        @if (recipe.description) {
+          <p class="recipe-description-content">{{recipe.description}}</p>
+        } @else {
+          <p class="recipe-description-empty">This recipe doesn't have instructions yet. Edit the recipe to add some.</p>
         }
       </div>
+      @if (this.labels.length) {
+        <div class="recipe-labels">
+          @for (recipeLabel of this.labels; track recipeLabel) {
+            <p class="recipe-label">
+              {{recipeLabel.name}}
+            </p>
+          }
+        </div>
+      }
     </div>
-  }
 
-  <ion-select #selectionList [(ngModel)]="this.selectedCategoryId" (ionChange)="saveIngredients()" class="selection-list">
-    @for (category of categories; track category) {
-      <ion-select-option [value]="category.id">{{category.name}}</ion-select-option>
-    }
-  </ion-select>
+    <!--
+      Nested inside the same @if as #export-trigger (rather than living
+      after it, outside the @if): ion-modal looks up its trigger element by
+      ID once, when it initializes. Placing the modal outside the @if lets it
+      initialize on the very first render, before isLoading flips false and
+      the trigger button is created - Ionic never retries the lookup after
+      that, so the trigger silently never binds and the modal never opens.
+    -->
+    <ion-modal #exportModal trigger="export-trigger" [keepContentsMounted]="true" class="export-modal"
+      (willPresent)="initExportModal()">
+      <ng-template>
+        <div class="export-modal-content">
+          <div class="picker-header">
+            <ion-button fill="clear" class="modal-close-button" (click)="exportModal.dismiss()">
+              <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+            <span class="export-modal-title">Add to shopping list</span>
+            <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmExport()"
+              (click)="confirmExport(); exportModal.dismiss()">
+              <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="category-list">
+            @for (category of categories; track category) {
+              <button type="button" class="category-option" [class.selected]="this.selectedCategoryId === category.id"
+                (click)="selectCategory(category)">
+                {{category.name}}
+              </button>
+            } @empty {
+              <p class="no-categories-hint">No shopping list categories yet.</p>
+            }
+          </div>
+        </div>
+      </ng-template>
+    </ion-modal>
+  }
 
 </ion-content>

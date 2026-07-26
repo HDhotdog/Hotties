@@ -1,6 +1,8 @@
+import {AmountUnit} from '../../shared/amount-unit.enum';
+
 export const INGREDIENT_SCHEMA_LITERAL = {
   schema: {
-    version: 1,
+    version: 2,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -22,8 +24,16 @@ export const INGREDIENT_SCHEMA_LITERAL = {
         type: ['string', 'null'],
         default: null,
       },
+      amount: {
+        type: 'number',
+        default: 1,
+      },
+      unit: {
+        type: 'string',
+        default: AmountUnit.PIECE,
+      },
     },
-    required: ['id', 'recipeId', 'name'],
+    required: ['id', 'recipeId', 'name', 'amount', 'unit'],
   },
   migrationStrategies: {
     // v0 ingredients have no link to the shared `items` collection yet;
@@ -31,7 +41,14 @@ export const INGREDIENT_SCHEMA_LITERAL = {
     1: (oldDoc: any) => {
       oldDoc.itemId = null;
       return oldDoc;
-    }
+    },
+    // v1 ingredients predate per-ingredient amounts (recipes just listed
+    // names) - default to 1 of the generic PIECE unit for existing rows.
+    2: (oldDoc: any) => {
+      oldDoc.amount = 1;
+      oldDoc.unit = AmountUnit.PIECE;
+      return oldDoc;
+    },
   }
 };
 

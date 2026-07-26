@@ -45,5 +45,39 @@ if (typeof globalThis.IntersectionObserver === 'undefined') {
   Object.defineProperty(globalThis, 'IntersectionObserver', {value: NoopIntersectionObserver});
 }
 
+// jsdom's <img> has no real image decoder (no `canvas` npm package installed),
+// so assigning a data URL to `.src` never fires `onload`/`onerror` - anything
+// that awaits image decoding (e.g. the recipe image cropper) would hang
+// forever. Stub a synchronous "decode" so that logic can still be exercised.
+if (typeof globalThis.Image !== 'undefined') {
+  class StubImage {
+    width = 100;
+    height = 100;
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    private _src = '';
+    set src(value: string) {
+      this._src = value;
+      queueMicrotask(() => this.onload?.());
+    }
+    get src(): string {
+      return this._src;
+    }
+  }
+  Object.defineProperty(globalThis, 'Image', {value: StubImage, writable: true});
+}
+
+// jsdom's canvas 2D context isn't implemented without the `canvas` npm
+// package (getContext('2d') returns null and logs a "not implemented"
+// warning). Stub just enough of the surface for cropImageToSquare().
+if (typeof HTMLCanvasElement !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue({
+    drawImage: () => {},
+  }) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.toDataURL = jest
+    .fn()
+    .mockReturnValue('data:image/jpeg;base64,stub');
+}
+
 setupZoneTestEnv();
 disableWarnings();

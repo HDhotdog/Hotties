@@ -57,24 +57,42 @@
     <div class="recipes-list-container">
       @for (recipe of this.results; track recipe) {
         <div class="recipe-preview-container" (click)="openRecipe(recipe)">
-          <div class="recipe-preview-title">
-            <div class="title-container">
-              @if (recipe.emoji) {
-                <span class="emoji-display">{{ recipe.emoji }}</span>
-              }
-              <p>{{recipe.name}}</p>
-            </div>
-            <p>{{this.parseDate(recipe)}}</p>
-          </div>
-          @if (imageUrlFor(recipe.id)) {
-            <div class="recipe-preview-image">
+          <div class="recipe-preview-image">
+            @if (imageUrlFor(recipe.id)) {
               <ion-img [src]="imageUrlFor(recipe.id)"></ion-img>
-            </div>
-          }
-          <div class="recipe-preview-labels">
-            @for (label of this.labelsForRecipe(recipe.id); track label) {
-              <div class="recipe-preview-label">{{label.name}}</div>
+            } @else {
+              <div class="recipe-preview-image-placeholder">
+                <ion-icon name="image-outline"></ion-icon>
+              </div>
             }
+          </div>
+          <div class="recipe-preview-content">
+            <div class="recipe-preview-title">
+              <div class="title-container">
+                @if (recipe.emoji) {
+                  <span class="emoji-display">{{ recipe.emoji }}</span>
+                }
+                <p>{{recipe.name}}</p>
+              </div>
+              <p class="recipe-preview-time">{{this.parseDate(recipe)}}</p>
+            </div>
+            @if (this.ingredientAvailabilityFor(recipe.id); as availability) {
+              <div class="recipe-preview-meta">
+                <span class="recipe-preview-ingredient-count">
+                  {{availability.total}} ingredient{{availability.total === 1 ? '' : 's'}}
+                </span>
+                @if (availability.total > 0) {
+                  <span class="recipe-preview-availability" [class.fully-available]="availability.available === availability.total">
+                    {{availability.available}}/{{availability.total}} available
+                  </span>
+                }
+              </div>
+            }
+            <div class="recipe-preview-labels">
+              @for (label of this.labelsForRecipe(recipe.id); track label) {
+                <div class="recipe-preview-label">{{label.name}}</div>
+              }
+            </div>
           </div>
         </div>
       }
