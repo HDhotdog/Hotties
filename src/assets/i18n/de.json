@@ -1,0 +1,144 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "done": "Fertig",
+    "save": "Speichern"
+  },
+  "tabs": {
+    "todo": "Einkaufsliste",
+    "recipes": "Rezepte",
+    "fridge": "Kühlschrank",
+    "items": "Artikel",
+    "settings": "Einstellungen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "manageLabels": "Labels verwalten",
+    "manageCategories": "Kategorien verwalten",
+    "importanceLevels": "Wichtigkeitsstufen",
+    "customizeColors": "Farben anpassen",
+    "manageSuggestions": "Vorschläge verwalten",
+    "clearCache": "Cache leeren",
+    "about": "Über",
+    "language": "Sprache",
+    "cache": {
+      "title": "Cache verwalten",
+      "clearCategories": "Kategorien zurücksetzen",
+      "categoriesReset": "Kategorien wurden zurückgesetzt."
+    },
+    "category": {
+      "title": "Kategorien verwalten",
+      "addNew": "Neue Kategorie hinzufügen",
+      "editTitle": "Kategorie bearbeiten",
+      "namePlaceholder": "Kategorienamen eingeben",
+      "manageSuggestions": "Vorschläge verwalten",
+      "saveSuggestions": "Vorschläge speichern:",
+      "duplicateName": "Es gibt bereits eine Kategorie mit diesem Namen"
+    },
+    "label": {
+      "title": "Labels verwalten",
+      "newLabelGroup": "Neue Label-Gruppe",
+      "groupName": "Gruppenname",
+      "newLabel": "Neues Label",
+      "labelName": "Labelname",
+      "addLabelToGroup": "Label zu {{group}} hinzufügen"
+    },
+    "suggestion": {
+      "title": "Vorschläge verwalten"
+    },
+    "info": {
+      "title": "App-Info",
+      "version": "Version: {{version}} ({{commit}})"
+    },
+    "language_setting": {
+      "title": "Sprache",
+      "english": "Englisch",
+      "german": "Deutsch"
+    }
+  },
+  "fridge": {
+    "title": "Kühlschrank",
+    "empty": "Dein Kühlschrank ist leer.",
+    "expiry": {
+      "today": "läuft heute ab",
+      "inOneDay": "läuft in 1 Tag ab",
+      "inDays": "läuft in {{days}} Tagen ab",
+      "oneDayAgo": "seit 1 Tag abgelaufen",
+      "daysAgo": "seit {{days}} Tagen abgelaufen"
+    },
+    "addItem": {
+      "title": "Kühlschrank-Artikel",
+      "quantity": "Menge",
+      "unit": "Einheit",
+      "expiryDate": "Ablaufdatum",
+      "noDateSet": "Kein Datum gesetzt"
+    }
+  },
+  "item": {
+    "title": "Artikel",
+    "empty": "Noch keine Artikel.",
+    "deleteError": "Artikel konnte nicht gelöscht werden.",
+    "addItem": {
+      "title": "Artikel",
+      "namePlaceholder": "Artikelname",
+      "packageAmount": "Packungsmenge",
+      "price": "Preis",
+      "unit": "Einheit",
+      "type": "Typ"
+    }
+  },
+  "recipe": {
+    "title": "Rezepte",
+    "selectFilters": "Filter auswählen",
+    "prepTime": "Zubereitungszeit: {{time}}",
+    "prepTimeNoLimit": "Kein Limit",
+    "prepTimeMinutes": "{{minutes}} Min",
+    "ingredientCountSingular": "{{count}} Zutat",
+    "ingredientCountPlural": "{{count}} Zutaten",
+    "availableCount": "{{available}}/{{total}} verfügbar",
+    "duration": "{{hours}}h {{minutes}}m",
+    "display": {
+      "title": "Rezept",
+      "ingredients": "Zutaten",
+      "instructions": "Zubereitung",
+      "noInstructions": "Für dieses Rezept gibt es noch keine Zubereitungsschritte. Bearbeite das Rezept, um welche hinzuzufügen.",
+      "addToShoppingList": "Zur Einkaufsliste hinzufügen",
+      "noShoppingCategories": "Noch keine Einkaufslisten-Kategorien.",
+      "exportedToCategory": "Zutaten zu {{category}} hinzugefügt.",
+      "exportedFallback": "Zutaten zur Einkaufsliste hinzugefügt."
+    },
+    "edit": {
+      "title": "Rezept bearbeiten",
+      "emojiPlaceholder": "🙂",
+      "namePlaceholder": "Rezeptnamen eingeben",
+      "uploadImage": "Bild hochladen",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung eingeben",
+      "prepTime": "Zubereitungszeit",
+      "noTimeSet": "Keine Zeit gesetzt",
+      "ingredients": "Zutaten",
+      "noIngredients": "Noch keine Zutaten.",
+      "existingItem": "Vorhandener Artikel",
+      "newItem": "Neuer Artikel",
+      "searchItems": "Artikel suchen",
+      "newItemName": "Neuer Artikelname",
+      "unit": "Einheit",
+      "noMatchingItems": "Keine passenden Artikel. Wechsle zu \"Neuer Artikel\", um einen zu erstellen.",
+      "amount": "Menge",
+      "labels": "Labels",
+      "chooseLabels": "Labels auswählen"
+    }
+  },
+  "units": {
+    "gram": "g",
+    "kilogram": "kg",
+    "milliliter": "ml",
+    "liter": "l",
+    "hundredGram": "100g",
+    "hundredMilliliter": "100ml",
+    "piece": "Stück",
+    "package": "Packung",
+    "bunch": "Bund",
+    "pinch": "Prise"
+  }
+}

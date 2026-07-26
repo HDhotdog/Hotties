@@ -1,8 +1,9 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
-import { CategoryService } from '../../category/category.service';
-import { Category } from '../../category/category.dto';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {IonicModule} from '@ionic/angular';
+import {CategoryService} from '../../category/category.service';
+import {Category} from '../../category/category.dto';
+import {TranslateModule} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-category-setting',
@@ -10,7 +11,7 @@ import { Category } from '../../category/category.dto';
   styleUrls: ['./category-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, RouterModule],
+  imports: [IonicModule, RouterModule, TranslateModule],
 })
 export class CategorySettingComponent {
   private categoryService = inject(CategoryService);

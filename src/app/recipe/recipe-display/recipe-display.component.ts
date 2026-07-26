@@ -17,6 +17,8 @@ import { Category } from '../../category/category.dto';
 import { Ingredient } from '../../ingredients/ingredient.dto';
 import { Label } from '../../label/models/label.dto';
 import { LabelService } from '../../label/label-service.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AmountUnitLabelPipe } from '../../shared/amount-unit-label.pipe';
 
 @Component({
   selector: 'app-recipe-display',
@@ -24,7 +26,7 @@ import { LabelService } from '../../label/label-service.service';
   styleUrls: ['./recipe-display.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule, RouterModule],
+  imports: [IonicModule, FormsModule, RouterModule, TranslateModule, AmountUnitLabelPipe],
 })
 export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -33,6 +35,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private labelService = inject(LabelService);
   private toastCtrl = inject(ToastController);
+  private translate = inject(TranslateService);
 
   private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
@@ -126,8 +129,8 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     this.toastCtrl
       .create({
         message: categoryName
-          ? `Ingredients added to ${categoryName}.`
-          : 'Ingredients added to shopping list.',
+          ? this.translate.instant('recipe.display.exportedToCategory', { category: categoryName })
+          : this.translate.instant('recipe.display.exportedFallback'),
         duration: 1500,
         position: 'bottom',
         color: 'success',

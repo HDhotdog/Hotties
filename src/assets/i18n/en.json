@@ -1,0 +1,144 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "done": "Done",
+    "save": "Save"
+  },
+  "tabs": {
+    "todo": "ToDo's",
+    "recipes": "Recipes",
+    "fridge": "Fridge",
+    "items": "Items",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "manageLabels": "Manage labels",
+    "manageCategories": "Manage categories",
+    "importanceLevels": "Importance levels",
+    "customizeColors": "Customize colors",
+    "manageSuggestions": "Manage suggestions",
+    "clearCache": "Clear cache",
+    "about": "About",
+    "language": "Language",
+    "cache": {
+      "title": "Manage cache",
+      "clearCategories": "Clear categories",
+      "categoriesReset": "Categories have been reset."
+    },
+    "category": {
+      "title": "Manage categories",
+      "addNew": "Add new category",
+      "editTitle": "Edit category",
+      "namePlaceholder": "Enter category name",
+      "manageSuggestions": "Manage suggestions",
+      "saveSuggestions": "Save suggestions:",
+      "duplicateName": "There already exists a category with this name"
+    },
+    "label": {
+      "title": "Manage labels",
+      "newLabelGroup": "New Label Group",
+      "groupName": "Group name",
+      "newLabel": "New Label",
+      "labelName": "Label name",
+      "addLabelToGroup": "Add Label to {{group}}"
+    },
+    "suggestion": {
+      "title": "Manage suggestions"
+    },
+    "info": {
+      "title": "App info",
+      "version": "Version: {{version}} ({{commit}})"
+    },
+    "language_setting": {
+      "title": "Language",
+      "english": "English",
+      "german": "German"
+    }
+  },
+  "fridge": {
+    "title": "Fridge",
+    "empty": "Your fridge is empty.",
+    "expiry": {
+      "today": "exp. today",
+      "inOneDay": "exp. in 1 day",
+      "inDays": "exp. in {{days}} days",
+      "oneDayAgo": "expired 1 day ago",
+      "daysAgo": "expired {{days}} days ago"
+    },
+    "addItem": {
+      "title": "Fridge item",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "expiryDate": "Expiry date",
+      "noDateSet": "No date set"
+    }
+  },
+  "item": {
+    "title": "Items",
+    "empty": "No items yet.",
+    "deleteError": "Could not delete item.",
+    "addItem": {
+      "title": "Item",
+      "namePlaceholder": "Item name",
+      "packageAmount": "Package amount",
+      "price": "Price",
+      "unit": "Unit",
+      "type": "Type"
+    }
+  },
+  "recipe": {
+    "title": "Recipes",
+    "selectFilters": "Select filters",
+    "prepTime": "Preparation time: {{time}}",
+    "prepTimeNoLimit": "No limit",
+    "prepTimeMinutes": "{{minutes}} min",
+    "ingredientCountSingular": "{{count}} ingredient",
+    "ingredientCountPlural": "{{count}} ingredients",
+    "availableCount": "{{available}}/{{total}} available",
+    "duration": "{{hours}}h {{minutes}}m",
+    "display": {
+      "title": "Recipe",
+      "ingredients": "Ingredients",
+      "instructions": "Instructions",
+      "noInstructions": "This recipe doesn't have instructions yet. Edit the recipe to add some.",
+      "addToShoppingList": "Add to shopping list",
+      "noShoppingCategories": "No shopping list categories yet.",
+      "exportedToCategory": "Ingredients added to {{category}}.",
+      "exportedFallback": "Ingredients added to shopping list."
+    },
+    "edit": {
+      "title": "Edit recipe",
+      "emojiPlaceholder": "🙂",
+      "namePlaceholder": "Enter recipe name",
+      "uploadImage": "Upload image",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter description",
+      "prepTime": "Preparation time",
+      "noTimeSet": "No time set",
+      "ingredients": "Ingredients",
+      "noIngredients": "No ingredients yet.",
+      "existingItem": "Existing item",
+      "newItem": "New item",
+      "searchItems": "Search items",
+      "newItemName": "New item name",
+      "unit": "Unit",
+      "noMatchingItems": "No matching items. Switch to \"New item\" to create one.",
+      "amount": "Amount",
+      "labels": "Labels",
+      "chooseLabels": "Choose labels"
+    }
+  },
+  "units": {
+    "gram": "g",
+    "kilogram": "kg",
+    "milliliter": "ml",
+    "liter": "l",
+    "hundredGram": "100g",
+    "hundredMilliliter": "100ml",
+    "piece": "piece",
+    "package": "package",
+    "bunch": "bunch",
+    "pinch": "pinch"
+  }
+}

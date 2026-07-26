@@ -5,7 +5,7 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Fridge item</ion-title>
+    <ion-title>{{ 'fridge.addItem.title' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button class="save-status-button" (click)="navigateBack()" [ngClass]="{
         'save-status-saved': this.saveStatus === 'saved',
@@ -23,13 +23,13 @@
     <app-item-autocomplete
       [value]="this.name"
       (valueChange)="this.name = $event"
-      placeholder="Item name"
+      [placeholder]="'item.addItem.namePlaceholder' | translate"
       inputClass="name-input"
     ></app-item-autocomplete>
 
     <div class="card quantity-card">
       <div class="card-section">
-        <span class="subtle-label">Quantity</span>
+        <span class="subtle-label">{{ 'fridge.addItem.quantity' | translate }}</span>
         <div class="quantity-control">
           <ion-button fill="clear" class="quantity-step" (click)="decrementQuantity()">
             <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
@@ -41,10 +41,10 @@
         </div>
       </div>
       <div class="card-section align-end">
-        <span class="subtle-label">Unit</span>
+        <span class="subtle-label">{{ 'fridge.addItem.unit' | translate }}</span>
         <ion-select [(ngModel)]="this.amount" interface="popover" class="unit-select">
           @for (unit of this.amountUnits; track unit) {
-            <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
+            <ion-select-option [value]="unit">{{ unit | amountUnitLabel | translate }}</ion-select-option>
           }
         </ion-select>
       </div>
@@ -53,14 +53,14 @@
     <div class="card expiry-card">
       <div class="expiry-info">
         <ion-icon name="calendar-outline"></ion-icon>
-        <span>Expiry date</span>
+        <span>{{ 'fridge.addItem.expiryDate' | translate }}</span>
       </div>
       <div class="expiry-control">
         <ion-button id="expiry-trigger" fill="clear" class="expiry-trigger-button">
           @if (this.expiryDate) {
             <span>{{ this.expiryDate | date:'d. MMM y' }}</span>
           } @else {
-            <span class="no-date-label">No date set</span>
+            <span class="no-date-label">{{ 'fridge.addItem.noDateSet' | translate }}</span>
           }
         </ion-button>
         @if (this.expiryDate) {
@@ -75,8 +75,8 @@
       (willPresent)="initDatePicker()">
       <ng-template>
         <div class="picker-header">
-          <ion-button fill="clear" (click)="expiryModal.dismiss()">Cancel</ion-button>
-          <ion-button fill="clear" (click)="confirmDatePicker(); expiryModal.dismiss()">Done</ion-button>
+          <ion-button fill="clear" (click)="expiryModal.dismiss()">{{ 'common.cancel' | translate }}</ion-button>
+          <ion-button fill="clear" (click)="confirmDatePicker(); expiryModal.dismiss()">{{ 'common.done' | translate }}</ion-button>
         </div>
         <ion-picker>
           <ion-picker-column [value]="this.pickerDay" (ionChange)="onPickerDayChange($event)">

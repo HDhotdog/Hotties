@@ -2,6 +2,7 @@ import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
 import {IonicModule} from '@ionic/angular';
 import {COMMIT_HASH, VERSION} from '../../../environments/version';
+import {TranslateModule} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-info-setting',
@@ -9,7 +10,7 @@ import {COMMIT_HASH, VERSION} from '../../../environments/version';
   styleUrls: ['./info.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule],
+  imports: [IonicModule, TranslateModule],
 })
 export class InfoComponent {
   private router = inject(Router);

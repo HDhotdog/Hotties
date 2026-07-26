@@ -21,6 +21,7 @@ import {
   labelsForGroup as getLabelsForGroup,
   labelsForRecipe as getLabelsForRecipe,
 } from './recipe-filter';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 export interface IngredientAvailability {
   total: number;
@@ -33,7 +34,7 @@ export interface IngredientAvailability {
   styleUrls: ['recipe.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule, RouterModule],
+  imports: [IonicModule, FormsModule, RouterModule, TranslateModule],
 })
 export class RecipeComponent implements OnInit, OnDestroy {
   private recipeService = inject(RecipeService);
@@ -42,6 +43,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   labelService = inject(LabelService);
   private menuController = inject(MenuController);
   private fridgeService = inject(FridgeService);
+  private translate = inject(TranslateService);
 
   private _recipes: Recipe[] = [];
   private _labels: Label[] = [];
@@ -171,6 +173,19 @@ export class RecipeComponent implements OnInit, OnDestroy {
       date += minutes + 'm';
     }
     return date.trim();
+  }
+
+  /** Preserves the pre-existing (always-truthy) "no limit" check - not an i18n concern to fix. */
+  public prepTimeLabel(): string {
+    return '<' + this.selectedTime
+      ? this.translate.instant('recipe.prepTimeMinutes', { minutes: this.selectedTime })
+      : this.translate.instant('recipe.prepTimeNoLimit');
+  }
+
+  public ingredientCountLabel(total: number): string {
+    return total === 1
+      ? this.translate.instant('recipe.ingredientCountSingular', { count: total })
+      : this.translate.instant('recipe.ingredientCountPlural', { count: total });
   }
 
   public changeFilter(event: Event, label: Label) {

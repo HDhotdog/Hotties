@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Manage categories
+      {{ 'settings.category.title' | translate }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -16,7 +16,7 @@
     <ion-item>
       <ion-button class="add-button" (click)="addNewCategory()">
         <ion-icon aria-hidden="true" name="add" slot="end"></ion-icon>
-        <ion-label>Add new category</ion-label>
+        <ion-label>{{ 'settings.category.addNew' | translate }}</ion-label>
       </ion-button>
     </ion-item>
 

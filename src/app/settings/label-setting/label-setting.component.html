@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Manage labels
+      {{ 'settings.label.title' | translate }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -15,7 +15,7 @@
   <ion-list>
     <!-- Add Label Group -->
     <ion-item>
-      <ion-input [(ngModel)]="newGroupName" placeholder="New Label Group"></ion-input>
+      <ion-input [(ngModel)]="newGroupName" [placeholder]="'settings.label.newLabelGroup' | translate"></ion-input>
       <ion-button slot="end" (click)="addLabelGroup()" [disabled]="!newGroupName.trim()">
         <ion-icon name="add"></ion-icon>
       </ion-button>
@@ -31,7 +31,7 @@
             @if (editingGroup === group) {
               <ion-input
                 [(ngModel)]="editName"
-                placeholder="Group name"
+                [placeholder]="'settings.label.groupName' | translate"
                 (keyup.enter)="saveEdit()">
               </ion-input>
             }
@@ -65,7 +65,7 @@
             <!-- Add Label to Group -->
             @if (selectedGroup === group) {
               <ion-item>
-                <ion-input [(ngModel)]="newLabelName" placeholder="New Label"></ion-input>
+                <ion-input [(ngModel)]="newLabelName" [placeholder]="'settings.label.newLabel' | translate"></ion-input>
                 <ion-button slot="end" (click)="addLabel()" [disabled]="!newLabelName.trim()">
                   <ion-icon name="add"></ion-icon>
                 </ion-button>
@@ -80,7 +80,7 @@
                   @if (editingLabel?.label === label) {
                     <ion-input
                       [(ngModel)]="editName"
-                      placeholder="Label name"
+                      [placeholder]="'settings.label.labelName' | translate"
                       (keyup.enter)="saveEdit()">
                     </ion-input>
                   }
@@ -114,7 +114,7 @@
             @if (selectedGroup !== group) {
               <ion-item>
                 <ion-button expand="block" (click)="selectedGroup = group">
-                  Add Label to {{ group.name }}
+                  {{ 'settings.label.addLabelToGroup' | translate:{ group: group.name } }}
                 </ion-button>
               </ion-item>
             }

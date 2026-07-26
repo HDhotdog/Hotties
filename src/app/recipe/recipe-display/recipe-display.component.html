@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Recipe
+      {{ 'recipe.display.title' | translate }}
     </ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="deleteRecipe()">
@@ -36,7 +36,7 @@
       }
       <div class="ingredients">
         <div class="ingredients-header">
-          <p class="ingredients-title">Ingredients</p>
+          <p class="ingredients-title">{{ 'recipe.display.ingredients' | translate }}</p>
           <ion-button id="export-trigger" fill="clear" class="export-button">
             <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
           </ion-button>
@@ -44,18 +44,18 @@
         <div class="ingredients-items">
           @for (item of this.ingredients; track item) {
             <div class="ingredient-row">
-              <span class="ingredient-amount">{{item.amount}} <span class="ingredient-unit">{{item.unit}}</span></span>
+              <span class="ingredient-amount">{{item.amount}} <span class="ingredient-unit">{{item.unit | amountUnitLabel | translate}}</span></span>
               <span class="ingredient-name">{{item.name}}</span>
             </div>
           }
         </div>
       </div>
       <div class="recipe-description">
-        <p class="recipe-descirption-title">Instructions</p>
+        <p class="recipe-descirption-title">{{ 'recipe.display.instructions' | translate }}</p>
         @if (recipe.description) {
           <p class="recipe-description-content">{{recipe.description}}</p>
         } @else {
-          <p class="recipe-description-empty">This recipe doesn't have instructions yet. Edit the recipe to add some.</p>
+          <p class="recipe-description-empty">{{ 'recipe.display.noInstructions' | translate }}</p>
         }
       </div>
       @if (this.labels.length) {
@@ -85,7 +85,7 @@
             <ion-button fill="clear" class="modal-close-button" (click)="exportModal.dismiss()">
               <ion-icon slot="icon-only" name="close"></ion-icon>
             </ion-button>
-            <span class="export-modal-title">Add to shopping list</span>
+            <span class="export-modal-title">{{ 'recipe.display.addToShoppingList' | translate }}</span>
             <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmExport()"
               (click)="confirmExport(); exportModal.dismiss()">
               <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
@@ -99,7 +99,7 @@
                 {{category.name}}
               </button>
             } @empty {
-              <p class="no-categories-hint">No shopping list categories yet.</p>
+              <p class="no-categories-hint">{{ 'recipe.display.noShoppingCategories' | translate }}</p>
             }
           </div>
         </div>

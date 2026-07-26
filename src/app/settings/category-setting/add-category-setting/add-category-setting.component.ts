@@ -12,6 +12,7 @@ import { CategoryService } from '../../../category/category.service';
 import { v4 as uuidv4 } from 'uuid';
 import { combineLatest } from 'rxjs';
 import { Category } from '../../../category/category.dto';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-add-category-setting',
@@ -19,12 +20,13 @@ import { Category } from '../../../category/category.dto';
   styleUrls: ['./add-category-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule, TranslateModule],
 })
 export class AddCategorySettingComponent implements OnInit {
   private router = inject(Router);
   private categoryService = inject(CategoryService);
   private toastCtrl = inject(ToastController);
+  private translate = inject(TranslateService);
   private route = inject(ActivatedRoute);
 
   private _name: string = '';
@@ -70,7 +72,7 @@ export class AddCategorySettingComponent implements OnInit {
         .length > 0
     ) {
       let toast = this.toastCtrl.create({
-        message: 'There already exists a category with this name',
+        message: this.translate.instant('settings.category.duplicateName'),
         duration: 2000,
         position: 'bottom',
         color: 'danger',

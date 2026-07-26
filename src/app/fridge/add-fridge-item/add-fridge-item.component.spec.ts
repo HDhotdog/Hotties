@@ -6,6 +6,7 @@ import { AddFridgeItemComponent } from './add-fridge-item.component';
 import { FridgeService } from '../fridge.service';
 import { ItemService } from '../../item/item.service';
 import { AmountUnit } from '../../shared/amount-unit.enum';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('AddFridgeItemComponent', () => {
   let component: AddFridgeItemComponent;
@@ -16,7 +17,7 @@ describe('AddFridgeItemComponent', () => {
     saveSpy = jest.fn(() => of(undefined));
 
     TestBed.configureTestingModule({
-      imports: [AddFridgeItemComponent, IonicModule.forRoot()],
+      imports: [AddFridgeItemComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         { provide: FridgeService, useValue: { findById: () => of(undefined), save: saveSpy } },
         { provide: ItemService, useValue: { findAll: () => of([]) } },
@@ -147,7 +148,7 @@ describe('AddFridgeItemComponent', () => {
       editSaveSpy = jest.fn(() => of(undefined));
 
       TestBed.configureTestingModule({
-        imports: [AddFridgeItemComponent, IonicModule.forRoot()],
+        imports: [AddFridgeItemComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
         providers: [
           { provide: FridgeService, useValue: { findById: () => of(existingItem), save: editSaveSpy } },
           { provide: ItemService, useValue: { findAll: () => of([]) } },

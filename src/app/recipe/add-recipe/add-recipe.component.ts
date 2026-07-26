@@ -23,6 +23,8 @@ import { Item } from '../../item/models/item.dto';
 import { ItemService } from '../../item/item.service';
 import { AmountUnit } from '../../shared/amount-unit.enum';
 import { ItemType } from '../../todo/item-type.enum';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AmountUnitLabelPipe } from '../../shared/amount-unit-label.pipe';
 
 const AUTO_SAVE_DELAY_MS = 500;
 const SAVE_PULSE_DURATION_MS = 300;
@@ -45,6 +47,8 @@ export type SaveStatus = 'saved' | 'unsaved';
     IonicModule,
     FormsModule,
     RouterModule,
+    TranslateModule,
+    AmountUnitLabelPipe,
   ],
 })
 export class AddRecipeComponent implements OnInit, OnDestroy {
@@ -54,6 +58,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   private labelService = inject(LabelService);
   private imageCompress = inject(NgxImageCompressService);
   private itemService = inject(ItemService);
+  private translate = inject(TranslateService);
 
   public readonly hourOptions: number[] = Array.from(
     { length: HOURS_MAX + 1 },
@@ -490,7 +495,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
 
   get prepTimeLabel(): string {
     if (this._hours === 0 && this._minutes === 0) {
-      return 'No time set';
+      return this.translate.instant('recipe.edit.noTimeSet');
     }
     const parts: string[] = [];
     if (this._hours > 0) {

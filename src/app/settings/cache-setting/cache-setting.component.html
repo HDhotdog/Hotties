@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Manage cache
+      {{ 'settings.cache.title' | translate }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -14,8 +14,8 @@
 <ion-content>
   <ion-list>
     <ion-item>
-      <ion-button id="open-category-toast" class="clear-button" (click)="clearCategoryCache()">Clear categories</ion-button>
+      <ion-button id="open-category-toast" class="clear-button" (click)="clearCategoryCache()">{{ 'settings.cache.clearCategories' | translate }}</ion-button>
     </ion-item>
   </ion-list>
-  <ion-toast position="top" trigger="open-category-toast" message="Categories have been reset." [duration]="1500"></ion-toast>
+  <ion-toast position="top" trigger="open-category-toast" [message]="'settings.cache.categoriesReset' | translate" [duration]="1500"></ion-toast>
 </ion-content>

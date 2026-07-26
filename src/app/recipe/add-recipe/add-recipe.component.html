@@ -5,7 +5,7 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Edit recipe</ion-title>
+    <ion-title>{{ 'recipe.edit.title' | translate }}</ion-title>
     <ion-buttons slot="end">
       @if (this.isNew) {
         <ion-button (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
@@ -35,7 +35,7 @@
         placeholder="🙂"
         autocomplete="off"
       />
-      <ion-input class="name-input" [(ngModel)]="this.name" placeholder="Enter recipe name"></ion-input>
+      <ion-input class="name-input" [(ngModel)]="this.name" [placeholder]="'recipe.edit.namePlaceholder' | translate"></ion-input>
     </div>
 
     <div class="image-frame">
@@ -47,20 +47,20 @@
       } @else {
         <button type="button" class="image-placeholder" (click)="uploadFile()">
           <ion-icon name="image-outline"></ion-icon>
-          <span>Upload image</span>
+          <span>{{ 'recipe.edit.uploadImage' | translate }}</span>
         </button>
       }
     </div>
 
     <div class="card description-card">
-      <span class="subtle-label">Description</span>
-      <ion-textarea [(ngModel)]="description" placeholder="Enter description" auto-grow="true"></ion-textarea>
+      <span class="subtle-label">{{ 'recipe.edit.description' | translate }}</span>
+      <ion-textarea [(ngModel)]="description" [placeholder]="'recipe.edit.descriptionPlaceholder' | translate" auto-grow="true"></ion-textarea>
     </div>
 
     <div class="card prep-time-card">
       <div class="prep-time-info">
         <ion-icon name="time-outline"></ion-icon>
-        <span>Preparation time</span>
+        <span>{{ 'recipe.edit.prepTime' | translate }}</span>
       </div>
       <div class="prep-time-control">
         <ion-button id="prep-time-trigger" fill="clear" class="prep-time-trigger-button">
@@ -77,8 +77,8 @@
       (willPresent)="initPrepTimePicker()">
       <ng-template>
         <div class="picker-header">
-          <ion-button fill="clear" (click)="prepTimeModal.dismiss()">Cancel</ion-button>
-          <ion-button fill="clear" (click)="confirmPrepTimePicker(); prepTimeModal.dismiss()">Done</ion-button>
+          <ion-button fill="clear" (click)="prepTimeModal.dismiss()">{{ 'common.cancel' | translate }}</ion-button>
+          <ion-button fill="clear" (click)="confirmPrepTimePicker(); prepTimeModal.dismiss()">{{ 'common.done' | translate }}</ion-button>
         </div>
         <ion-picker>
           <ion-picker-column [value]="this.pickerHours" (ionChange)="onPickerHoursChange($event)">
@@ -97,7 +97,7 @@
 
     <div class="card ingredient-card">
       <div class="ingredient-card-header">
-        <span class="subtle-label">Ingredients</span>
+        <span class="subtle-label">{{ 'recipe.edit.ingredients' | translate }}</span>
         <ion-button id="add-ingredient-trigger" fill="clear" class="ingredient-add-button">
           <ion-icon slot="icon-only" name="add-circle"></ion-icon>
         </ion-button>
@@ -105,7 +105,7 @@
       @if (this.ingredients.length) {
         @for (ingredient of this.ingredients; track ingredient) {
           <div class="ingredient">
-            <span class="ingredient-amount">{{ ingredient.amount }} <span class="ingredient-unit">{{ ingredient.unit }}</span></span>
+            <span class="ingredient-amount">{{ ingredient.amount }} <span class="ingredient-unit">{{ ingredient.unit | amountUnitLabel | translate }}</span></span>
             <ion-label>{{ingredient.name}}</ion-label>
             <ion-button fill="clear" class="ingredient-remove-button" (click)="removeIngredient(ingredient)">
               <ion-icon slot="icon-only" name="close-circle"></ion-icon>
@@ -113,7 +113,7 @@
           </div>
         }
       } @else {
-        <p class="no-ingredients-hint">No ingredients yet.</p>
+        <p class="no-ingredients-hint">{{ 'recipe.edit.noIngredients' | translate }}</p>
       }
     </div>
 
@@ -133,43 +133,43 @@
 
           <ion-segment [(ngModel)]="ingredientModalMode">
             <ion-segment-button value="existing">
-              <ion-label>Existing item</ion-label>
+              <ion-label>{{ 'recipe.edit.existingItem' | translate }}</ion-label>
             </ion-segment-button>
             <ion-segment-button value="new">
-              <ion-label>New item</ion-label>
+              <ion-label>{{ 'recipe.edit.newItem' | translate }}</ion-label>
             </ion-segment-button>
           </ion-segment>
 
           <div class="ingredient-modal-body">
             @if (this.ingredientModalMode === 'existing') {
-              <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery" placeholder="Search items"></ion-input>
+              <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery" [placeholder]="'recipe.edit.searchItems' | translate"></ion-input>
               <div class="item-suggestion-list">
                 @for (item of this.filteredItems; track item.id) {
                   <button type="button" class="item-suggestion" [class.selected]="this.selectedExistingItem?.id === item.id"
                     (click)="selectExistingItem(item)">
                     <span>{{item.name}}</span>
-                    <span class="item-suggestion-unit">{{item.unit}}</span>
+                    <span class="item-suggestion-unit">{{item.unit | amountUnitLabel | translate}}</span>
                   </button>
                 } @empty {
-                  <p class="no-items-hint">No matching items. Switch to "New item" to create one.</p>
+                  <p class="no-items-hint">{{ 'recipe.edit.noMatchingItems' | translate }}</p>
                 }
               </div>
             } @else {
-              <ion-input class="item-search-input" [(ngModel)]="newItemName" placeholder="New item name"></ion-input>
-              <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" placeholder="Unit">
+              <ion-input class="item-search-input" [(ngModel)]="newItemName" [placeholder]="'recipe.edit.newItemName' | translate"></ion-input>
+              <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" [placeholder]="'recipe.edit.unit' | translate">
                 @for (unit of this.amountUnits; track unit) {
-                  <ion-select-option [value]="unit">{{unit}}</ion-select-option>
+                  <ion-select-option [value]="unit">{{unit | amountUnitLabel | translate}}</ion-select-option>
                 }
               </ion-select>
             }
 
             <div class="ingredient-amount-row">
-              <span class="subtle-label">Amount</span>
+              <span class="subtle-label">{{ 'recipe.edit.amount' | translate }}</span>
               <ion-input type="number" min="0" [(ngModel)]="ingredientAmount"></ion-input>
               @if (this.ingredientModalMode === 'existing' && this.selectedExistingItem) {
-                <span class="ingredient-amount-unit">{{ this.selectedExistingItem.unit }}</span>
+                <span class="ingredient-amount-unit">{{ this.selectedExistingItem.unit | amountUnitLabel | translate }}</span>
               } @else if (this.ingredientModalMode === 'new') {
-                <span class="ingredient-amount-unit">{{ this.newItemUnit }}</span>
+                <span class="ingredient-amount-unit">{{ this.newItemUnit | amountUnitLabel | translate }}</span>
               }
             </div>
           </div>
@@ -178,8 +178,8 @@
     </ion-modal>
 
     <div class="card label-card">
-      <span class="subtle-label">Labels</span>
-      <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
+      <span class="subtle-label">{{ 'recipe.edit.labels' | translate }}</span>
+      <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" [placeholder]="'recipe.edit.chooseLabels' | translate" [multiple]="true">
         @for (label of this.availableLabels; track label) {
           <ion-select-option value="{{label.id}}">{{label.name}}</ion-select-option>
         }

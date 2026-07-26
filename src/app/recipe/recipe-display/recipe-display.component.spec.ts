@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { RecipeService } from '../recipe.service';
 import { CategoryService } from '../../category/category.service';
 import { LabelService } from '../../label/label-service.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { RecipeDisplayComponent } from './recipe-display.component';
 
@@ -15,7 +16,7 @@ describe('RecipeDisplayComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [RecipeDisplayComponent, IonicModule.forRoot()],
+      imports: [RecipeDisplayComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {has: () => false, get: () => null}}}},

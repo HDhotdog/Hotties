@@ -15,6 +15,8 @@ import { TodoService } from '../todo/todo.service';
 import { ItemType } from '../todo/item-type.enum';
 import { CategoryService } from '../category/category.service';
 import { combineLatest } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AmountUnitLabelPipe } from '../shared/amount-unit-label.pipe';
 
 const EXPIRY_WARNING_DAYS = 3;
 
@@ -27,13 +29,14 @@ type SortBy = 'expiry' | 'alphabetical';
   styleUrls: ['fridge.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule, RouterModule],
+  imports: [IonicModule, CommonModule, FormsModule, RouterModule, TranslateModule, AmountUnitLabelPipe],
 })
 export class FridgeComponent implements OnInit {
   private menuController = inject(MenuController);
   private fridgeService = inject(FridgeService);
   private todoService = inject(TodoService);
   private categoryService = inject(CategoryService);
+  private translate = inject(TranslateService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -149,18 +152,18 @@ export class FridgeComponent implements OnInit {
     const days = this.daysUntilExpiry(item.expiryDate);
 
     if (days === 0) {
-      return 'exp. today';
+      return this.translate.instant('fridge.expiry.today');
     }
     if (days === 1) {
-      return 'exp. in 1 day';
+      return this.translate.instant('fridge.expiry.inOneDay');
     }
     if (days > 1) {
-      return `exp. in ${days} days`;
+      return this.translate.instant('fridge.expiry.inDays', { days });
     }
     if (days === -1) {
-      return 'expired 1 day ago';
+      return this.translate.instant('fridge.expiry.oneDayAgo');
     }
-    return `expired ${-days} days ago`;
+    return this.translate.instant('fridge.expiry.daysAgo', { days: -days });
   }
 
   private daysUntilExpiry(expiryDate: string): number {

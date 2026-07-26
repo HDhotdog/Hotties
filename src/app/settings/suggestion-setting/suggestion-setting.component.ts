@@ -10,6 +10,7 @@ import { IonicModule } from '@ionic/angular';
 
 import { FormsModule } from '@angular/forms';
 import { Suggestion } from '../../todo/suggestion/suggestion.dto';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-suggestion-setting',
@@ -17,7 +18,7 @@ import { Suggestion } from '../../todo/suggestion/suggestion.dto';
   styleUrls: ['./suggestion-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule],
+  imports: [IonicModule, FormsModule, TranslateModule],
 })
 export class SuggestionSettingComponent implements OnInit {
   suggestionService = inject(SuggestionService);

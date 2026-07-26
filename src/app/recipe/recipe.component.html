@@ -1,13 +1,13 @@
 <ion-menu menuId="filter-menu" side="end" contentId="main" swipeGesture="true" maxEdgeStart="200">
   <ion-header>
     <ion-toolbar>
-      <ion-title>Select filters</ion-title>
+      <ion-title>{{ 'recipe.selectFilters' | translate }}</ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-content>
     <div class="filter-container">
       <div class="time-filter">
-        <ion-label>Preparation time: {{'<' + selectedTime ? selectedTime + ' min' : 'No limit' }}</ion-label>
+        <ion-label>{{ 'recipe.prepTime' | translate:{ time: prepTimeLabel() } }}</ion-label>
         <ion-range
           [min]="0"
           [max]="120"
@@ -41,7 +41,7 @@
       </ion-buttons>
 
       <ion-title>
-        Recipes
+        {{ 'recipe.title' | translate }}
       </ion-title>
 
       <ion-buttons slot="end">
@@ -82,11 +82,11 @@
             @if (this.ingredientAvailabilityFor(recipe.id); as availability) {
               <div class="recipe-preview-meta">
                 <span class="recipe-preview-ingredient-count">
-                  {{availability.total}} ingredient{{availability.total === 1 ? '' : 's'}}
+                  {{ ingredientCountLabel(availability.total) }}
                 </span>
                 @if (availability.total > 0) {
                   <span class="recipe-preview-availability" [class.fully-available]="availability.available === availability.total">
-                    {{availability.available}}/{{availability.total}} available
+                    {{ 'recipe.availableCount' | translate:{ available: availability.available, total: availability.total } }}
                   </span>
                 }
               </div>

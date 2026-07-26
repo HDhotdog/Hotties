@@ -10,6 +10,7 @@ import { SuggestionSettingComponent } from './suggestion-setting/suggestion-sett
 import { CategorySettingComponent } from './category-setting/category-setting.component';
 import { AddCategorySettingComponent } from './category-setting/add-category-setting/add-category-setting.component';
 import { LabelSettingComponent } from './label-setting/label-setting.component';
+import { LanguageSettingComponent } from './language-setting/language-setting.component';
 
 @NgModule({
   imports: [
@@ -22,7 +23,8 @@ import { LabelSettingComponent } from './label-setting/label-setting.component';
     SuggestionSettingComponent,
     CategorySettingComponent,
     AddCategorySettingComponent,
-    LabelSettingComponent
+    LabelSettingComponent,
+    LanguageSettingComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

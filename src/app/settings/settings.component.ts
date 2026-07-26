@@ -1,6 +1,7 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IonicModule, MenuController } from '@ionic/angular';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-settings',
@@ -8,7 +9,7 @@ import { IonicModule, MenuController } from '@ionic/angular';
   styleUrls: ['settings.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, RouterModule],
+  imports: [IonicModule, RouterModule, TranslateModule],
 })
 export class SettingsComponent {
   private router = inject(Router);
@@ -33,5 +34,9 @@ export class SettingsComponent {
 
   public openInfoSetting() {
     this.router.navigate(['info'], { relativeTo: this.route });
+  }
+
+  public openLanguageSetting() {
+    this.router.navigate(['language'], { relativeTo: this.route });
   }
 }

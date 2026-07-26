@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Edit category
+      {{ 'settings.category.editTitle' | translate }}
     </ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="saveCategory()" [ngClass]="{'save-button-active': this.inputChanged()}"
@@ -21,16 +21,16 @@
   <div class="container">
     <ion-grid>
       <ion-row id="data-row">
-        <ion-input [(ngModel)]="name" placeholder="Enter category name"></ion-input>
+        <ion-input [(ngModel)]="name" [placeholder]="'settings.category.namePlaceholder' | translate"></ion-input>
       </ion-row>
       @if (this.editingCategory()) {
         <ion-row id="data-row">
-          <ion-label>Manage suggestions</ion-label>
+          <ion-label>{{ 'settings.category.manageSuggestions' | translate }}</ion-label>
           <ion-icon name="pencil"></ion-icon>
         </ion-row>
       }
       <ion-row id="data-row">
-        <ion-label>Save suggestions:</ion-label>
+        <ion-label>{{ 'settings.category.saveSuggestions' | translate }}</ion-label>
         <ion-toggle [(ngModel)]="saveSuggestions" [checked]="previousInputs.saveSuggestions"></ion-toggle>
       </ion-row>
     </ion-grid>

@@ -14,6 +14,8 @@ import { FridgeService } from '../fridge.service';
 import { AmountUnit } from '../../shared/amount-unit.enum';
 import { v4 as uuidv4 } from 'uuid';
 import { ItemAutocompleteComponent } from '../../item/item-autocomplete/item-autocomplete.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { AmountUnitLabelPipe } from '../../shared/amount-unit-label.pipe';
 
 const MIN_QUANTITY = 0;
 const MAX_QUANTITY = 999;
@@ -40,7 +42,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   styleUrls: ['./add-fridge-item.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule, ItemAutocompleteComponent],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule, ItemAutocompleteComponent, TranslateModule, AmountUnitLabelPipe],
 })
 export class AddFridgeItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);

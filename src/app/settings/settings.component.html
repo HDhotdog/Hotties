@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Settings
+      {{ 'settings.title' | translate }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -16,31 +16,35 @@
     <ion-list class="settings-list">
       <ion-item (click)="openLabelSetting()">
         <ion-icon aria-hidden="true" name="leaf" slot="start"></ion-icon>
-        <ion-label>Manage labels</ion-label>
+        <ion-label>{{ 'settings.manageLabels' | translate }}</ion-label>
       </ion-item>
       <ion-item (click)="openCategorySetting()">
         <ion-icon aria-hidden="true" name="list" slot="start"></ion-icon>
-        <ion-label>Manage categories</ion-label>
+        <ion-label>{{ 'settings.manageCategories' | translate }}</ion-label>
       </ion-item>
       <ion-item>
         <ion-icon aria-hidden="true" name="alert" slot="start"></ion-icon>
-        <ion-label>Importance levels</ion-label>
+        <ion-label>{{ 'settings.importanceLevels' | translate }}</ion-label>
       </ion-item>
       <ion-item>
         <ion-icon aria-hidden="true" name="color-palette" slot="start"></ion-icon>
-        <ion-label>Customize colors</ion-label>
+        <ion-label>{{ 'settings.customizeColors' | translate }}</ion-label>
       </ion-item>
       <ion-item>
         <ion-icon aria-hidden="true" name="pizza" slot="start"></ion-icon>
-        <ion-label>Manage suggestions</ion-label>
+        <ion-label>{{ 'settings.manageSuggestions' | translate }}</ion-label>
+      </ion-item>
+      <ion-item (click)="openLanguageSetting()">
+        <ion-icon aria-hidden="true" name="language" slot="start"></ion-icon>
+        <ion-label>{{ 'settings.language' | translate }}</ion-label>
       </ion-item>
       <ion-item (click)="openCacheSetting()">
         <ion-icon aria-hidden="false" name="trash" slot="start"></ion-icon>
-        <ion-label>Clear cache</ion-label>
+        <ion-label>{{ 'settings.clearCache' | translate }}</ion-label>
       </ion-item>
       <ion-item (click)="openInfoSetting()">
         <ion-icon aria-hidden="false" name="information-circle-outline" slot="start"></ion-icon>
-        <ion-label>About</ion-label>
+        <ion-label>{{ 'settings.about' | translate }}</ion-label>
       </ion-item>
     </ion-list>
   </div>

@@ -5,7 +5,7 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Item</ion-title>
+    <ion-title>{{ 'item.addItem.title' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button class="save-status-button" (click)="navigateBack()" [ngClass]="{
         'save-status-saved': this.saveStatus === 'saved',
@@ -20,18 +20,18 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    <ion-input class="name-input" [(ngModel)]="this.name" placeholder="Item name"></ion-input>
+    <ion-input class="name-input" [(ngModel)]="this.name" [placeholder]="'item.addItem.namePlaceholder' | translate"></ion-input>
 
     <div class="card package-card">
       <div class="card-section">
-        <span class="subtle-label">Package amount</span>
+        <span class="subtle-label">{{ 'item.addItem.packageAmount' | translate }}</span>
         <ion-input class="amount-input" [(ngModel)]="this.amount" type="number" min="0"></ion-input>
       </div>
       <div class="card-section align-end">
-        <span class="subtle-label">Unit</span>
+        <span class="subtle-label">{{ 'item.addItem.unit' | translate }}</span>
         <ion-select [(ngModel)]="this.unit" interface="popover" class="unit-select">
           @for (unit of this.amountUnits; track unit) {
-            <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
+            <ion-select-option [value]="unit">{{ unit | amountUnitLabel | translate }}</ion-select-option>
           }
         </ion-select>
       </div>
@@ -39,14 +39,14 @@
 
     <div class="card price-card">
       <div class="card-section">
-        <span class="subtle-label">Price</span>
+        <span class="subtle-label">{{ 'item.addItem.price' | translate }}</span>
         <ion-input class="price-input" [(ngModel)]="this.price" type="number" min="0" step="0.01" placeholder="0.00"></ion-input>
       </div>
     </div>
 
     <div class="card type-card">
       <div class="card-section">
-        <span class="subtle-label">Type</span>
+        <span class="subtle-label">{{ 'item.addItem.type' | translate }}</span>
         <div class="type-buttons">
           @for (itemType of this.itemTypes; track itemType) {
             <div

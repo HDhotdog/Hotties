@@ -6,13 +6,13 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      App info
+      {{ 'settings.info.title' | translate }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ion-list>
-    <ion-item>Version: {{ version }} ({{ commitHash }})</ion-item>
+    <ion-item>{{ 'settings.info.version' | translate:{ version: version, commit: commitHash } }}</ion-item>
   </ion-list>
 </ion-content>

@@ -5,7 +5,7 @@
         <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Items</ion-title>
+    <ion-title>{{ 'item.title' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button class="add-button" (click)="newItem()">
         <ion-icon name="add"></ion-icon>
@@ -21,13 +21,13 @@
   @if (!this.isLoading) {
     <div class="item-list-container">
       @if (this.items.length === 0) {
-        <p class="empty-state">No items yet.</p>
+        <p class="empty-state">{{ 'item.empty' | translate }}</p>
       }
       @for (item of this.items; track item.id) {
         <div class="item-row">
           <div class="item-info" (click)="editItem(item)">
             <span class="item-name">{{ item.name }}</span>
-            <span class="item-package">{{ item.amount }} {{ item.unit }}@if (item.price !== null) { &middot; {{ item.price | currency:'EUR' }} }</span>
+            <span class="item-package">{{ item.amount }} {{ item.unit | amountUnitLabel | translate }}@if (item.price !== null) { &middot; {{ item.price | currency:'EUR' }} }</span>
           </div>
           <div class="item-actions">
             <ion-button fill="clear" class="delete-button" [disabled]="!item.deletable" (click)="deleteItem(item)">

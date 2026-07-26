@@ -3,6 +3,7 @@ import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { of } from 'rxjs';
 import { LabelService } from '../../label/label-service.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { LabelSettingComponent } from './label-setting.component';
 
@@ -12,7 +13,7 @@ describe('LabelComponentComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [LabelSettingComponent, IonicModule.forRoot()],
+      imports: [LabelSettingComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {provide: Location, useValue: {back: () => {}}},
         {

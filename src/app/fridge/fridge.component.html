@@ -5,7 +5,7 @@
         <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Fridge</ion-title>
+    <ion-title>{{ 'fridge.title' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button class="add-button" (click)="newItem()">
         <ion-icon name="add"></ion-icon>
@@ -21,13 +21,13 @@
   @if (!this.isLoading) {
     <div class="fridge-list-container">
       @if (this.items.length === 0) {
-        <p class="empty-state">Your fridge is empty.</p>
+        <p class="empty-state">{{ 'fridge.empty' | translate }}</p>
       }
       @for (item of this.items; track item) {
         <div class="fridge-item" [ngStyle]="getIndicatorColor(item)">
           <div class="fridge-item-quantity" (click)="editItem(item)">
             <span class="fridge-item-quantity-value">{{ item.quantity }}</span>
-            <span class="fridge-item-amount">{{ item.amount }}</span>
+            <span class="fridge-item-amount">{{ item.amount | amountUnitLabel | translate }}</span>
           </div>
           <div class="fridge-item-info" (click)="editItem(item)">
             <span class="fridge-item-name">{{ item.name }}</span>

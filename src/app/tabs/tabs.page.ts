@@ -3,6 +3,7 @@ import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-tabs',
@@ -10,7 +11,7 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
   styleUrls: ['tabs.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, RouterModule],
+  imports: [IonicModule, RouterModule, TranslateModule],
 })
 export class TabsPage {
   private menu = inject(MenuController);

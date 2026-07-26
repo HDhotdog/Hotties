@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { SettingsComponent } from './settings.component';
 
@@ -10,7 +11,7 @@ describe('SettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SettingsComponent, IonicModule.forRoot()],
+      imports: [SettingsComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {}}

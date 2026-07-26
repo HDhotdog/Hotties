@@ -4,6 +4,7 @@ import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { CategoryService } from '../../category/category.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { CategorySettingComponent } from './category-setting.component';
 
@@ -13,7 +14,7 @@ describe('CategorySettingComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [CategorySettingComponent, IonicModule.forRoot()],
+      imports: [CategorySettingComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {provide: CategoryService, useValue: {getCategories: () => of([])}},
         {provide: Location, useValue: {back: () => {}}},

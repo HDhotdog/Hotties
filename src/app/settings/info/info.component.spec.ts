@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { CategoryService } from '../../category/category.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { InfoComponent } from './info.component';
 
@@ -11,7 +12,7 @@ describe('InfoComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [InfoComponent, IonicModule.forRoot()],
+      imports: [InfoComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {provide: Location, useValue: {back: () => {}}},
         {provide: CategoryService, useValue: {}}

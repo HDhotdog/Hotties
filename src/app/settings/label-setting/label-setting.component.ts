@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { combineLatest } from 'rxjs';
 import { Router } from '@angular/router';
 import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-label-setting-component',
@@ -20,7 +21,7 @@ import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter'
   styleUrls: ['./label-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule],
+  imports: [IonicModule, FormsModule, TranslateModule],
 })
 export class LabelSettingComponent implements OnInit {
   private router = inject(Router);

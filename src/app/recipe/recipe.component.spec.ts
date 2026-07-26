@@ -7,6 +7,7 @@ import {RecipeService} from './recipe.service';
 import {LabelService} from '../label/label-service.service';
 import {FridgeService} from '../fridge/fridge.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateModule} from '@ngx-translate/core';
 
 describe('RecipeComponent', () => {
   let component: RecipeComponent;
@@ -14,7 +15,7 @@ describe('RecipeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RecipeComponent, IonicModule.forRoot()],
+      imports: [RecipeComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {
           provide: RecipeService,

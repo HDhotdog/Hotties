@@ -10,6 +10,19 @@ import {FridgeItem} from './models/fridge-item.dto';
 import {Category} from '../category/category.dto';
 import {AmountUnit} from '../shared/amount-unit.enum';
 import {ItemType} from '../todo/item-type.enum';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+
+const FRIDGE_EXPIRY_TRANSLATIONS = {
+  fridge: {
+    expiry: {
+      today: 'exp. today',
+      inOneDay: 'exp. in 1 day',
+      inDays: 'exp. in {{days}} days',
+      oneDayAgo: 'expired 1 day ago',
+      daysAgo: 'expired {{days}} days ago',
+    },
+  },
+};
 
 describe('FridgeComponent', () => {
   let component: FridgeComponent;
@@ -47,7 +60,7 @@ describe('FridgeComponent', () => {
     categoryService.getSelectedCategoryId.mockReturnValue(of(category.id));
 
     await TestBed.configureTestingModule({
-      imports: [FridgeComponent, IonicModule.forRoot()],
+      imports: [FridgeComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {provide: FridgeService, useValue: fridgeService},
         {provide: TodoService, useValue: todoService},
@@ -55,6 +68,10 @@ describe('FridgeComponent', () => {
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: new Map()}}}
       ]
     }).compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', FRIDGE_EXPIRY_TRANSLATIONS);
+    translate.use('en');
 
     fixture = TestBed.createComponent(FridgeComponent);
     component = fixture.componentInstance;
@@ -178,7 +195,7 @@ describe('FridgeComponent sorting', () => {
     } as unknown as jest.Mocked<CategoryService>;
 
     await TestBed.configureTestingModule({
-      imports: [FridgeComponent, IonicModule.forRoot()],
+      imports: [FridgeComponent, IonicModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {provide: FridgeService, useValue: fridgeService},
         {provide: TodoService, useValue: todoService},

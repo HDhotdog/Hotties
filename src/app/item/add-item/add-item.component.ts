@@ -15,6 +15,8 @@ import { AmountUnit } from '../../shared/amount-unit.enum';
 import { ItemType } from '../../todo/item-type.enum';
 import { ITEM_TYPE_COLORS } from '../../todo/item-type-colors';
 import { v4 as uuidv4 } from 'uuid';
+import { TranslateModule } from '@ngx-translate/core';
+import { AmountUnitLabelPipe } from '../../shared/amount-unit-label.pipe';
 
 const AUTO_SAVE_DELAY_MS = 500;
 const SAVE_PULSE_DURATION_MS = 300;
@@ -27,7 +29,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   styleUrls: ['./add-item.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule, TranslateModule, AmountUnitLabelPipe],
 })
 export class AddItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);

@@ -6,11 +6,16 @@ import { CategorySettingComponent } from './category-setting/category-setting.co
 import { SettingsComponent } from './settings.component';
 import { LabelSettingComponent } from './label-setting/label-setting.component';
 import {InfoComponent} from "./info/info.component";
+import {LanguageSettingComponent} from "./language-setting/language-setting.component";
 
 const routes: Routes = [
   {
     path: '',
     component: SettingsComponent,
+  },
+  {
+    path: 'language',
+    component: LanguageSettingComponent
   },
   {
     path: 'label',

@@ -11,6 +11,8 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { forkJoin, map, of, switchMap } from 'rxjs';
 import { Item } from './models/item.dto';
 import { ItemService } from './item.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AmountUnitLabelPipe } from '../shared/amount-unit-label.pipe';
 
 export interface ItemRow extends Item {
   /** False if a todo, fridge item, or recipe ingredient still references this item. */
@@ -23,11 +25,12 @@ export interface ItemRow extends Item {
   styleUrls: ['item.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule, RouterModule],
+  imports: [IonicModule, CommonModule, FormsModule, RouterModule, TranslateModule, AmountUnitLabelPipe],
 })
 export class ItemComponent implements OnInit {
   private menuController = inject(MenuController);
   private itemService = inject(ItemService);
+  private translate = inject(TranslateService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -85,7 +88,7 @@ export class ItemComponent implements OnInit {
     this.itemService.deleteById(item.id).subscribe({
       next: () => this.refreshItems(),
       error: (err) => {
-        this._errorMessage = err?.message ?? 'Could not delete item.';
+        this._errorMessage = err?.message ?? this.translate.instant('item.deleteError');
       },
     });
   }

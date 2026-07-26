@@ -6,13 +6,14 @@ import { IonicModule } from '@ionic/angular';
 import { v4 as uuidv4 } from 'uuid';
 import { switchMap } from 'rxjs';
 import { Category } from '../../category/category.dto';
+import { TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-cache-setting',
   templateUrl: './cache-setting.component.html',
   styleUrls: ['./cache-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule],
+  imports: [IonicModule, TranslateModule],
 })
 export class CacheSettingComponent {
   private categoryService = inject(CategoryService);

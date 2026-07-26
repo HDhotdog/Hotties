@@ -1,0 +1,24 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      {{ 'settings.language_setting.title' | translate }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-radio-group [value]="selectedLanguage" (ionChange)="selectLanguage($event.detail.value)">
+      @for (language of languages; track language.code) {
+        <ion-item>
+          <ion-radio [value]="language.code">{{ language.labelKey | translate }}</ion-radio>
+        </ion-item>
+      }
+    </ion-radio-group>
+  </ion-list>
+</ion-content>
