@@ -25,6 +25,9 @@ log.txt
 /ios
 /android
 
+# Generated
+/src/environments/version.ts
+
 # Compiled output
 /dist
 /tmp

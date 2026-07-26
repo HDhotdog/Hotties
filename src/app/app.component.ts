@@ -1,9 +1,8 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { IonicModule, Platform } from '@ionic/angular';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {IonicModule, Platform} from '@ionic/angular';
 
-import { RouterModule } from '@angular/router';
-import { Keyboard } from '@capacitor/keyboard';
-import { SafeArea } from '@aashu-dubey/capacitor-statusbar-safe-area';
+import {RouterModule} from '@angular/router';
+import {Keyboard} from '@capacitor/keyboard';
 
 @Component({
   selector: 'app-root',
@@ -24,22 +23,9 @@ export class AppComponent {
     this.platform.ready().then(() => {
       // Configure keyboard behavior
       if (this.platform.is('capacitor')) {
-        Keyboard.setResizeMode({ mode: 'ionic' as any });
-        Keyboard.setScroll({ isDisabled: false });
+        Keyboard.setResizeMode({mode: 'ionic' as any});
+        Keyboard.setScroll({isDisabled: false});
       }
     });
-
-    this.adjustSafeArea().then((height) => {
-      console.log(height);
-    });
-  }
-
-  async adjustSafeArea() {
-    const { height } = await SafeArea.getStatusBarHeight();
-    document.documentElement.style.setProperty(
-      '--ion-safe-area-top',
-      `${height}px`
-    );
-    return height;
   }
 }

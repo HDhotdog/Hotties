@@ -4,11 +4,14 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$jdk25 = "C:\Program Files\Eclipse Adoptium\jdk-25.0.1.8-hotspot"
+# Capacitor Android requires a JDK >= 21 to compile (sourceCompatibility 21), but
+# Gradle 8.14.3 (the wrapper version used here) doesn't yet support running on
+# JDK 25+ ("Unsupported class file major version"). JDK 21 is the sweet spot.
+$jdk21 = "C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot"
 $androidSdk = "$env:LOCALAPPDATA\Android\Sdk"
 
-if (Test-Path $jdk25) {
-    $env:JAVA_HOME = $jdk25
+if (Test-Path $jdk21) {
+    $env:JAVA_HOME = $jdk21
 }
 $env:ANDROID_HOME = $androidSdk
 $env:ANDROID_SDK_ROOT = $androidSdk

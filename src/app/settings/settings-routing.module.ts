@@ -5,6 +5,7 @@ import { AddCategorySettingComponent } from './category-setting/add-category-set
 import { CategorySettingComponent } from './category-setting/category-setting.component';
 import { SettingsComponent } from './settings.component';
 import { LabelSettingComponent } from './label-setting/label-setting.component';
+import {InfoComponent} from "./info/info.component";
 
 const routes: Routes = [
   {
@@ -13,7 +14,7 @@ const routes: Routes = [
   },
   {
     path: 'label',
-    component: LabelSettingComponent 
+    component: LabelSettingComponent
   },
   {
     path: 'cache',
@@ -22,7 +23,10 @@ const routes: Routes = [
   {
     path: 'category',
     component: CategorySettingComponent,
-   
+  },
+  {
+    path: 'info',
+    component: InfoComponent
   },
   {
     path: 'category/new',

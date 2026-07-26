@@ -30,3 +30,29 @@
 ion-title {
     text-align: center;
 }
+
+:root {
+  --ion-safe-area-top: env(safe-area-inset-top);
+  --ion-safe-area-bottom: env(safe-area-inset-bottom);
+  --ion-safe-area-left: env(safe-area-inset-left);
+  --ion-safe-area-right: env(safe-area-inset-right);
+}
+
+/*
+ * Ionic only reserves space for the bottom safe area inside ion-footer,
+ * ion-tab-bar and ion-modal - a bare ion-content never pads for it, so on
+ * edge-to-edge Android (forced from Android 15+, targetSdk 36 here) the
+ * gesture bar / 3-button nav bar can sit on top of the last bit of content
+ * even though --ion-safe-area-bottom itself is reported correctly.
+ * Apply the padding to every page's ion-content, but not to the tabs shell's
+ * outer wrapper (id="main-content" in tabs.page.html, never scrolls itself)
+ * or inside ion-modal (which already reserves this space on its own).
+ */
+ion-content {
+  --padding-bottom: var(--ion-safe-area-bottom);
+}
+
+#main-content > ion-content,
+ion-modal ion-content {
+  --padding-bottom: 0px;
+}
