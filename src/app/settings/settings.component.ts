@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, MenuController } from '@ionic/angular';
 
 @Component({
   selector: 'app-settings',
@@ -13,6 +13,11 @@ import { IonicModule } from '@ionic/angular';
 export class SettingsComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private menuController = inject(MenuController);
+
+  public openMainMenu(): void {
+    this.menuController.open('main-menu');
+  }
 
   public openCacheSetting() {
     this.router.navigate(['cache'], { relativeTo: this.route });

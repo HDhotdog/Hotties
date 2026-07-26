@@ -55,6 +55,10 @@ export class RecipeComponent implements OnInit, OnDestroy {
   private imageUrls = new Map<string, string>();
   private ingredientAvailability = new Map<string, IngredientAvailability>();
 
+  public openMainMenu(): void {
+    this.menuController.open('main-menu');
+  }
+
   ngOnInit(): void {
     const recipesObs: Observable<Recipe[]> = this.recipeService.findAll();
     const labelsObs: Observable<Label[]> = this.labelService.getAllLabels();

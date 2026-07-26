@@ -4,7 +4,7 @@ import {
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, MenuController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -30,6 +30,7 @@ type SortBy = 'expiry' | 'alphabetical';
   imports: [IonicModule, CommonModule, FormsModule, RouterModule],
 })
 export class FridgeComponent implements OnInit {
+  private menuController = inject(MenuController);
   private fridgeService = inject(FridgeService);
   private todoService = inject(TodoService);
   private categoryService = inject(CategoryService);
@@ -93,6 +94,10 @@ export class FridgeComponent implements OnInit {
       });
     }
     return sorted;
+  }
+
+  public openMainMenu(): void {
+    this.menuController.open('main-menu');
   }
 
   public newItem(): void {

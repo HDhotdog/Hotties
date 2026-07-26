@@ -7,7 +7,7 @@ import {
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion.dto';
 import { Todo } from './todo.dto';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, MenuController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ItemType } from './item-type.enum';
@@ -32,6 +32,7 @@ import { ItemAutocompleteComponent } from '../item/item-autocomplete/item-autoco
   imports: [IonicModule, CommonModule, FormsModule, ItemAutocompleteComponent],
 })
 export class TodoComponent implements OnInit {
+  private menuController = inject(MenuController);
   private categoryService = inject(CategoryService);
   private todoService = inject(TodoService);
   private suggestionService = inject(SuggestionService);
@@ -233,6 +234,10 @@ export class TodoComponent implements OnInit {
 
   public get getCurrentSuggestion() {
     return this._currentSuggestion.suggestion + this._currentSuggestion.suffix;
+  }
+
+  public openMainMenu(): void {
+    this.menuController.open('main-menu');
   }
 
   public changeSort() {

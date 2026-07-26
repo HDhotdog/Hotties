@@ -1,6 +1,11 @@
 <ion-header [translucent]="true">
   @if (!this.isLoading) {
     <ion-toolbar class="toolbar">
+      <ion-buttons slot="start">
+        <ion-button class="menu-button" (click)="openMainMenu()">
+          <ion-icon name="menu"></ion-icon>
+        </ion-button>
+      </ion-buttons>
       <ion-grid>
         <ion-row>
           <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()">

@@ -1,12 +1,15 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button class="add-button" (click)="newItem()">
-        <ion-icon name="add"></ion-icon>
+      <ion-button class="menu-button" (click)="openMainMenu()">
+        <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>Fridge</ion-title>
     <ion-buttons slot="end">
+      <ion-button class="add-button" (click)="newItem()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
       <ion-button class="sort-button" (click)="toggleSortBy()">
         <ion-icon name="{{this.sortBy === 'expiry' ? 'calendar-outline' : 'text-outline'}}"></ion-icon>
       </ion-button>
