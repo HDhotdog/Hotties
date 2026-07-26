@@ -1,16 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 export interface LanguageOption {
   code: string;
-  labelKey: string;
+  /** Always shown in this language's own name (e.g. "Deutsch"), never translated - a German speaker must recognize it regardless of the app's current language. */
+  nativeName: string;
 }
 
 const STORAGE_KEY = 'hottiesLanguage';
 
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
-  { code: 'en', labelKey: 'settings.language_setting.english' },
-  { code: 'de', labelKey: 'settings.language_setting.german' },
+  { code: 'en', nativeName: 'English' },
+  { code: 'de', nativeName: 'Deutsch' },
 ];
 
 const DEFAULT_LANGUAGE = 'en';
@@ -27,7 +29,7 @@ export class LanguageService {
   public async init(): Promise<void> {
     this.translate.addLangs(SUPPORTED_LANGUAGES.map((lang) => lang.code));
     this.translate.setDefaultLang(DEFAULT_LANGUAGE);
-    await this.translate.use(this.getCurrentLanguage()).toPromise();
+    await firstValueFrom(this.translate.use(this.getCurrentLanguage()));
   }
 
   public getCurrentLanguage(): string {
@@ -46,7 +48,7 @@ export class LanguageService {
     }
 
     localStorage.setItem(STORAGE_KEY, code);
-    await this.translate.use(code).toPromise();
+    await firstValueFrom(this.translate.use(code));
   }
 
   private isSupported(code: string): boolean {

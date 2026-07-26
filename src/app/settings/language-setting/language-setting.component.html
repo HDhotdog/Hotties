@@ -16,7 +16,7 @@
     <ion-radio-group [value]="selectedLanguage" (ionChange)="selectLanguage($event.detail.value)">
       @for (language of languages; track language.code) {
         <ion-item>
-          <ion-radio [value]="language.code">{{ language.labelKey | translate }}</ion-radio>
+          <ion-radio [value]="language.code">{{ language.nativeName }}</ion-radio>
         </ion-item>
       }
     </ion-radio-group>

@@ -51,9 +51,7 @@
       "version": "Version: {{version}} ({{commit}})"
     },
     "language_setting": {
-      "title": "Sprache",
-      "english": "Englisch",
-      "german": "Deutsch"
+      "title": "Sprache"
     }
   },
   "fridge": {
