@@ -1,11 +1,16 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
+      <ion-button class="menu-button" (click)="openMainMenu()">
+        <ion-icon name="menu"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Items</ion-title>
+    <ion-buttons slot="end">
       <ion-button class="add-button" (click)="newItem()">
         <ion-icon name="add"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Items</ion-title>
   </ion-toolbar>
 </ion-header>
 

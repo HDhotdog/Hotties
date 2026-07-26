@@ -4,7 +4,7 @@ import {
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, MenuController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -26,6 +26,7 @@ export interface ItemRow extends Item {
   imports: [IonicModule, CommonModule, FormsModule, RouterModule],
 })
 export class ItemComponent implements OnInit {
+  private menuController = inject(MenuController);
   private itemService = inject(ItemService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -62,6 +63,10 @@ export class ItemComponent implements OnInit {
         this._items = rows;
         this._isLoading = false;
       });
+  }
+
+  public openMainMenu(): void {
+    this.menuController.open('main-menu');
   }
 
   public newItem(): void {
