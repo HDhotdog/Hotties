@@ -10,7 +10,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { RecipeService } from '../recipe.service';
 import { Recipe } from '../models/recipe.dto';
 import { CategoryService } from '../../category/category.service';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { combineLatest } from 'rxjs';
 import { Category } from '../../category/category.dto';
@@ -32,6 +32,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private recipeService = inject(RecipeService);
   private categoryService = inject(CategoryService);
   private labelService = inject(LabelService);
+  private toastCtrl = inject(ToastController);
 
   private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
@@ -113,9 +114,25 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     if (!this._selectedCategoryId) {
       return;
     }
+    const categoryName = this._categories.find(
+      (category) => category.id === this._selectedCategoryId
+    )?.name;
     this.categoryService
       .addIngredientsToCategory(this._selectedCategoryId, this._ingredients)
-      .subscribe();
+      .subscribe(() => this.showExportSuccessToast(categoryName));
+  }
+
+  private showExportSuccessToast(categoryName: string | undefined): void {
+    this.toastCtrl
+      .create({
+        message: categoryName
+          ? `Ingredients added to ${categoryName}.`
+          : 'Ingredients added to shopping list.',
+        duration: 1500,
+        position: 'bottom',
+        color: 'success',
+      })
+      .then((toast) => toast.present());
   }
 
   public navigateBack(): void {
