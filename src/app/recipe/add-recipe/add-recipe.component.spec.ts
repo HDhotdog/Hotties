@@ -48,8 +48,10 @@ describe('AddRecipeComponent', () => {
       component.uploadFile();
       await fixture.whenStable();
 
+      // The image is re-encoded (cropped to a square, max 300x300) after
+      // upload, so the preview URL is no longer the original data URL.
       expect(component.imageSelected).toBe(true);
-      expect(component.imagePreviewUrl).toBe(TINY_PNG_DATA_URL);
+      expect(component.imagePreviewUrl).toMatch(/^data:image\/jpeg;base64,/);
     });
 
     it('still selects the image when the compress service rejects (e.g. it could not shrink the file further)', async () => {
@@ -63,7 +65,7 @@ describe('AddRecipeComponent', () => {
       await fixture.whenStable();
 
       expect(component.imageSelected).toBe(true);
-      expect(component.imagePreviewUrl).toBe(TINY_PNG_DATA_URL);
+      expect(component.imagePreviewUrl).toMatch(/^data:image\/jpeg;base64,/);
     });
   });
 });

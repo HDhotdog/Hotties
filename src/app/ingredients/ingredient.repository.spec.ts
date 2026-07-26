@@ -5,6 +5,7 @@ import {createTestDatabase} from '../database/test-support/create-test-database'
 import {DatabaseService} from '../database/database';
 import {IngredientRepository} from './ingredient.repository';
 import {RxIngredient} from './ingredient';
+import {AmountUnit} from '../shared/amount-unit.enum';
 
 describe('IngredientRepository (integration, in-memory RxDB)', () => {
   let db: RxDatabase;
@@ -28,6 +29,8 @@ describe('IngredientRepository (integration, in-memory RxDB)', () => {
     recipeId: 'recipe-1',
     name: 'Milk',
     itemId: null,
+    amount: 1,
+    unit: AmountUnit.PIECE,
     ...overrides
   });
 

@@ -30,6 +30,36 @@ export function syncHash(bytes: Uint8Array): string {
   return (hash >>> 0).toString(16);
 }
 
+/**
+ * Center-crops an image data URL to a square and downsizes it to at most
+ * `maxSize` pixels per side (never upscales), so uploaded photos don't bloat
+ * storage with far more resolution than a thumbnail needs.
+ */
+export function cropImageToSquare(dataUrl: string, maxSize: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
+      const targetSize = Math.min(maxSize, side);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas 2D context unavailable'));
+        return;
+      }
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, targetSize, targetSize);
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    };
+    img.onerror = () => reject(new Error('Failed to load image for cropping'));
+    img.src = dataUrl;
+  });
+}
+
 export function dataUrlToBytes(dataUrl: string): {bytes: Uint8Array; mime: string} {
   const match = /^data:(.*?);base64,(.*)$/.exec(dataUrl);
   const mime = match?.[1] || 'application/octet-stream';

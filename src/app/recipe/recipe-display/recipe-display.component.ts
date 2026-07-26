@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  ViewChild,
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
@@ -11,7 +10,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { RecipeService } from '../recipe.service';
 import { Recipe } from '../models/recipe.dto';
 import { CategoryService } from '../../category/category.service';
-import { IonicModule, IonSelect } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { combineLatest } from 'rxjs';
 import { Category } from '../../category/category.dto';
@@ -41,9 +40,6 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private _ingredients: Ingredient[] = [];
   private _labels: Label[] = [];
   private _imageUrl: string | null = null;
-
-  @ViewChild('selectionList', { static: false })
-  public selectionList!: IonSelect;
 
   public ngOnInit(): void {
     if (this.route.snapshot.paramMap.has('id')) {
@@ -100,16 +96,26 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     return date.trim();
   }
 
-  public saveIngredients() {
-    if (this._selectedCategoryId) {
-      this.categoryService
-        .addIngredientsToCategory(this._selectedCategoryId, this._ingredients)
-        .subscribe();
-    }
+  /** Resets the modal to the first available category. Call right before it opens. */
+  public initExportModal(): void {
+    this._selectedCategoryId = this._categories[0]?.id ?? '';
   }
 
-  public exportIngredients() {
-    void this.selectionList.open();
+  public selectCategory(category: Category): void {
+    this._selectedCategoryId = category.id;
+  }
+
+  public canConfirmExport(): boolean {
+    return !!this._selectedCategoryId;
+  }
+
+  public confirmExport(): void {
+    if (!this._selectedCategoryId) {
+      return;
+    }
+    this.categoryService
+      .addIngredientsToCategory(this._selectedCategoryId, this._ingredients)
+      .subscribe();
   }
 
   public navigateBack(): void {

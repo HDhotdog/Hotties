@@ -5,99 +5,185 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>
-      Edit recipe
-    </ion-title>
+    <ion-title>Edit recipe</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
-        [disabled]="!this.inputChanged()">
-        <ion-icon name="save"></ion-icon>
-      </ion-button>
+      @if (this.isNew) {
+        <ion-button (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
+          [disabled]="!this.inputChanged()">
+          <ion-icon name="save"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button class="save-status-button" (click)="navigateBack()" [ngClass]="{
+          'save-status-saved': this.saveStatus === 'saved',
+          'save-status-unsaved': this.saveStatus === 'unsaved',
+          'save-status-pulse': this.savePulse
+        }">
+          <ion-icon name="save"></ion-icon>
+        </ion-button>
+      }
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    <ion-grid>
-      <ion-row id="data-row">
-        <div class="emoji-container">
-          <ion-button class="emoji-button" (click)="toggleEmojiPicker()">
-            @if (selectedEmoji) {
-              <span class="emoji-display">{{ selectedEmoji }}</span>
-            }
-            @if (!selectedEmoji) {
-              <ion-icon name="happy-outline"></ion-icon>
-            }
-          </ion-button>
-          @if (showEmojiPicker) {
-            <div class="emoji-picker">
-              <emoji-mart (emojiSelect)="addEmoji($event)" [darkMode]="true"></emoji-mart>
-            </div>
-          }
-        </div>
-        <ion-input [(ngModel)]="this.name" placeholder="Enter recipe name"></ion-input>
-      </ion-row>
-      <ion-row class="img-input">
-        <ion-img id="recipe-image" src="{{this.imagePreviewUrl}}" alt=""></ion-img>
-        @if (!this.imageSelected) {
-          <div class="custom-file-upload">
-            <div>
-              {{"Upload image"}}
-            </div>
-            <ion-fab-button size="small" color="primary" class="upload-btn" (click)="uploadFile()">
-              <ion-icon name="attach"></ion-icon>
-            </ion-fab-button>
-          </div>
-        } @else {
-          <ion-fab-button size="small" color="danger" class="upload-btn" (click)="deleteImage()">
-            <ion-icon name="trash"></ion-icon>
-          </ion-fab-button>
-        }
-      </ion-row>
-      <ion-row class="textarea-input">
-        <ion-textarea [(ngModel)]="description" placeholder="Enter description"></ion-textarea>
-      </ion-row>
-      <ion-row class="time-input">
-
-        <div class="time-input-section">
-          <ion-label>Hours: </ion-label>
-          <ion-input [(ngModel)]="hours" type="number" min="0" value="0"></ion-input>
-        </div>
-        <div class="time-input-section">
-          <ion-label>Minutes: </ion-label>
-          <ion-input [(ngModel)]="minutes" type="number" min="0" max="59" value="0"></ion-input>
-        </div>
-      </ion-row>
-      <ion-row class="ingredient-section">
-        <div class="ingredient-input">
-          <app-item-autocomplete
-            [value]="this.ingredient"
-            (valueChange)="this.ingredient = $event"
-            placeholder="Enter ingredient"
-            (enter)="addIngredient()"
-          ></app-item-autocomplete>
-          <ion-button shape="round" (click)="addIngredient()">
-            <ion-icon name="add"></ion-icon>
-          </ion-button>
-        </div>
-        <hr>
-          @for (ingredient of this.ingredients; track ingredient) {
-            <div class="ingredient">
-              <ion-label>{{ingredient.name}}</ion-label>
-              <ion-button (click)="removeIngredient(ingredient)" color="danger" shape="round">
-                <ion-icon name="trash"></ion-icon>
-              </ion-button>
-            </div>
-          }
-        </ion-row>
-        <ion-row class="label-row">
-          <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
-            @for (label of this.availableLabels; track label) {
-              <ion-select-option value="{{label.id}}">{{label.name}}</ion-select-option>
-            }
-          </ion-select>
-        </ion-row>
-      </ion-grid>
+    <div class="name-row">
+      <input
+        class="emoji-input"
+        type="text"
+        [(ngModel)]="this.selectedEmoji"
+        placeholder="🙂"
+        autocomplete="off"
+      />
+      <ion-input class="name-input" [(ngModel)]="this.name" placeholder="Enter recipe name"></ion-input>
     </div>
-  </ion-content>
+
+    <div class="image-frame">
+      @if (this.imageSelected) {
+        <ion-img id="recipe-image" src="{{this.imagePreviewUrl}}" alt=""></ion-img>
+        <ion-fab-button size="small" color="danger" class="image-action-btn" (click)="deleteImage()">
+          <ion-icon name="trash"></ion-icon>
+        </ion-fab-button>
+      } @else {
+        <button type="button" class="image-placeholder" (click)="uploadFile()">
+          <ion-icon name="image-outline"></ion-icon>
+          <span>Upload image</span>
+        </button>
+      }
+    </div>
+
+    <div class="card description-card">
+      <span class="subtle-label">Description</span>
+      <ion-textarea [(ngModel)]="description" placeholder="Enter description" auto-grow="true"></ion-textarea>
+    </div>
+
+    <div class="card prep-time-card">
+      <div class="prep-time-info">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Preparation time</span>
+      </div>
+      <div class="prep-time-control">
+        <ion-button id="prep-time-trigger" fill="clear" class="prep-time-trigger-button">
+          @if (this.hasPrepTime) {
+            <span>{{ this.prepTimeLabel }}</span>
+          } @else {
+            <span class="no-date-label">{{ this.prepTimeLabel }}</span>
+          }
+        </ion-button>
+      </div>
+    </div>
+
+    <ion-modal #prepTimeModal trigger="prep-time-trigger" [keepContentsMounted]="true" class="datetime-modal"
+      (willPresent)="initPrepTimePicker()">
+      <ng-template>
+        <div class="picker-header">
+          <ion-button fill="clear" (click)="prepTimeModal.dismiss()">Cancel</ion-button>
+          <ion-button fill="clear" (click)="confirmPrepTimePicker(); prepTimeModal.dismiss()">Done</ion-button>
+        </div>
+        <ion-picker>
+          <ion-picker-column [value]="this.pickerHours" (ionChange)="onPickerHoursChange($event)">
+            @for (hour of this.hourOptions; track hour) {
+              <ion-picker-column-option [value]="hour">{{ hour }}h</ion-picker-column-option>
+            }
+          </ion-picker-column>
+          <ion-picker-column [value]="this.pickerMinutes" (ionChange)="onPickerMinutesChange($event)">
+            @for (minute of this.minuteOptions; track minute) {
+              <ion-picker-column-option [value]="minute">{{ minute }}m</ion-picker-column-option>
+            }
+          </ion-picker-column>
+        </ion-picker>
+      </ng-template>
+    </ion-modal>
+
+    <div class="card ingredient-card">
+      <div class="ingredient-card-header">
+        <span class="subtle-label">Ingredients</span>
+        <ion-button id="add-ingredient-trigger" fill="clear" class="ingredient-add-button">
+          <ion-icon slot="icon-only" name="add-circle"></ion-icon>
+        </ion-button>
+      </div>
+      @if (this.ingredients.length) {
+        @for (ingredient of this.ingredients; track ingredient) {
+          <div class="ingredient">
+            <span class="ingredient-amount">{{ ingredient.amount }} <span class="ingredient-unit">{{ ingredient.unit }}</span></span>
+            <ion-label>{{ingredient.name}}</ion-label>
+            <ion-button fill="clear" class="ingredient-remove-button" (click)="removeIngredient(ingredient)">
+              <ion-icon slot="icon-only" name="close-circle"></ion-icon>
+            </ion-button>
+          </div>
+        }
+      } @else {
+        <p class="no-ingredients-hint">No ingredients yet.</p>
+      }
+    </div>
+
+    <ion-modal #addIngredientModal trigger="add-ingredient-trigger" [keepContentsMounted]="true" class="ingredient-modal"
+      (willPresent)="initAddIngredientModal()">
+      <ng-template>
+        <div class="ingredient-modal-content">
+          <div class="picker-header">
+            <ion-button fill="clear" class="modal-close-button" (click)="addIngredientModal.dismiss()">
+              <ion-icon slot="icon-only" name="close"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmIngredient()"
+              (click)="confirmAddIngredient(); addIngredientModal.dismiss()">
+              <ion-icon slot="icon-only" name="save"></ion-icon>
+            </ion-button>
+          </div>
+
+          <ion-segment [(ngModel)]="ingredientModalMode">
+            <ion-segment-button value="existing">
+              <ion-label>Existing item</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="new">
+              <ion-label>New item</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+
+          <div class="ingredient-modal-body">
+            @if (this.ingredientModalMode === 'existing') {
+              <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery" placeholder="Search items"></ion-input>
+              <div class="item-suggestion-list">
+                @for (item of this.filteredItems; track item.id) {
+                  <button type="button" class="item-suggestion" [class.selected]="this.selectedExistingItem?.id === item.id"
+                    (click)="selectExistingItem(item)">
+                    <span>{{item.name}}</span>
+                    <span class="item-suggestion-unit">{{item.unit}}</span>
+                  </button>
+                } @empty {
+                  <p class="no-items-hint">No matching items. Switch to "New item" to create one.</p>
+                }
+              </div>
+            } @else {
+              <ion-input class="item-search-input" [(ngModel)]="newItemName" placeholder="New item name"></ion-input>
+              <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" placeholder="Unit">
+                @for (unit of this.amountUnits; track unit) {
+                  <ion-select-option [value]="unit">{{unit}}</ion-select-option>
+                }
+              </ion-select>
+            }
+
+            <div class="ingredient-amount-row">
+              <span class="subtle-label">Amount</span>
+              <ion-input type="number" min="0" [(ngModel)]="ingredientAmount"></ion-input>
+              @if (this.ingredientModalMode === 'existing' && this.selectedExistingItem) {
+                <span class="ingredient-amount-unit">{{ this.selectedExistingItem.unit }}</span>
+              } @else if (this.ingredientModalMode === 'new') {
+                <span class="ingredient-amount-unit">{{ this.newItemUnit }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </ion-modal>
+
+    <div class="card label-card">
+      <span class="subtle-label">Labels</span>
+      <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
+        @for (label of this.availableLabels; track label) {
+          <ion-select-option value="{{label.id}}">{{label.name}}</ion-select-option>
+        }
+      </ion-select>
+    </div>
+  </div>
+</ion-content>
