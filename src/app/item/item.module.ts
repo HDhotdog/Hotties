@@ -1,4 +1,3 @@
-import { IonicModule } from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +7,6 @@ import { AddItemComponent } from './add-item/add-item.component';
 
 @NgModule({
   imports: [
-    IonicModule,
     CommonModule,
     FormsModule,
     ItemRoutingModule,

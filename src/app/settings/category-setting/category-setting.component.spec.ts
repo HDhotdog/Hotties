@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -13,8 +13,9 @@ describe('CategorySettingComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [CategorySettingComponent, IonicModule.forRoot()],
+      imports: [CategorySettingComponent],
       providers: [
+        provideIonicAngular(),
         {provide: CategoryService, useValue: {getCategories: () => of([])}},
         {provide: Location, useValue: {back: () => {}}},
         {provide: Router, useValue: {navigate: jest.fn()}},

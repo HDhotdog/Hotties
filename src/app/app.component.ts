@@ -1,5 +1,9 @@
+import {
+  IonApp,
+  IonRouterOutlet,
+  Platform,
+} from '@ionic/angular';
 import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
-import {IonicModule, Platform} from '@ionic/angular';
 
 import {RouterModule} from '@angular/router';
 import {Keyboard} from '@capacitor/keyboard';
@@ -10,7 +14,11 @@ import {Keyboard} from '@capacitor/keyboard';
   styleUrls: ['app.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, RouterModule],
+  imports: [
+    RouterModule,
+    IonApp,
+    IonRouterOutlet,
+  ],
 })
 export class AppComponent {
   private platform = inject(Platform);

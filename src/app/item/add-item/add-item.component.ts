@@ -1,3 +1,15 @@
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -8,7 +20,6 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { Item } from '../models/item.dto';
 import { ItemService } from '../item.service';
 import { AmountUnit } from '../../shared/amount-unit.enum';
@@ -27,7 +38,21 @@ export type SaveStatus = 'saved' | 'unsaved';
   styleUrls: ['./add-item.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class AddItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);

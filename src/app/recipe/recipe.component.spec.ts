@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {IonicModule} from '@ionic/angular';
 import {of} from 'rxjs';
 
 import {RecipeComponent} from './recipe.component';
@@ -14,8 +14,9 @@ describe('RecipeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RecipeComponent, IonicModule.forRoot()],
+      imports: [RecipeComponent],
       providers: [
+        provideIonicAngular(),
         {
           provide: RecipeService,
           useValue: {findAll: () => of([]), getImageUrl: () => of(null), getIngredients: () => of([])},

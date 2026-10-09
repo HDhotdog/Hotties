@@ -1,6 +1,20 @@
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonReorder,
+  IonReorderGroup,
+  IonTitle,
+  IonToolbar,
+  ItemReorderEventDetail,
+} from '@ionic/angular';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ItemReorderEventDetail, IonicModule } from '@ionic/angular';
 import { CategoryService } from '../../category/category.service';
 import { Category } from '../../category/category.dto';
 
@@ -10,7 +24,21 @@ import { Category } from '../../category/category.dto';
   styleUrls: ['./category-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, RouterModule],
+  imports: [
+    RouterModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonReorder,
+    IonReorderGroup,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class CategorySettingComponent {
   private categoryService = inject(CategoryService);

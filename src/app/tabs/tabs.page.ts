@@ -1,7 +1,19 @@
-import { IonicModule } from '@ionic/angular';
+import {
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonMenu,
+  IonRouterLink,
+  IonRouterOutlet,
+  IonTitle,
+  IonToolbar,
+  MenuController,
+} from '@ionic/angular';
 
 import { RouterModule } from '@angular/router';
-import { MenuController } from '@ionic/angular';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
@@ -10,7 +22,20 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
   styleUrls: ['tabs.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, RouterModule],
+  imports: [
+    RouterModule,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonMenu,
+    IonRouterOutlet,
+    IonTitle,
+    IonToolbar,
+    IonRouterLink,
+  ],
 })
 export class TabsPage {
   private menu = inject(MenuController);

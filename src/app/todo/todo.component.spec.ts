@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {IonicModule} from '@ionic/angular';
 import {of} from 'rxjs';
 import {TodoComponent} from './todo.component';
 import {CategoryService} from '../category/category.service';
@@ -75,8 +75,9 @@ describe('TodoComponent', () => {
     }));
 
     await TestBed.configureTestingModule({
-      imports: [TodoComponent, IonicModule.forRoot()],
+      imports: [TodoComponent],
       providers: [
+        provideIonicAngular(),
         {provide: CategoryService, useValue: categoryService},
         {provide: TodoService, useValue: todoService},
         {provide: SuggestionService, useValue: suggestionService},

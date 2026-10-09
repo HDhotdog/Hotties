@@ -1,3 +1,25 @@
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFabButton,
+  IonHeader,
+  IonIcon,
+  IonImg,
+  IonInput,
+  IonLabel,
+  IonModal,
+  IonPicker,
+  IonPickerColumn,
+  IonPickerColumnOption,
+  IonSegment,
+  IonSegmentButton,
+  IonSelect,
+  IonSelectOption,
+  IonTextarea,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -8,7 +30,6 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { Ingredient } from '../../ingredients/ingredient.dto';
 import { Label } from '../../label/models/label.dto';
 import { Recipe } from '../models/recipe.dto';
@@ -42,9 +63,28 @@ export type SaveStatus = 'saved' | 'unsaved';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
-    IonicModule,
     FormsModule,
     RouterModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonFabButton,
+    IonHeader,
+    IonIcon,
+    IonImg,
+    IonInput,
+    IonLabel,
+    IonModal,
+    IonPicker,
+    IonPickerColumn,
+    IonPickerColumnOption,
+    IonSegment,
+    IonSegmentButton,
+    IonSelect,
+    IonSelectOption,
+    IonTextarea,
+    IonTitle,
+    IonToolbar,
   ],
 })
 export class AddRecipeComponent implements OnInit, OnDestroy {

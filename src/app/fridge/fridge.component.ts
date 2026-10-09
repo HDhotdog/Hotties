@@ -1,10 +1,19 @@
 import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonTitle,
+  IonToolbar,
+  MenuController,
+} from '@ionic/angular';
+import {
   Component,
   OnInit,
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { IonicModule, MenuController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -27,7 +36,18 @@ type SortBy = 'expiry' | 'alphabetical';
   styleUrls: ['fridge.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class FridgeComponent implements OnInit {
   private menuController = inject(MenuController);

@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { of } from 'rxjs';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
@@ -12,8 +12,9 @@ describe('SuggestionSettingComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [SuggestionSettingComponent, IonicModule.forRoot()],
+      imports: [SuggestionSettingComponent],
       providers: [
+        provideIonicAngular(),
         {provide: SuggestionService, useValue: {findAll: () => of([])}},
         {provide: Location, useValue: {back: () => {}}}
       ]

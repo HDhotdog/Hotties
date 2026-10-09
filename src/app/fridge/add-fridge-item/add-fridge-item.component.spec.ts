@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { AddFridgeItemComponent } from './add-fridge-item.component';
@@ -16,8 +16,9 @@ describe('AddFridgeItemComponent', () => {
     saveSpy = jest.fn(() => of(undefined));
 
     TestBed.configureTestingModule({
-      imports: [AddFridgeItemComponent, IonicModule.forRoot()],
+      imports: [AddFridgeItemComponent],
       providers: [
+        provideIonicAngular(),
         { provide: FridgeService, useValue: { findById: () => of(undefined), save: saveSpy } },
         { provide: ItemService, useValue: { findAll: () => of([]) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } },
@@ -147,8 +148,9 @@ describe('AddFridgeItemComponent', () => {
       editSaveSpy = jest.fn(() => of(undefined));
 
       TestBed.configureTestingModule({
-        imports: [AddFridgeItemComponent, IonicModule.forRoot()],
+        imports: [AddFridgeItemComponent],
         providers: [
+          provideIonicAngular(),
           { provide: FridgeService, useValue: { findById: () => of(existingItem), save: editSaveSpy } },
           { provide: ItemService, useValue: { findAll: () => of([]) } },
           { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'f1' } } } },

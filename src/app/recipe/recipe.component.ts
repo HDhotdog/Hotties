@@ -1,4 +1,20 @@
 import {
+  IonButton,
+  IonButtons,
+  IonCheckbox,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonImg,
+  IonLabel,
+  IonMenu,
+  IonRange,
+  IonSearchbar,
+  IonTitle,
+  IonToolbar,
+  MenuController,
+} from '@ionic/angular';
+import {
   Component,
   OnInit,
   OnDestroy,
@@ -13,7 +29,6 @@ import { LabelService } from '../label/label-service.service';
 import { FridgeService } from '../fridge/fridge.service';
 
 import { FormsModule } from '@angular/forms';
-import { IonicModule, MenuController } from '@ionic/angular';
 import { combineLatest, forkJoin, map, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import {
@@ -33,7 +48,23 @@ export interface IngredientAvailability {
   styleUrls: ['recipe.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule, RouterModule],
+  imports: [
+    FormsModule,
+    RouterModule,
+    IonButton,
+    IonButtons,
+    IonCheckbox,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonImg,
+    IonLabel,
+    IonMenu,
+    IonRange,
+    IonSearchbar,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class RecipeComponent implements OnInit, OnDestroy {
   private recipeService = inject(RecipeService);

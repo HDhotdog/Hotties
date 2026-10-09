@@ -1,11 +1,26 @@
 import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonItemDivider,
+  IonLabel,
+  IonList,
+  IonReorder,
+  IonReorderGroup,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
+import {
   Component,
   OnInit,
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
 
-import { IonicModule } from '@ionic/angular';
 import { Label, LabelGroup } from '../../label/models/label.dto';
 import { LabelService } from '../../label/label-service.service';
 import { FormsModule } from '@angular/forms';
@@ -20,7 +35,23 @@ import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter'
   styleUrls: ['./label-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule],
+  imports: [
+    FormsModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonInput,
+    IonItem,
+    IonItemDivider,
+    IonLabel,
+    IonList,
+    IonReorder,
+    IonReorderGroup,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class LabelSettingComponent implements OnInit {
   private router = inject(Router);

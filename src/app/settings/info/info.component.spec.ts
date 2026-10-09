@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { CategoryService } from '../../category/category.service';
 
@@ -11,8 +11,9 @@ describe('InfoComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [InfoComponent, IonicModule.forRoot()],
+      imports: [InfoComponent],
       providers: [
+        provideIonicAngular(),
         {provide: Location, useValue: {back: () => {}}},
         {provide: CategoryService, useValue: {}}
       ]

@@ -1,5 +1,5 @@
+import { ToastController, provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule, ToastController } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
@@ -13,8 +13,9 @@ describe('AddCategorySettingComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [AddCategorySettingComponent, IonicModule.forRoot()],
+      imports: [AddCategorySettingComponent],
       providers: [
+        provideIonicAngular(),
         {provide: Location, useValue: {back: () => {}}},
         {
           provide: CategoryService,

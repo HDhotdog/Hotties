@@ -1,3 +1,19 @@
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonModal,
+  IonPicker,
+  IonPickerColumn,
+  IonPickerColumnOption,
+  IonSelect,
+  IonSelectOption,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -8,7 +24,6 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { FridgeItem } from '../models/fridge-item.dto';
 import { FridgeService } from '../fridge.service';
 import { AmountUnit } from '../../shared/amount-unit.enum';
@@ -40,7 +55,26 @@ export type SaveStatus = 'saved' | 'unsaved';
   styleUrls: ['./add-fridge-item.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule, ItemAutocompleteComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    ItemAutocompleteComponent,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonInput,
+    IonModal,
+    IonPicker,
+    IonPickerColumn,
+    IonPickerColumnOption,
+    IonSelect,
+    IonSelectOption,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class AddFridgeItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);

@@ -1,7 +1,18 @@
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonList,
+  IonTitle,
+  IonToast,
+  IonToolbar,
+} from '@ionic/angular';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CategoryService } from '../../category/category.service';
-import { IonicModule } from '@ionic/angular';
 
 import { v4 as uuidv4 } from 'uuid';
 import { switchMap } from 'rxjs';
@@ -12,7 +23,18 @@ import { Category } from '../../category/category.dto';
   styleUrls: ['./cache-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule],
+  imports: [
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonItem,
+    IonList,
+    IonTitle,
+    IonToast,
+    IonToolbar,
+  ],
 })
 export class CacheSettingComponent {
   private categoryService = inject(CategoryService);

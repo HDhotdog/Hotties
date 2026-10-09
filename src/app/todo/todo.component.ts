@@ -1,4 +1,17 @@
 import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonRow,
+  IonSelect,
+  IonSelectOption,
+  IonToolbar,
+  MenuController,
+} from '@ionic/angular';
+import {
   Component,
   OnInit,
   inject,
@@ -7,7 +20,6 @@ import {
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion.dto';
 import { Todo } from './todo.dto';
-import { IonicModule, MenuController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ItemType } from './item-type.enum';
@@ -29,7 +41,21 @@ import { ItemAutocompleteComponent } from '../item/item-autocomplete/item-autoco
   styleUrls: ['todo.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule, ItemAutocompleteComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ItemAutocompleteComponent,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonGrid,
+    IonHeader,
+    IonIcon,
+    IonRow,
+    IonSelect,
+    IonSelectOption,
+    IonToolbar,
+  ],
 })
 export class TodoComponent implements OnInit {
   private menuController = inject(MenuController);

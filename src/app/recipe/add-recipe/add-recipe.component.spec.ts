@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
@@ -16,8 +16,9 @@ describe('AddRecipeComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [AddRecipeComponent, IonicModule.forRoot()],
+      imports: [AddRecipeComponent],
       providers: [
+        provideIonicAngular(),
         {provide: Location, useValue: {back: () => {}}},
         {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([]), getImageUrl: () => of(null)}},
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {get: () => null}}}},

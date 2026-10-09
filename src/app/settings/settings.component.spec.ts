@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { SettingsComponent } from './settings.component';
@@ -10,8 +10,9 @@ describe('SettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SettingsComponent, IonicModule.forRoot()],
+      imports: [SettingsComponent],
       providers: [
+        provideIonicAngular(),
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {}}
       ]

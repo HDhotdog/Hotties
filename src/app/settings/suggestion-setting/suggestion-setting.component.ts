@@ -1,4 +1,16 @@
 import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
+import {
   Component,
   OnInit,
   inject,
@@ -6,7 +18,6 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
-import { IonicModule } from '@ionic/angular';
 
 import { FormsModule } from '@angular/forms';
 import { Suggestion } from '../../todo/suggestion/suggestion.dto';
@@ -17,7 +28,19 @@ import { Suggestion } from '../../todo/suggestion/suggestion.dto';
   styleUrls: ['./suggestion-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule],
+  imports: [
+    FormsModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class SuggestionSettingComponent implements OnInit {
   suggestionService = inject(SuggestionService);

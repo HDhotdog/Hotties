@@ -103,6 +103,10 @@ npx cap add android          # only if android/ doesn't exist yet
 npx capacitor-assets generate --android
 ```
 
+The `package.json` overrides keep `@capacitor/assets` on patched `sharp`, `tar`,
+and `uuid` transitive releases while its published dependencies still pin older
+versions. Recheck these overrides when `@capacitor/assets` updates.
+
 ## Project Structure
 
 ```

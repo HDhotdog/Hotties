@@ -1,4 +1,3 @@
-import { IonicModule } from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +7,6 @@ import { AddFridgeItemComponent } from './add-fridge-item/add-fridge-item.compon
 
 @NgModule({
   imports: [
-    IonicModule,
     CommonModule,
     FormsModule,
     FridgeRoutingModule,

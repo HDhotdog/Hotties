@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { of } from 'rxjs';
 import { LabelService } from '../../label/label-service.service';
@@ -12,8 +12,9 @@ describe('LabelComponentComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [LabelSettingComponent, IonicModule.forRoot()],
+      imports: [LabelSettingComponent],
       providers: [
+        provideIonicAngular(),
         {provide: Location, useValue: {back: () => {}}},
         {
           provide: LabelService,

@@ -1,4 +1,16 @@
 import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonImg,
+  IonModal,
+  IonTitle,
+  IonToolbar,
+  ToastController,
+} from '@ionic/angular';
+import {
   Component,
   OnInit,
   OnDestroy,
@@ -10,7 +22,6 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { RecipeService } from '../recipe.service';
 import { Recipe } from '../models/recipe.dto';
 import { CategoryService } from '../../category/category.service';
-import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { combineLatest } from 'rxjs';
 import { Category } from '../../category/category.dto';
@@ -24,7 +35,19 @@ import { LabelService } from '../../label/label-service.service';
   styleUrls: ['./recipe-display.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule, RouterModule],
+  imports: [
+    FormsModule,
+    RouterModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonImg,
+    IonModal,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private router = inject(Router);

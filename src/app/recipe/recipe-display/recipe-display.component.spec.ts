@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -15,8 +15,9 @@ describe('RecipeDisplayComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [RecipeDisplayComponent, IonicModule.forRoot()],
+      imports: [RecipeDisplayComponent],
       providers: [
+        provideIonicAngular(),
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {has: () => false, get: () => null}}}},
         {provide: Location, useValue: {back: () => {}}},

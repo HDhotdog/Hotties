@@ -1,3 +1,18 @@
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonLabel,
+  IonRow,
+  IonTitle,
+  IonToggle,
+  IonToolbar,
+  ToastController,
+} from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -6,7 +21,6 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CategoryService } from '../../../category/category.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +33,23 @@ import { Category } from '../../../category/category.dto';
   styleUrls: ['./add-category-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonGrid,
+    IonHeader,
+    IonIcon,
+    IonInput,
+    IonLabel,
+    IonRow,
+    IonTitle,
+    IonToggle,
+    IonToolbar,
+  ],
 })
 export class AddCategorySettingComponent implements OnInit {
   private router = inject(Router);

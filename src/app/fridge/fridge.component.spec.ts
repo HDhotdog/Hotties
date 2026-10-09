@@ -1,5 +1,5 @@
+import { provideIonicAngular } from '@ionic/angular';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {IonicModule} from '@ionic/angular';
 import {ActivatedRoute} from '@angular/router';
 import {of} from 'rxjs';
 import {FridgeComponent} from './fridge.component';
@@ -47,8 +47,9 @@ describe('FridgeComponent', () => {
     categoryService.getSelectedCategoryId.mockReturnValue(of(category.id));
 
     await TestBed.configureTestingModule({
-      imports: [FridgeComponent, IonicModule.forRoot()],
+      imports: [FridgeComponent],
       providers: [
+        provideIonicAngular(),
         {provide: FridgeService, useValue: fridgeService},
         {provide: TodoService, useValue: todoService},
         {provide: CategoryService, useValue: categoryService},
@@ -178,8 +179,9 @@ describe('FridgeComponent sorting', () => {
     } as unknown as jest.Mocked<CategoryService>;
 
     await TestBed.configureTestingModule({
-      imports: [FridgeComponent, IonicModule.forRoot()],
+      imports: [FridgeComponent],
       providers: [
+        provideIonicAngular(),
         {provide: FridgeService, useValue: fridgeService},
         {provide: TodoService, useValue: todoService},
         {provide: CategoryService, useValue: categoryService},

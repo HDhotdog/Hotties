@@ -1,4 +1,10 @@
 import {
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonList,
+} from '@ionic/angular';
+import {
   Component,
   EventEmitter,
   Input,
@@ -9,7 +15,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { Item } from '../models/item.dto';
 import { ItemService } from '../item.service';
 
@@ -30,7 +35,14 @@ const BLUR_HIDE_DELAY_MS = 150;
   styleUrls: ['./item-autocomplete.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonInput,
+    IonItem,
+    IonLabel,
+    IonList,
+  ],
 })
 export class ItemAutocompleteComponent implements OnInit {
   private itemService = inject(ItemService);

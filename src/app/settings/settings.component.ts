@@ -1,6 +1,18 @@
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonTitle,
+  IonToolbar,
+  MenuController,
+} from '@ionic/angular';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { IonicModule, MenuController } from '@ionic/angular';
 
 @Component({
   selector: 'app-settings',
@@ -8,7 +20,19 @@ import { IonicModule, MenuController } from '@ionic/angular';
   styleUrls: ['settings.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, RouterModule],
+  imports: [
+    RouterModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonTitle,
+    IonToolbar,
+  ],
 })
 export class SettingsComponent {
   private router = inject(Router);

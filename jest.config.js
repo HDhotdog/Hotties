@@ -1,6 +1,9 @@
 module.exports = {
   preset: 'jest-preset-angular',
   modulePaths: ['<rootDir>'],
+  moduleNameMapper: {
+    '^ionicons/components/ion-icon\\.js$': '<rootDir>/node_modules/ionicons/components/ion-icon.js',
+  },
   setupFilesAfterEnv: ['<rootDir>/setup-jest.ts'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/dist/'],
   transformIgnorePatterns: [
