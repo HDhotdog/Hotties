@@ -27,10 +27,11 @@ import { Recipe } from './models/recipe.dto';
 import { Label, LabelGroup } from '../label/models/label.dto';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LabelService } from '../label/label-service.service';
-import { FridgeService } from '../fridge/fridge.service';
+import {StockService} from '../domain/stock.service';
+import {BaseUnit} from '../domain/quantity';
 
 import { FormsModule } from '@angular/forms';
-import { combineLatest, forkJoin, map, Observable } from 'rxjs';
+import { combineLatest, forkJoin, map, Observable, firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 import {
   filterRecipes,
@@ -41,6 +42,7 @@ import {
 export interface IngredientAvailability {
   total: number;
   available: number;
+  unknown: number;
 }
 
 @Component({
@@ -73,7 +75,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   labelService = inject(LabelService);
   private menuController = inject(MenuController);
-  private fridgeService = inject(FridgeService);
+  private stock = inject(StockService);
   private cdr = inject(ChangeDetectorRef);
 
   private _recipes: Recipe[] = [];
@@ -97,9 +99,9 @@ export class RecipeComponent implements OnInit, OnDestroy {
     const labelsObs: Observable<Label[]> = this.labelService.getAllLabels();
     const labelGroupsObs: Observable<LabelGroup[]> =
       this.labelService.getAllLabelGroups();
-    const fridgeItemsObs = this.fridgeService.findAll();
-    combineLatest([recipesObs, labelsObs, labelGroupsObs, fridgeItemsObs]).subscribe(
-      ([recipes, labels, labelGroups, fridgeItems]) => {
+    const stockObs = this.stock.observe();
+    combineLatest([recipesObs, labelsObs, labelGroupsObs, stockObs]).subscribe(
+      ([recipes, labels, labelGroups]) => {
         this._recipes = recipes;
         this._labels = labels;
         this._labelGroups = labelGroups;
@@ -107,12 +109,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
         this.loadImages(recipes);
 
-        const fridgeItemIds = new Set(
-          fridgeItems
-            .filter((item) => item.quantity > 0 && item.itemId)
-            .map((item) => item.itemId!)
-        );
-        this.loadIngredientAvailability(recipes, fridgeItemIds);
+        void this.loadIngredientAvailability(recipes);
       }
     );
   }
@@ -161,38 +158,31 @@ export class RecipeComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * For each recipe, counts its distinct ingredients and how many of them
-   * are currently stocked in the fridge (matched by itemId), so the list can
-   * show e.g. "7/9 available" without the user opening the recipe.
+   * Only sufficient measured stock counts as available. Unknown conversions
+   * never claim an ingredient is ready.
    */
-  private loadIngredientAvailability(recipes: Recipe[], fridgeItemIds: Set<string>): void {
+  private async loadIngredientAvailability(recipes: Recipe[]): Promise<void> {
     if (recipes.length === 0) {
       this.ingredientAvailability = new Map();
       this.cdr.markForCheck();
       return;
     }
 
-    forkJoin(
-      recipes.map((recipe) =>
-        // take(1): getIngredients() is a live query that never completes, but
-        // this is just a one-off snapshot to compute the list preview's counts.
-        this.recipeService.getIngredients(recipe.id).pipe(
-          take(1),
-          map((ingredients) => ({
-            id: recipe.id,
-            total: ingredients.length,
-            available: ingredients.filter(
-              (ingredient) => ingredient.itemId && fridgeItemIds.has(ingredient.itemId)
-            ).length,
-          }))
-        )
-      )
-    ).subscribe((results) => {
+    const results = await Promise.all(recipes.map(async recipe => {
+      const ingredients = await firstValueFrom(this.recipeService.getIngredients(recipe.id).pipe(take(1)));
+      const statuses = await Promise.all(ingredients.map(ingredient => ingredient.targetNodeId
+        ? this.stock.availability(ingredient.targetNodeId, {amount: ingredient.amount, unit: ingredient.unit as BaseUnit})
+        : Promise.resolve({status: 'unknown' as const})));
+      return {id: recipe.id, total: ingredients.length,
+        available: statuses.filter(status => status.status === 'enough').length,
+        unknown: statuses.filter(status => status.status === 'unknown').length};
+    }));
+    {
       const availability = new Map<string, IngredientAvailability>();
-      results.forEach(({ id, total, available }) => availability.set(id, { total, available }));
+      results.forEach(({ id, total, available, unknown }) => availability.set(id, { total, available, unknown }));
       this.ingredientAvailability = availability;
       this.cdr.markForCheck();
-    });
+    }
   }
 
   public ingredientAvailabilityFor(recipeId: string): IngredientAvailability | undefined {

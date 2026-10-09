@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TodoComponent } from './todo.component';
 import { ScanProductComponent } from '../scanner/scan-product.component';
+import {ShoppingPageComponent} from '../domain/shopping-page.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: TodoComponent,
+    component: ShoppingPageComponent,
   },
   { path: 'scan', component: ScanProductComponent }
 ];

@@ -1,20 +1,19 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ItemComponent } from './item.component';
-import { AddItemComponent } from './add-item/add-item.component';
+import {CatalogPageComponent} from '../domain/catalog-page.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: ItemComponent,
+    component: CatalogPageComponent,
   },
   {
     path: 'new',
-    component: AddItemComponent
+    component: CatalogPageComponent
   },
   {
     path: 'edit/:id',
-    component: AddItemComponent
+    component: CatalogPageComponent
   }
 ];
 

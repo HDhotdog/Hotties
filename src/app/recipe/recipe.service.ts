@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { RecipeRepository } from './recipe.repository';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { IngredientService } from '../ingredients/ingredient.service';
 import { Ingredient } from '../ingredients/ingredient.dto';
 import { Recipe } from './models/recipe.dto';
@@ -28,11 +28,13 @@ export class RecipeService {
   }
 
   public deleteAll(): Observable<number> {
-    return this.recipeRepository.deleteAll();
+    return this.recipeRepository.deleteAll().pipe(switchMap(count =>
+      this.ingredientService.deleteAll().pipe(map(() => count))));
   }
 
   public deleteById(id: string): Observable<boolean> {
-    return this.recipeRepository.deleteById(id);
+    return this.recipeRepository.deleteById(id).pipe(switchMap(deleted =>
+      deleted ? this.ingredientService.deleteForRecipe(id).pipe(map(() => true)) : of(false)));
   }
 
   public getImageUrl(id: string): Observable<string | null> {

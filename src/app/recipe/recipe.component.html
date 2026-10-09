@@ -85,8 +85,8 @@
                   {{availability.total}} ingredient{{availability.total === 1 ? '' : 's'}}
                 </span>
                 @if (availability.total > 0) {
-                  <span class="recipe-preview-availability" [class.fully-available]="availability.available === availability.total">
-                    {{availability.available}}/{{availability.total}} available
+                  <span class="recipe-preview-availability" [class.fully-available]="availability.available === availability.total && availability.unknown === 0">
+                    {{availability.available}}/{{availability.total}} available@if (availability.unknown > 0) { · {{availability.unknown}} unknown }
                   </span>
                 }
               </div>
@@ -102,4 +102,3 @@
     </div>
   </ion-content>
 </div>
-

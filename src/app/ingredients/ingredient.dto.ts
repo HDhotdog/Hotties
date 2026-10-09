@@ -1,4 +1,5 @@
 import {AmountUnit} from '../shared/amount-unit.enum';
+import {QuantityUnit} from '../domain/quantity';
 
 /** UI-facing ingredient model, distinct from the RxDB document shape (`RxIngredient`). */
 export interface Ingredient {
@@ -6,8 +7,9 @@ export interface Ingredient {
   recipeId: string;
   name: string;
   itemId?: string | null;
+  targetNodeId?: string;
   /** How much of `unit` this recipe needs - recipe-specific, independent of the linked item's own package amount. */
   amount: number;
   /** Snapshot of the linked item's unit at the time it was added, so display doesn't need a join. */
-  unit: AmountUnit;
+  unit: AmountUnit | QuantityUnit;
 }

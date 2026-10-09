@@ -1,5 +1,7 @@
 # Shared Item Entity — Design Plan
 
+> Historical plan. The active catalog and quantity model is documented in [SHARED-CATALOG.md](SHARED-CATALOG.md).
+
 ## Goal
 
 Today, "things you buy/store/cook with" are represented three separate times:

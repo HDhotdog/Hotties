@@ -1,5 +1,7 @@
 # Hotties — Technical Documentation
 
+> Historical architecture snapshot. The active shopping, catalog, stock, scan, and ingredient model is described in [SHARED-CATALOG.md](SHARED-CATALOG.md).
+
 Personal Ionic/Angular mobile app for managing cooking recipes and a categorized shopping list. All data is stored locally; no backend is planned.
 
 ## Tech Stack

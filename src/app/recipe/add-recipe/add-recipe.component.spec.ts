@@ -6,7 +6,8 @@ import { of } from 'rxjs';
 import { NgxImageCompressService } from 'ngx-image-compress';
 import { RecipeService } from '../recipe.service';
 import { LabelService } from '../../label/label-service.service';
-import { ItemService } from '../../item/item.service';
+import {CatalogService} from '../../domain/catalog.service';
+import {CatalogNode} from '../../domain/catalog.model';
 
 import { AddRecipeComponent } from './add-recipe.component';
 
@@ -24,7 +25,7 @@ describe('AddRecipeComponent', () => {
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {get: () => null}}}},
         {provide: LabelService, useValue: {getTemplateLabels: () => of([]), getLabelsForRecipe: () => of([])}},
         {provide: NgxImageCompressService, useValue: {}},
-        {provide: ItemService, useValue: {findAll: () => of([])}}
+        {provide: CatalogService, useValue: {observe: () => of([])}}
       ]
     }).compileComponents();
 
@@ -35,6 +36,19 @@ describe('AddRecipeComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('keeps the recipe quantity independent of a selected product package', () => {
+    const product: CatalogNode = {id: 'carton', parentId: 'milk', kind: 'product', name: 'Brand milk',
+      brand: 'Brand', barcodes: [], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'ml',
+      variableUnit: null, rawPackage: '1 l'};
+    component.ingredientModalMode = 'existing';
+    component.selectExistingItem(product);
+    component.ingredientAmount = 200;
+    component.newItemUnit = 'ml';
+    (component as any).scheduleAutoSave = jest.fn();
+    component.confirmAddIngredient();
+    expect(component.ingredients[0]).toMatchObject({targetNodeId: 'carton', amount: 200, unit: 'ml'});
   });
 
   describe('uploadFile()', () => {

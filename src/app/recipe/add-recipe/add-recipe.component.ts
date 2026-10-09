@@ -41,10 +41,9 @@ import { NgxImageCompressService } from 'ngx-image-compress';
 import { combineLatest, forkJoin, of } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { cropImageToSquare, dataUrlToBlob } from '../../database/attachment-utils';
-import { Item } from '../../item/models/item.dto';
-import { ItemService } from '../../item/item.service';
-import { AmountUnit } from '../../shared/amount-unit.enum';
-import { ItemType } from '../../todo/item-type.enum';
+import {CatalogNode} from '../../domain/catalog.model';
+import {CatalogService} from '../../domain/catalog.service';
+import {QuantityUnit} from '../../domain/quantity';
 
 const AUTO_SAVE_DELAY_MS = 500;
 const SAVE_PULSE_DURATION_MS = 300;
@@ -94,7 +93,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private labelService = inject(LabelService);
   private imageCompress = inject(NgxImageCompressService);
-  private itemService = inject(ItemService);
+  private catalog = inject(CatalogService);
   private cdr = inject(ChangeDetectorRef);
 
   public readonly hourOptions: number[] = Array.from(
@@ -102,7 +101,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
     (_, i) => i
   );
   public readonly minuteOptions: number[] = Array.from({ length: 60 }, (_, i) => i);
-  public readonly amountUnits: AmountUnit[] = Object.values(AmountUnit);
+  public readonly amountUnits: QuantityUnit[] = ['g', 'kg', 'ml', 'l', 'piece', 'bunch', 'pinch'];
 
   private _name: string = '';
   private _description: string = '';
@@ -111,12 +110,12 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   private _prepTime: number = 0;
   private _pickerHours: number = 0;
   private _pickerMinutes: number = 0;
-  private _allItems: Item[] = [];
+  private _allItems: CatalogNode[] = [];
   private _ingredientModalMode: IngredientModalMode = 'existing';
   private _itemSearchQuery: string = '';
-  private _selectedExistingItem: Item | null = null;
+  private _selectedExistingItem: CatalogNode | null = null;
   private _newItemName: string = '';
-  private _newItemUnit: AmountUnit = AmountUnit.PIECE;
+  private _newItemUnit: QuantityUnit = 'piece';
   private _ingredientAmount: number = 1;
   private _ingredients: Ingredient[] = [];
   private _recipe: Recipe = {} as Recipe;
@@ -137,7 +136,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   private pulseTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
-    this.itemService.findAll().subscribe((items) => {
+    this.catalog.observe().subscribe((items) => {
       this._allItems = items;
       this.cdr.markForCheck();
     });
@@ -349,11 +348,11 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
     this._itemSearchQuery = '';
     this._selectedExistingItem = null;
     this._newItemName = '';
-    this._newItemUnit = AmountUnit.PIECE;
+    this._newItemUnit = 'piece';
     this._ingredientAmount = 1;
   }
 
-  public selectExistingItem(item: Item): void {
+  public selectExistingItem(item: CatalogNode): void {
     this._selectedExistingItem = item;
   }
 
@@ -367,10 +366,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Adds the ingredient picked/created in the modal. An existing item is
-   * linked as-is; a new item is persisted to the shared `items` collection
-   * first (so it's immediately available elsewhere - fridge, shopping list,
-   * other recipes) and then linked the same way.
+   * A recipe requirement may target a category or an exact product.
    */
   public confirmAddIngredient(): void {
     if (!this.canConfirmIngredient()) {
@@ -382,25 +378,17 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
       }
       return;
     }
-    const newItem: Item = {
-      id: uuidv4(),
-      name: this._newItemName.trim(),
-      price: null,
-      unit: this._newItemUnit,
-      amount: 1,
-      type: ItemType.FOOD,
-    };
-    this.itemService.save(newItem).subscribe((savedItem) => this.pushIngredient(savedItem));
+    void this.catalog.findOrCreateClass(this._newItemName.trim()).then(node => this.pushIngredient(node));
   }
 
-  private pushIngredient(item: Item): void {
+  private pushIngredient(item: CatalogNode): void {
     this._ingredients.push({
       id: uuidv4(),
       recipeId: this._recipe.id,
-      itemId: item.id,
+      targetNodeId: item.id,
       name: item.name,
       amount: this._ingredientAmount,
-      unit: item.unit,
+      unit: this._newItemUnit,
     });
     this.cdr.markForCheck();
     this.scheduleAutoSave();
@@ -603,15 +591,16 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
     this._selectedExistingItem = null;
   }
 
-  get filteredItems(): Item[] {
+  get filteredItems(): CatalogNode[] {
     const normalized = this._itemSearchQuery.trim().toLowerCase();
     const items = normalized
       ? this._allItems.filter((item) => item.name.toLowerCase().includes(normalized))
       : this._allItems;
-    return items.slice(0, MAX_ITEM_SUGGESTIONS);
+    return items.filter(item => item.parentId !== null &&
+      this.catalog.matches('root-food', item.id, this._allItems)).slice(0, MAX_ITEM_SUGGESTIONS);
   }
 
-  get selectedExistingItem(): Item | null {
+  get selectedExistingItem(): CatalogNode | null {
     return this._selectedExistingItem;
   }
 
@@ -623,11 +612,11 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
     this._newItemName = name;
   }
 
-  get newItemUnit(): AmountUnit {
+  get newItemUnit(): QuantityUnit {
     return this._newItemUnit;
   }
 
-  set newItemUnit(unit: AmountUnit) {
+  set newItemUnit(unit: QuantityUnit) {
     this._newItemUnit = unit;
   }
 

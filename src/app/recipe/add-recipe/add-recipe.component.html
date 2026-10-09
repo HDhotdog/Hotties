@@ -133,44 +133,37 @@
 
           <ion-segment [(ngModel)]="ingredientModalMode">
             <ion-segment-button value="existing">
-              <ion-label>Existing item</ion-label>
+              <ion-label>Category or product</ion-label>
             </ion-segment-button>
             <ion-segment-button value="new">
-              <ion-label>New item</ion-label>
+              <ion-label>New category</ion-label>
             </ion-segment-button>
           </ion-segment>
 
           <div class="ingredient-modal-body">
             @if (this.ingredientModalMode === 'existing') {
-              <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery" placeholder="Search items"></ion-input>
+              <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery" placeholder="Search food categories or products"></ion-input>
               <div class="item-suggestion-list">
                 @for (item of this.filteredItems; track item.id) {
                   <button type="button" class="item-suggestion" [class.selected]="this.selectedExistingItem?.id === item.id"
                     (click)="selectExistingItem(item)">
                     <span>{{item.name}}</span>
-                    <span class="item-suggestion-unit">{{item.unit}}</span>
+                    <span class="item-suggestion-unit">{{item.kind === 'class' ? 'Any product in category' : 'Exact product'}}</span>
                   </button>
                 } @empty {
-                  <p class="no-items-hint">No matching items. Switch to "New item" to create one.</p>
+                  <p class="no-items-hint">No matching catalog nodes. Create a new food category.</p>
                 }
               </div>
             } @else {
-              <ion-input class="item-search-input" [(ngModel)]="newItemName" placeholder="New item name"></ion-input>
-              <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" placeholder="Unit">
-                @for (unit of this.amountUnits; track unit) {
-                  <ion-select-option [value]="unit">{{unit}}</ion-select-option>
-                }
-              </ion-select>
+              <ion-input class="item-search-input" [(ngModel)]="newItemName" placeholder="New food category"></ion-input>
             }
 
             <div class="ingredient-amount-row">
               <span class="subtle-label">Amount</span>
               <ion-input type="number" min="0" [(ngModel)]="ingredientAmount"></ion-input>
-              @if (this.ingredientModalMode === 'existing' && this.selectedExistingItem) {
-                <span class="ingredient-amount-unit">{{ this.selectedExistingItem.unit }}</span>
-              } @else if (this.ingredientModalMode === 'new') {
-                <span class="ingredient-amount-unit">{{ this.newItemUnit }}</span>
-              }
+              <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" placeholder="Unit">
+                @for (unit of this.amountUnits; track unit) { <ion-select-option [value]="unit">{{unit}}</ion-select-option> }
+              </ion-select>
             </div>
           </div>
         </div>

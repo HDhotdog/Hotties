@@ -17,8 +17,36 @@ describe('createHottiesDatabase() seeding', () => {
     db = await createHottiesDatabase(getRxStorageMemory(), `test-db-${uuidv4()}`);
 
     expect(Object.keys(db.collections).sort()).toEqual([
-      'categories', 'fridge_items', 'ingredients', 'items', 'label_groups', 'labels', 'recipes', 'settings', 'suggestions', 'todos'
+      'catalog_nodes', 'categories', 'fridge_items', 'ingredients', 'items', 'label_groups', 'labels',
+      'recipe_ingredients', 'recipes', 'settings', 'shopping_entries', 'stock_lots', 'suggestions', 'todos'
     ].sort());
+  });
+
+  it('creates only the active entity collections for the app', async () => {
+    db = await createHottiesDatabase(getRxStorageMemory(), `test-db-${uuidv4()}`, false);
+    expect(Object.keys(db.collections).sort()).toEqual([
+      'catalog_nodes', 'categories', 'label_groups', 'labels', 'recipe_ingredients', 'recipes',
+      'settings', 'shopping_entries', 'stock_lots', 'suggestions'
+    ].sort());
+  });
+
+  it('keeps catalog and stock records after reopening the new database', async () => {
+    const storage = getRxStorageMemory();
+    const name = `test-db-${uuidv4()}`;
+    db = await createHottiesDatabase(storage, name, false);
+    await db['catalog_nodes'].upsert({id: 'milk', parentId: 'root-food', kind: 'class', name: 'Milk',
+      brand: null, barcodes: [], saleKind: 'unknown', packageAmount: null, packageUnit: null,
+      variableUnit: null, rawPackage: null});
+    await db['catalog_nodes'].upsert({id: 'carton', parentId: 'milk', kind: 'product', name: 'Milk carton',
+      brand: null, barcodes: ['1234567890123'], saleKind: 'fixed', packageAmount: 1000,
+      packageUnit: 'ml', variableUnit: null, rawPackage: '1 l'});
+    await db['stock_lots'].upsert({id: 'lot', productId: 'carton', acquiredPackages: 1,
+      acquiredAmount: 1000, acquiredUnit: 'ml', remainingAmount: 550, expiryDate: null,
+      allocations: [], createdAt: 1});
+    await db.close();
+    db = await createHottiesDatabase(storage, name, false);
+    expect((await db['catalog_nodes'].findOne('carton').exec())?.toJSON()).toMatchObject({parentId: 'milk'});
+    expect((await db['stock_lots'].findOne('lot').exec())?.toJSON()).toMatchObject({remainingAmount: 550});
   });
 
   it('seeds exactly one default "Edeka" category on first init', async () => {

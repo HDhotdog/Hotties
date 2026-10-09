@@ -1,50 +1,31 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="backToShopping()" aria-label="Back to shopping list">
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>Scan product</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <main class="scan-content">
-    <p>Scan a food barcode to look up its details and add one item to your fridge.</p>
-
-    @if (state === 'scanning') {
-      <p role="status">Opening camera…</p>
-    } @else if (state === 'looking-up') {
-      <p role="status"><ion-spinner aria-hidden="true"></ion-spinner> Looking up product…</p>
-    } @else if (state === 'saving') {
-      <p role="status"><ion-spinner aria-hidden="true"></ion-spinner> Saving to fridge…</p>
-    }
-
-    @if (errorMessage) {
-      <p class="message error" role="alert">{{ errorMessage }}</p>
-      <ion-button expand="block" fill="outline" (click)="addManually()">Add item manually</ion-button>
-    }
-    @if (savedName) {
-      <div class="message success" role="status">
-        <strong>{{ savedName }}</strong> was added to your fridge.
-      </div>
-      <ion-button expand="block" (click)="viewFridge()">View fridge</ion-button>
-    }
-
-    @if (nativeScanner) {
-      <ion-button expand="block" [disabled]="state !== 'idle'" (click)="scan()">
-        <ion-icon slot="start" name="scan-outline"></ion-icon>
-        {{ savedName ? 'Scan another product' : 'Open camera' }}
-      </ion-button>
-    }
-
-    <ion-input label="Barcode" labelPlacement="stacked" type="text" inputmode="numeric"
-      autocomplete="off" maxlength="14" placeholder="Enter barcode manually"
-      [(ngModel)]="barcodeInput" [disabled]="state !== 'idle'"
-      (keyup.enter)="addBarcode(barcodeInput)"></ion-input>
-    <ion-button expand="block" fill="outline" [disabled]="state !== 'idle' || !barcodeInput.trim()"
-      (click)="addBarcode(barcodeInput)">Look up barcode</ion-button>
-    <p class="attribution">Product data from Open Food Facts. An internet connection is needed for new barcodes.</p>
-  </main>
-</ion-content>
+<ion-header><ion-toolbar><ion-buttons slot="start"><ion-button (click)="backToShopping()" aria-label="Back to shopping list"><ion-icon name="arrow-back"></ion-icon></ion-button></ion-buttons><ion-title>Scan acquired products</ion-title></ion-toolbar></ion-header>
+<ion-content class="ion-padding"><main class="scan-content">
+  <p>Each scan adds one purchased package to stock. Matching shopping needs are cleared when their required amount is covered.</p>
+  @if (state === 'scanning') { <p role="status">Opening camera…</p> }
+  @else if (state === 'looking-up') { <p role="status"><ion-spinner aria-hidden="true"></ion-spinner> Looking up product…</p> }
+  @else if (state === 'saving') { <p role="status"><ion-spinner aria-hidden="true"></ion-spinner> Saving product…</p> }
+  @if (errorMessage) { <p class="message error" role="alert">{{errorMessage}}</p> }
+  @if (savedName) { <p class="message success" role="status">{{savedName}} added to stock.</p><ion-button expand="block" (click)="viewFridge()">View stock</ion-button> }
+  @if (pendingProduct) {
+    <section>
+      <h2>Confirm new product</h2>
+      <p><strong>{{pendingProduct.name}}</strong> · {{pendingProduct.brand ?? 'Unbranded'}}</p>
+      <p>Original package label: {{pendingProduct.packageQuantity ?? 'Unknown'}}</p>
+      <label>Category <select [(ngModel)]="selectedClassId"><option value="">Create a new category below</option>
+        @for (node of classes; track node.id) { <option [value]="node.id">{{node.name}}</option> }</select></label>
+      @if (!selectedClassId) { <label>New food category <input [(ngModel)]="newClassName" placeholder="Milk"></label> }
+      <label>Package details <select [(ngModel)]="saleKind"><option value="fixed">Fixed content</option><option value="unknown">Unknown content</option></select></label>
+      @if (saleKind === 'fixed') {
+        <label>Amount <input type="number" min="0.001" step="any" [(ngModel)]="packageAmount"></label>
+        <label>Unit <select [(ngModel)]="packageUnit">@for (unit of units; track unit) { <option [value]="unit">{{unit}}</option> }</select></label>
+      }
+      <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmProduct()">Confirm and add to stock</ion-button>
+    </section>
+  } @else {
+    @if (nativeScanner) { <ion-button expand="block" [disabled]="state !== 'idle'" (click)="scan()"><ion-icon slot="start" name="scan-outline"></ion-icon>Open camera</ion-button> }
+    <ion-input label="Barcode" labelPlacement="stacked" inputmode="numeric" maxlength="14" [(ngModel)]="barcodeInput" [disabled]="state !== 'idle'" (keyup.enter)="addBarcode(barcodeInput)"></ion-input>
+    <ion-button expand="block" fill="outline" [disabled]="state !== 'idle' || !barcodeInput.trim()" (click)="addBarcode(barcodeInput)">Look up barcode</ion-button>
+    <ion-button expand="block" fill="clear" (click)="addManually()">Manage products manually</ion-button>
+  }
+  <p class="attribution">New barcode details from Open Food Facts; locally saved products work offline.</p>
+</main></ion-content>

@@ -2,19 +2,18 @@
 
 A personal offline-first mobile app for managing cooking recipes and a categorized shopping list. Built with **Ionic Angular** and packaged for Android/iOS with **Capacitor**.
 
+Shopping, recipes, scanning, and stock now share a [catalog tree and quantity model](docs/SHARED-CATALOG.md): generic categories such as milk can match specific barcode products, while package sizes remain separate from recipe requirements.
+
 > *"Hot cooking for hot people!"*
 
 ## Features
 
 ### Shopping List
-- Scan a food barcode from the shopping list to add its product to the fridge (installed mobile app; internet required for uncached products)
-- Create and manage shopping items per **category** (e.g. different supermarkets)
-- Switch between categories with persistent selection
-- Set item **priority/importance** with color-coded indicators (low → very high)
-- Autocomplete **suggestions** per category with playful random placeholders
-- Sort items alphabetically (ascending/descending)
-- Clear all items or tap to complete (remove) individual items
-- New typed items can be saved as future suggestions (per category setting)
+- Create product or class needs with measured quantities, exact package counts, or no specified amount
+- Keep text errands alongside product needs and organize lists by store
+- Check entries to strike them through and move them below active entries
+- Scan purchased products after shopping; matching needs clear once their quantities are covered
+- Keep partial needs visible and show package suggestions for a chosen product
 
 ### Recipes
 - Create, view, edit, and delete recipes
@@ -22,7 +21,7 @@ A personal offline-first mobile app for managing cooking recipes and a categoriz
 - Scrollable recipe list with search bar
 - Filter by **label groups** (type, taste, custom) and preparation time
 - Assign multiple labels from configurable groups
-- Export recipe ingredients to the shopping list
+- Export recipe ingredients to the shopping list without changing measured amounts into package counts
 - Image upload and emoji picker (UI present; persistence in progress)
 
 ### Labels
@@ -42,8 +41,8 @@ A personal offline-first mobile app for managing cooking recipes and a categoriz
 |---|---|
 | **Framework** | Angular 19, Ionic 8 |
 | **Mobile** | Capacitor 7 (Android/iOS) |
-| **Database** | RxDB 16 (localStorage adapter) |
-| **Language** | TypeScript 5.7 |
+| **Database** | RxDB 17 (Dexie/IndexedDB storage) |
+| **Language** | TypeScript 6 |
 | **UI** | Ionic components, Angular Material (partial), SCSS |
 | **Testing** | Jasmine + Karma |
 | **Linting** | ESLint 9 |
@@ -125,7 +124,8 @@ versions. Recheck these overrides when `@capacitor/assets` updates.
 ```
 src/app/
 ├── database/          # RxDB setup, schemas, base repository
-├── todo/              # Shopping list
+├── domain/            # Catalog, quantities, shopping entries, stock lots, active screens
+├── todo/              # Shopping routing and legacy model
 ├── recipe/            # Recipes (list, add/edit, detail)
 ├── category/          # Shopping categories
 ├── label/             # Labels and label groups
@@ -141,29 +141,14 @@ docs/
 ## Documentation
 
 - **[Technical Documentation](docs/TECHNICAL.md)** — Architecture, data model, routing, build instructions, known issues
-- **[RxDB Migration Plan](docs/RXDB-MIGRATION.md)** — Current migration status (~75%) and step-by-step plan to finish
+- **[Shared Catalog](docs/SHARED-CATALOG.md)** — Current entity model and quantity rules
+- **[RxDB Migration Plan](docs/RXDB-MIGRATION.md)** — Historical migration notes
 - **[Roadmap](src/roadmap.md)** — Future features and technical debt
 - **[App Summary](src/summary.md)** — Original feature overview
 
-## Current State (July 2026)
+## Current State (October 2026)
 
-The app is mid-migration from **Capacitor Preferences** (JSON key-value storage) to **RxDB** (reactive local database). Capacitor itself remains for native mobile features.
-
-**What works:**
-- RxDB database with 8 normalized collections
-- Shopping list CRUD with categories and suggestions
-- Basic recipe CRUD
-- Label and label group management (database layer)
-
-**What needs finishing:**
-- Label TypeScript models accidentally broken in uncommitted changes
-- Recipe filtering, label display, and label settings UI have bugs
-- Ingredients not persisted when saving recipes
-- Recipe → shopping list export not wired
-- Legacy storage cleanup (`@ionic/storage`, Capacitor Preferences)
-- IndexedDB adapter for production (localStorage has size limits)
-
-See [docs/RXDB-MIGRATION.md](docs/RXDB-MIGRATION.md) for the full plan.
+The active shopping, stock, catalog, scanner, and recipe ingredient flows use RxDB with Dexie/IndexedDB storage. The new catalog starts in a fresh local database; old pre-release records are not copied. Legacy entity collections are present only in the test database, and their screens are no longer routed. See [Shared Catalog](docs/SHARED-CATALOG.md) for the current model.
 
 ## Design Principles
 

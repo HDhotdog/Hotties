@@ -1,64 +1,59 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { of } from 'rxjs';
-import { FridgeService } from '../fridge/fridge.service';
-import { ItemService } from '../item/item.service';
-import { AmountUnit } from '../shared/amount-unit.enum';
-import { ItemType } from '../todo/item-type.enum';
-import { OpenFoodFactsService, ProductLookupError } from './open-food-facts.service';
-import { ScanProductComponent } from './scan-product.component';
+import {provideIonicAngular} from '@ionic/angular';
+import {TestBed} from '@angular/core/testing';
+import {Router} from '@angular/router';
+import {of} from 'rxjs';
+import {CatalogService} from '../domain/catalog.service';
+import {StockService} from '../domain/stock.service';
+import {CategoryService} from '../category/category.service';
+import {OpenFoodFactsService, ProductLookupError} from './open-food-facts.service';
+import {ScanProductComponent} from './scan-product.component';
+import {CatalogNode} from '../domain/catalog.model';
 
 describe('ScanProductComponent', () => {
-  const product = {barcode: '1234567890123', name: 'Oat milk', brand: 'Oatly', packageQuantity: '1 l'};
-  const item = {id: 'item-1', price: null, unit: AmountUnit.PACKAGE, amount: 1,
-    type: ItemType.FOOD, ...product};
+  const found = {barcode: '1234567890123', name: 'Oat milk', brand: 'Brand', packageQuantity: '1 l'};
+  const product: CatalogNode = {id: 'product', parentId: 'milk', kind: 'product', name: found.name, brand: found.brand,
+    barcodes: [found.barcode], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'ml', variableUnit: null, rawPackage: found.packageQuantity};
   let component: ScanProductComponent;
-  let products: {getProduct: jest.Mock};
-  let items: {findByBarcode: jest.Mock; saveScannedProduct: jest.Mock};
-  let fridge: {save: jest.Mock};
+  let lookup: {getProduct: jest.Mock};
+  let catalog: {observe: jest.Mock; byBarcode: jest.Mock; suggestedClass: jest.Mock; productDraft: jest.Mock; save: jest.Mock; findOrCreateClass: jest.Mock};
+  let stock: {receive: jest.Mock};
 
   beforeEach(async () => {
-    products = {getProduct: jest.fn().mockResolvedValue(product)};
-    items = {findByBarcode: jest.fn().mockReturnValue(of(null)), saveScannedProduct: jest.fn().mockReturnValue(of(item))};
-    fridge = {save: jest.fn().mockReturnValue(of({id: 'fridge-1', name: item.name, amount: item.unit, quantity: 1, expiryDate: null}))};
-    await TestBed.configureTestingModule({
-      imports: [ScanProductComponent],
-      providers: [
-        provideIonicAngular(),
-        {provide: Router, useValue: {navigate: jest.fn()}},
-        {provide: OpenFoodFactsService, useValue: products},
-        {provide: ItemService, useValue: items},
-        {provide: FridgeService, useValue: fridge},
-      ],
-    }).compileComponents();
+    lookup = {getProduct: jest.fn().mockResolvedValue(found)};
+    catalog = {observe: jest.fn().mockReturnValue(of([])), byBarcode: jest.fn().mockResolvedValue(null),
+      suggestedClass: jest.fn().mockReturnValue(null), productDraft: jest.fn().mockReturnValue(product),
+      save: jest.fn().mockResolvedValue(undefined), findOrCreateClass: jest.fn().mockResolvedValue({id: 'milk'})};
+    stock = {receive: jest.fn().mockResolvedValue({id: 'lot'})};
+    await TestBed.configureTestingModule({imports: [ScanProductComponent], providers: [
+      provideIonicAngular(), {provide: Router, useValue: {navigate: jest.fn()}},
+      {provide: OpenFoodFactsService, useValue: lookup}, {provide: CatalogService, useValue: catalog},
+      {provide: StockService, useValue: stock}, {provide: CategoryService, useValue: {getSelectedCategoryId: () => of('list')}},
+    ]}).compileComponents();
     component = TestBed.createComponent(ScanProductComponent).componentInstance;
   });
 
-  it('stores a new scanned product in items and adds a linked fridge row', async () => {
-    await component.addBarcode(product.barcode);
-
-    expect(products.getProduct).toHaveBeenCalledWith(product.barcode);
-    expect(items.saveScannedProduct).toHaveBeenCalledWith(product);
-    expect(fridge.save).toHaveBeenCalledWith(expect.objectContaining({
-      itemId: item.id, name: item.name, quantity: 1, expiryDate: null,
-    }));
-    expect(component.savedName).toBe(item.name);
+  it('confirms a new product before adding stock', async () => {
+    await component.addBarcode(found.barcode);
+    expect(component.pendingProduct).toEqual(found);
+    expect(stock.receive).not.toHaveBeenCalled();
+    component.selectedClassId = 'milk';
+    await component.confirmProduct();
+    expect(catalog.save).toHaveBeenCalledWith(product);
+    expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({shoppingListId: 'list', scanId: expect.any(String)}));
+    expect(component.savedName).toBe(found.name);
   });
 
-  it('uses a locally cached item without another API request', async () => {
-    items.findByBarcode.mockReturnValue(of(item));
-    await component.addBarcode(product.barcode);
-
-    expect(products.getProduct).not.toHaveBeenCalled();
-    expect(fridge.save).toHaveBeenCalled();
+  it('uses a locally saved product without another lookup', async () => {
+    catalog.byBarcode.mockResolvedValue(product);
+    await component.addBarcode(found.barcode);
+    expect(lookup.getProduct).not.toHaveBeenCalled();
+    expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({shoppingListId: 'list', scanId: expect.any(String)}));
   });
 
-  it('does not create a fridge row when the lookup fails', async () => {
-    products.getProduct.mockRejectedValue(new ProductLookupError('not-found', 'Not found'));
-    await component.addBarcode(product.barcode);
-
-    expect(fridge.save).not.toHaveBeenCalled();
+  it('does not create stock when lookup fails', async () => {
+    lookup.getProduct.mockRejectedValue(new ProductLookupError('not-found', 'Not found'));
+    await component.addBarcode(found.barcode);
+    expect(stock.receive).not.toHaveBeenCalled();
     expect(component.errorMessage).toBe('Not found');
   });
 });

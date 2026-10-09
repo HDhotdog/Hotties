@@ -5,7 +5,7 @@ import {of} from 'rxjs';
 import {RecipeComponent} from './recipe.component';
 import {RecipeService} from './recipe.service';
 import {LabelService} from '../label/label-service.service';
-import {FridgeService} from '../fridge/fridge.service';
+import {StockService} from '../domain/stock.service';
 import {ActivatedRoute, Router} from '@angular/router';
 
 describe('RecipeComponent', () => {
@@ -29,8 +29,8 @@ describe('RecipeComponent', () => {
           },
         },
         {
-          provide: FridgeService,
-          useValue: {findAll: () => of([])},
+          provide: StockService,
+          useValue: {observe: () => of([])},
         },
         {
           provide: Router,
