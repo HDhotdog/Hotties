@@ -17,6 +17,7 @@ import {
   OnDestroy,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -37,7 +38,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   templateUrl: './add-item.component.html',
   styleUrls: ['./add-item.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -58,6 +59,7 @@ export class AddItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private itemService = inject(ItemService);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   public readonly amountUnits = Object.values(AmountUnit);
   public readonly itemTypes = Object.values(ItemType);
@@ -84,6 +86,7 @@ export class AddItemComponent implements OnInit, OnDestroy {
         this._unit = item.unit;
         this._amount = item.amount;
         this._type = item.type;
+        this.cdr.markForCheck();
       });
     } else {
       this._item = {
@@ -148,6 +151,7 @@ export class AddItemComponent implements OnInit, OnDestroy {
     this.itemService.save(item).subscribe(() => {
       this._item = item;
       this.setSaveStatus('saved');
+      this.cdr.markForCheck();
     });
   }
 
@@ -157,11 +161,13 @@ export class AddItemComponent implements OnInit, OnDestroy {
     }
     this._saveStatus = status;
     this._savePulse = true;
+    this.cdr.markForCheck();
     if (this.pulseTimer) {
       clearTimeout(this.pulseTimer);
     }
     this.pulseTimer = setTimeout(() => {
       this._savePulse = false;
+      this.cdr.markForCheck();
     }, SAVE_PULSE_DURATION_MS);
   }
 

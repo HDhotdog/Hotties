@@ -18,7 +18,7 @@ import {COMMIT_HASH, VERSION} from '../../../environments/version';
   templateUrl: './info.component.html',
   styleUrls: ['./info.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     IonButton,
     IonButtons,

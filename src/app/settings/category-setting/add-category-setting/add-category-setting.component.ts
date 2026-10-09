@@ -19,6 +19,7 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -32,7 +33,7 @@ import { Category } from '../../../category/category.dto';
   templateUrl: './add-category-setting.component.html',
   styleUrls: ['./add-category-setting.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -56,6 +57,7 @@ export class AddCategorySettingComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private toastCtrl = inject(ToastController);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   private _name: string = '';
   private _saveSuggestions: boolean = true;
@@ -78,6 +80,7 @@ export class AddCategorySettingComponent implements OnInit {
           this._categories = categories;
           this._name = category.name;
           this._saveSuggestions = category.saveSuggestions;
+          this.cdr.markForCheck();
         }
       );
     } else {
@@ -85,6 +88,7 @@ export class AddCategorySettingComponent implements OnInit {
         this._categories = categories;
         this._name = '';
         this._saveSuggestions = true;
+        this.cdr.markForCheck();
       });
     }
   }

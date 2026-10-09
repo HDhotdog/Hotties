@@ -12,6 +12,7 @@ import {
   Output,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,7 +35,7 @@ const BLUR_HIDE_DELAY_MS = 150;
   templateUrl: './item-autocomplete.component.html',
   styleUrls: ['./item-autocomplete.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -46,6 +47,7 @@ const BLUR_HIDE_DELAY_MS = 150;
 })
 export class ItemAutocompleteComponent implements OnInit {
   private itemService = inject(ItemService);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() value: string = '';
   @Input() placeholder: string = '';
@@ -63,6 +65,7 @@ export class ItemAutocompleteComponent implements OnInit {
   ngOnInit(): void {
     this.itemService.findAll().subscribe((items) => {
       this._items = items;
+      this.cdr.markForCheck();
     });
   }
 
@@ -80,6 +83,7 @@ export class ItemAutocompleteComponent implements OnInit {
     // Delayed so a click on a suggestion registers before the list hides.
     setTimeout(() => {
       this._showSuggestions = false;
+      this.cdr.markForCheck();
     }, BLUR_HIDE_DELAY_MS);
   }
 

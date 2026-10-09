@@ -13,7 +13,7 @@ import {
   IonToolbar,
   ItemReorderEventDetail,
 } from '@ionic/angular';
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CategoryService } from '../../category/category.service';
 import { Category } from '../../category/category.dto';
@@ -23,7 +23,7 @@ import { Category } from '../../category/category.dto';
   templateUrl: './category-setting.component.html',
   styleUrls: ['./category-setting.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterModule,
     IonButton,
@@ -44,12 +44,14 @@ export class CategorySettingComponent {
   private categoryService = inject(CategoryService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   private _categories: Category[] = [];
 
   async ionViewWillEnter() {
     this.categoryService.getCategories().subscribe((categories) => {
       this._categories = categories;
+      this.cdr.markForCheck();
     });
   }
 

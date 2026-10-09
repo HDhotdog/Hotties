@@ -16,6 +16,7 @@ import {
   OnDestroy,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
@@ -34,7 +35,7 @@ import { LabelService } from '../../label/label-service.service';
   templateUrl: './recipe-display.component.html',
   styleUrls: ['./recipe-display.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     RouterModule,
@@ -56,6 +57,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private labelService = inject(LabelService);
   private toastCtrl = inject(ToastController);
+  private cdr = inject(ChangeDetectorRef);
 
   private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
@@ -84,6 +86,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
             this.selectedCategoryId = this.categories[0].id;
           }
           this._isLoading = false;
+          this.cdr.markForCheck();
 
           if (this._imageUrl) {
             URL.revokeObjectURL(this._imageUrl);
@@ -91,6 +94,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
           }
           this.recipeService.getImageUrl(recipeId).subscribe((url) => {
             this._imageUrl = url;
+            this.cdr.markForCheck();
           });
         }
       );

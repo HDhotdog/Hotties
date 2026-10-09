@@ -16,6 +16,7 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CategoryService } from '../category/category.service';
 import { Suggestion } from './suggestion/suggestion.dto';
@@ -40,7 +41,7 @@ import { ItemAutocompleteComponent } from '../item/item-autocomplete/item-autoco
   templateUrl: 'todo.component.html',
   styleUrls: ['todo.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -64,6 +65,7 @@ export class TodoComponent implements OnInit {
   private suggestionService = inject(SuggestionService);
   private fridgeService = inject(FridgeService);
   private itemService = inject(ItemService);
+  private cdr = inject(ChangeDetectorRef);
 
   private _inputField: string = '';
   private _categoryInputField: string = '';
@@ -119,6 +121,7 @@ export class TodoComponent implements OnInit {
           suggestion: 'Cookies',
           suffix: '! :D',
         };
+        this.cdr.markForCheck();
         this.refreshTodos();
         this.refreshSuggestions();
       }
@@ -127,21 +130,25 @@ export class TodoComponent implements OnInit {
 
   public refreshTodos(): void {
     this._isLoading = true;
+    this.cdr.markForCheck();
     this.todoService
       .findByCategoryId(this.selectedCategory.id)
       .subscribe((tasks) => {
         this._tasks = tasks;
         this._isLoading = false;
+        this.cdr.markForCheck();
       });
   }
 
   public refreshSuggestions(): void {
     this._isLoading = true;
+    this.cdr.markForCheck();
     this.suggestionService
       .findByCategoryId(this.selectedCategory.id)
       .subscribe((suggestions) => {
         this._suggestions = suggestions;
         this._isLoading = false;
+        this.cdr.markForCheck();
       });
   }
 
@@ -216,6 +223,7 @@ export class TodoComponent implements OnInit {
         )
         .subscribe((suggestion) => {
           this._currentSuggestion = suggestion;
+          this.cdr.markForCheck();
         });
     } else {
       const suggestion =
@@ -231,6 +239,7 @@ export class TodoComponent implements OnInit {
         suggestion: suggestion.suggestion,
         suffix: suffix,
       };
+      this.cdr.markForCheck();
 
       this.refreshSuggestions();
     }

@@ -20,6 +20,7 @@ import {
   OnDestroy,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { RecipeService } from './recipe.service';
 import { Recipe } from './models/recipe.dto';
@@ -47,7 +48,7 @@ export interface IngredientAvailability {
   templateUrl: 'recipe.component.html',
   styleUrls: ['recipe.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     RouterModule,
@@ -73,6 +74,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   labelService = inject(LabelService);
   private menuController = inject(MenuController);
   private fridgeService = inject(FridgeService);
+  private cdr = inject(ChangeDetectorRef);
 
   private _recipes: Recipe[] = [];
   private _labels: Label[] = [];
@@ -102,6 +104,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
         this._labels = labels;
         this._labelGroups = labelGroups;
         this.filterRecipes();
+        this.cdr.markForCheck();
         this.loadImages(recipes);
 
         const fridgeItemIds = new Set(
@@ -125,6 +128,8 @@ export class RecipeComponent implements OnInit, OnDestroy {
   private loadImages(recipes: Recipe[]): void {
     if (recipes.length === 0) {
       this.revokeImageUrls();
+      this.imageUrls = new Map();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -143,6 +148,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
         }
       });
       this.imageUrls = newImageUrls;
+      this.cdr.markForCheck();
     });
   }
 
@@ -162,6 +168,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   private loadIngredientAvailability(recipes: Recipe[], fridgeItemIds: Set<string>): void {
     if (recipes.length === 0) {
       this.ingredientAvailability = new Map();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -184,6 +191,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
       const availability = new Map<string, IngredientAvailability>();
       results.forEach(({ id, total, available }) => availability.set(id, { total, available }));
       this.ingredientAvailability = availability;
+      this.cdr.markForCheck();
     });
   }
 

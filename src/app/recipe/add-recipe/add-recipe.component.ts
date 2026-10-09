@@ -27,6 +27,7 @@ import {
   OnDestroy,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -60,7 +61,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   templateUrl: './add-recipe.component.html',
   styleUrls: ['./add-recipe.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -94,6 +95,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   private labelService = inject(LabelService);
   private imageCompress = inject(NgxImageCompressService);
   private itemService = inject(ItemService);
+  private cdr = inject(ChangeDetectorRef);
 
   public readonly hourOptions: number[] = Array.from(
     { length: HOURS_MAX + 1 },
@@ -137,6 +139,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.itemService.findAll().subscribe((items) => {
       this._allItems = items;
+      this.cdr.markForCheck();
     });
 
     const index = this.route.snapshot.paramMap.get('id');
@@ -178,6 +181,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
           )
           .map((template) => template.id);
         this._selectedEmoji = recipe.emoji ?? null;
+        this.cdr.markForCheck();
       });
       // take(1): image state is managed locally after the initial load
       // (uploadFile/deleteImage), so later live-query emissions - notably
@@ -185,6 +189,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
       this.recipeService.getImageUrl(index).pipe(take(1)).subscribe((url) => {
         this._imagePreviewUrl = url ?? '';
         this._imageSelected = !!url;
+        this.cdr.markForCheck();
       });
     } else {
       this.labelService.getTemplateLabels().subscribe((templateLabels) => {
@@ -196,6 +201,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
           preparationTime: this._prepTime,
           emoji: this._selectedEmoji,
         };
+        this.cdr.markForCheck();
       });
     }
   }
@@ -273,6 +279,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
         this._pendingImageBlob = null;
         this._imageRemoved = false;
         this.setSaveStatus('saved');
+        this.cdr.markForCheck();
         if (navigateAfter) {
           this.doNavigateBack();
         }
@@ -326,11 +333,13 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
     }
     this._saveStatus = status;
     this._savePulse = true;
+    this.cdr.markForCheck();
     if (this.pulseTimer) {
       clearTimeout(this.pulseTimer);
     }
     this.pulseTimer = setTimeout(() => {
       this._savePulse = false;
+      this.cdr.markForCheck();
     }, SAVE_PULSE_DURATION_MS);
   }
 
@@ -393,6 +402,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
       amount: this._ingredientAmount,
       unit: item.unit,
     });
+    this.cdr.markForCheck();
     this.scheduleAutoSave();
   }
 
@@ -442,6 +452,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
         this._imageRemoved = false;
         this._imageSelected = true;
         this.scheduleAutoSave();
+        this.cdr.markForCheck();
       });
     };
     this.imageCompress

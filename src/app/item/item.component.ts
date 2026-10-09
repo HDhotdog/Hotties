@@ -13,6 +13,7 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +32,7 @@ export interface ItemRow extends Item {
   templateUrl: 'item.component.html',
   styleUrls: ['item.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -50,6 +51,7 @@ export class ItemComponent implements OnInit {
   private itemService = inject(ItemService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   private _items: ItemRow[] = [];
   private _isLoading: boolean = true;
@@ -65,6 +67,7 @@ export class ItemComponent implements OnInit {
 
   public refreshItems(): void {
     this._isLoading = true;
+    this.cdr.markForCheck();
     this.itemService
       .findAll()
       .pipe(
@@ -82,6 +85,7 @@ export class ItemComponent implements OnInit {
       .subscribe((rows) => {
         this._items = rows;
         this._isLoading = false;
+        this.cdr.markForCheck();
       });
   }
 
@@ -106,6 +110,7 @@ export class ItemComponent implements OnInit {
       next: () => this.refreshItems(),
       error: (err) => {
         this._errorMessage = err?.message ?? 'Could not delete item.';
+        this.cdr.markForCheck();
       },
     });
   }

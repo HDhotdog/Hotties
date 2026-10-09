@@ -15,6 +15,7 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { SuggestionService } from '../../todo/suggestion/suggestion.service';
@@ -27,7 +28,7 @@ import { Suggestion } from '../../todo/suggestion/suggestion.dto';
   templateUrl: './suggestion-setting.component.html',
   styleUrls: ['./suggestion-setting.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     IonButton,
@@ -45,6 +46,7 @@ import { Suggestion } from '../../todo/suggestion/suggestion.dto';
 export class SuggestionSettingComponent implements OnInit {
   suggestionService = inject(SuggestionService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   private _suggestions: Suggestion[] = [];
 
@@ -57,6 +59,7 @@ export class SuggestionSettingComponent implements OnInit {
   ngOnInit(): void {
     this.suggestionService.findAll().subscribe((suggestions) => {
       this._suggestions = suggestions;
+      this.cdr.markForCheck();
     });
   }
 

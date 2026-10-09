@@ -21,6 +21,7 @@ import {
   OnDestroy,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -54,7 +55,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   templateUrl: './add-fridge-item.component.html',
   styleUrls: ['./add-fridge-item.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -80,6 +81,7 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private fridgeService = inject(FridgeService);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   public readonly amountUnits = Object.values(AmountUnit);
   public readonly monthOptions: PickerOption<number>[] = MONTH_NAMES.map((label, index) => ({
@@ -128,6 +130,7 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
         this._amount = item.amount;
         this._quantity = item.quantity;
         this._expiryDate = item.expiryDate;
+        this.cdr.markForCheck();
       });
     } else {
       this._item = {
@@ -256,6 +259,7 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
     this.fridgeService.save(item).subscribe(() => {
       this._item = item;
       this.setSaveStatus('saved');
+      this.cdr.markForCheck();
     });
   }
 
@@ -265,11 +269,13 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
     }
     this._saveStatus = status;
     this._savePulse = true;
+    this.cdr.markForCheck();
     if (this.pulseTimer) {
       clearTimeout(this.pulseTimer);
     }
     this.pulseTimer = setTimeout(() => {
       this._savePulse = false;
+      this.cdr.markForCheck();
     }, SAVE_PULSE_DURATION_MS);
   }
 

@@ -19,6 +19,7 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 
 import { Label, LabelGroup } from '../../label/models/label.dto';
@@ -34,7 +35,7 @@ import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter'
   templateUrl: './label-setting.component.html',
   styleUrls: ['./label-setting.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     IonButton,
@@ -56,6 +57,7 @@ import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter'
 export class LabelSettingComponent implements OnInit {
   private router = inject(Router);
   private labelService = inject(LabelService);
+  private cdr = inject(ChangeDetectorRef);
 
   private _newGroupName: string = '';
   private _selectedGroup: LabelGroup | null = null;
@@ -73,6 +75,7 @@ export class LabelSettingComponent implements OnInit {
     ]).subscribe(([labelGroups, labels]) => {
       this._labelGroups = labelGroups;
       this._labels = labels;
+      this.cdr.markForCheck();
     });
   }
 

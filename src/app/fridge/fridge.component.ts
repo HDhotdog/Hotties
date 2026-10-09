@@ -13,6 +13,7 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -35,7 +36,7 @@ type SortBy = 'expiry' | 'alphabetical';
   templateUrl: 'fridge.component.html',
   styleUrls: ['fridge.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -56,6 +57,7 @@ export class FridgeComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   private _items: FridgeItem[] = [];
   private _isLoading: boolean = true;
@@ -80,6 +82,7 @@ export class FridgeComponent implements OnInit {
         categories.find((category) => category.id === selectedCategoryId) ??
         categories[0];
       this._reorderCategoryId = selected?.id ?? '';
+      this.cdr.markForCheck();
     });
   }
 
@@ -89,9 +92,11 @@ export class FridgeComponent implements OnInit {
 
   public refreshItems(): void {
     this._isLoading = true;
+    this.cdr.markForCheck();
     this.fridgeService.findAll().subscribe((items) => {
       this._items = this.sortItems(items);
       this._isLoading = false;
+      this.cdr.markForCheck();
     });
   }
 

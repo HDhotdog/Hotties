@@ -22,7 +22,7 @@ import { Category } from '../../category/category.dto';
   templateUrl: './cache-setting.component.html',
   styleUrls: ['./cache-setting.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     IonButton,
     IonButtons,
