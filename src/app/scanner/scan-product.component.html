@@ -1,0 +1,50 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backToShopping()" aria-label="Back to shopping list">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Scan product</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <main class="scan-content">
+    <p>Scan a food barcode to look up its details and add one item to your fridge.</p>
+
+    @if (state === 'scanning') {
+      <p role="status">Opening camera…</p>
+    } @else if (state === 'looking-up') {
+      <p role="status"><ion-spinner aria-hidden="true"></ion-spinner> Looking up product…</p>
+    } @else if (state === 'saving') {
+      <p role="status"><ion-spinner aria-hidden="true"></ion-spinner> Saving to fridge…</p>
+    }
+
+    @if (errorMessage) {
+      <p class="message error" role="alert">{{ errorMessage }}</p>
+      <ion-button expand="block" fill="outline" (click)="addManually()">Add item manually</ion-button>
+    }
+    @if (savedName) {
+      <div class="message success" role="status">
+        <strong>{{ savedName }}</strong> was added to your fridge.
+      </div>
+      <ion-button expand="block" (click)="viewFridge()">View fridge</ion-button>
+    }
+
+    @if (nativeScanner) {
+      <ion-button expand="block" [disabled]="state !== 'idle'" (click)="scan()">
+        <ion-icon slot="start" name="scan-outline"></ion-icon>
+        {{ savedName ? 'Scan another product' : 'Open camera' }}
+      </ion-button>
+    }
+
+    <ion-input label="Barcode" labelPlacement="stacked" type="text" inputmode="numeric"
+      autocomplete="off" maxlength="14" placeholder="Enter barcode manually"
+      [(ngModel)]="barcodeInput" [disabled]="state !== 'idle'"
+      (keyup.enter)="addBarcode(barcodeInput)"></ion-input>
+    <ion-button expand="block" fill="outline" [disabled]="state !== 'idle' || !barcodeInput.trim()"
+      (click)="addBarcode(barcodeInput)">Look up barcode</ion-button>
+    <p class="attribution">Product data from Open Food Facts. An internet connection is needed for new barcodes.</p>
+  </main>
+</ion-content>

@@ -7,6 +7,7 @@ A personal offline-first mobile app for managing cooking recipes and a categoriz
 ## Features
 
 ### Shopping List
+- Scan a food barcode from the shopping list to add its product to the fridge (installed mobile app; internet required for uncached products)
 - Create and manage shopping items per **category** (e.g. different supermarkets)
 - Switch between categories with persistent selection
 - Set item **priority/importance** with color-coded indicators (low → very high)
@@ -70,9 +71,11 @@ npm test
 npm run lint
 ```
 
-The app opens at `http://localhost:8100` (Ionic default). All data is stored locally — no server or internet connection required.
+The app opens at `http://localhost:8100` (Ionic default). All data is stored locally. An internet connection is needed to look up a new scanned barcode in Open Food Facts.
 
 ## Building for Android
+
+On a fresh checkout, create the native project with `npx cap add android` first. The barcode scanner needs Android min SDK 26; `npm run export` configures the generated native project before syncing it. See [barcode scanning setup](docs/BARCODE-SCANNING.md).
 
 ```bash
 # Full pipeline: build → copy → sync → open Android Studio
@@ -82,7 +85,9 @@ npm run export
 Or step by step:
 
 ```bash
-ionic build
+npm run build
+npm run native:configure
+npm run native:assets
 ionic cap copy
 npx cap sync android
 ionic cap open android
@@ -90,17 +95,25 @@ ionic cap open android
 
 App ID: `io.ionic.hotties`
 
+### Install on a connected Android phone (Linux)
+
+Install the Android SDK and JDK 21, enable USB debugging on your phone, then run:
+
+```bash
+npm run android:install
+```
+
+The script builds the app and APK, then updates the app on the connected phone. It uses `ANDROID_HOME` or `ANDROID_SDK_ROOT` if set, otherwise `~/Android/Sdk`. Set `JAVA_HOME` if your default Java is not JDK 21. If more than one device is connected, set `ANDROID_SERIAL` to the target device ID shown by `adb devices`.
+
 ### App Icon
 
-The Android app icon is generated from `resources/icon.png` via `@capacitor/assets`. The `android/` folder is gitignored, so the generated `mipmap-*` icons live only on your local machine — once generated, they persist across normal builds (`npm run export`, `npm run android:install`) since those only sync web assets, not icons.
+The Android app icon is generated from `resources/icon.png` via `@capacitor/assets`. The `android/` folder is gitignored, so the generated `mipmap-*` icons live only on your local machine. Both `npm run export` and `npm run android:install` now regenerate them before building.
 
-You only need to regenerate the icon when:
-- You change `resources/icon.png`, or
-- The `android/` folder was deleted or freshly added (e.g. after a clean clone)
+If you build Android manually, regenerate assets after changing `resources/icon.png` or recreating the `android/` folder:
 
 ```bash
 npx cap add android          # only if android/ doesn't exist yet
-npx capacitor-assets generate --android
+npm run native:assets
 ```
 
 The `package.json` overrides keep `@capacitor/assets` on patched `sharp`, `tar`,

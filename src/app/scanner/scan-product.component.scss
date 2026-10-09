@@ -1,0 +1,28 @@
+.scan-content {
+  max-width: 36rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.scan-content > p { margin: 0; }
+
+.message {
+  padding: 0.9rem;
+  border-radius: 0.75rem;
+}
+
+.error {
+  color: var(--ion-color-danger-contrast);
+  background: var(--ion-color-danger);
+}
+
+.success {
+  color: var(--ion-color-success-contrast);
+  background: var(--ion-color-success);
+}
+
+.attribution {
+  color: var(--ion-color-medium-shade);
+  font-size: 0.875rem;
+}

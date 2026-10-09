@@ -68,4 +68,14 @@ describe('ItemService.findOrCreateByName (integration, in-memory RxDB)', () => {
     expect(second.id).toBe(first.id);
     expect((await firstValueFrom(itemService.findAll())).length).toBe(1);
   });
+
+  it('caches scanned product metadata by barcode in the shared items collection', async () => {
+    const product = {barcode: '1234567890123', name: 'Oat milk', brand: 'Oatly', packageQuantity: '1 l'};
+    const first = await firstValueFrom(itemService.saveScannedProduct(product));
+    const second = await firstValueFrom(itemService.saveScannedProduct(product));
+
+    expect(second.id).toBe(first.id);
+    expect(await firstValueFrom(itemService.findByBarcode(product.barcode))).toMatchObject(product);
+    expect((await firstValueFrom(itemService.findAll())).length).toBe(1);
+  });
 });

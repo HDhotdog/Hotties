@@ -35,6 +35,7 @@ import { ItemService } from '../item/item.service';
 import { AmountUnit } from '../shared/amount-unit.enum';
 import { combineLatest } from 'rxjs';
 import { ItemAutocompleteComponent } from '../item/item-autocomplete/item-autocomplete.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-todo',
@@ -66,6 +67,11 @@ export class TodoComponent implements OnInit {
   private fridgeService = inject(FridgeService);
   private itemService = inject(ItemService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+
+  public openScanner(): void {
+    void this.router.navigate(['/tabs/todo/scan']);
+  }
 
   private _inputField: string = '';
   private _categoryInputField: string = '';

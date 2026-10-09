@@ -314,3 +314,42 @@ describe('fridge item schema migration (v0 -> v1, adding quantity)', () => {
     });
   });
 });
+
+describe('item schema migration (v1 -> v2, barcode metadata)', () => {
+  let db: RxDatabase;
+
+  afterEach(async () => {
+    if (db) await db.close();
+  });
+
+  it('keeps existing items and initializes barcode metadata', async () => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    await oldDb.addCollections({
+      items: {
+        schema: {
+          version: 1, primaryKey: 'id', type: 'object',
+          properties: {
+            id: {type: 'string', maxLength: 255},
+            name: {type: 'string', minLength: 1, maxLength: 255},
+            price: {type: ['number', 'null']},
+            unit: {type: 'string'},
+            amount: {type: 'number'},
+            type: {type: 'string'},
+          },
+          required: ['id', 'name', 'unit', 'amount', 'type'],
+        },
+        migrationStrategies: {1: (oldDoc: any) => oldDoc},
+      },
+    });
+    await oldDb['items'].upsert({id: 'i1', name: 'Milk', price: null, unit: 'Stück', amount: 1, type: 'food'});
+    await oldDb.close();
+
+    db = await createHottiesDatabase(storage, dbName);
+    const migrated = await db['items'].findOne('i1').exec();
+    expect(migrated?.toJSON()).toMatchObject({
+      id: 'i1', name: 'Milk', barcode: null, brand: null, packageQuantity: null,
+    });
+  });
+});

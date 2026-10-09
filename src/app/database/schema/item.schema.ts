@@ -3,7 +3,7 @@ import {ItemType} from "../../todo/item-type.enum";
 
 export const ITEM_SCHEMA_LITERAL = {
   schema: {
-    version: 1,
+    version: 2,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -33,6 +33,9 @@ export const ITEM_SCHEMA_LITERAL = {
         type: 'string',
         default: ItemType.FOOD
       },
+      barcode: { type: ['string', 'null'], default: null },
+      brand: { type: ['string', 'null'], default: null },
+      packageQuantity: { type: ['string', 'null'], default: null },
     },
     required: ['id', 'name', 'unit', 'amount', 'type'],
   },
@@ -41,6 +44,12 @@ export const ITEM_SCHEMA_LITERAL = {
     // default to FOOD, the primary use case.
     1: (oldDoc: any) => {
       oldDoc.type = ItemType.FOOD;
+      return oldDoc;
+    },
+    2: (oldDoc: any) => {
+      oldDoc.barcode = null;
+      oldDoc.brand = null;
+      oldDoc.packageQuantity = null;
       return oldDoc;
     }
   }

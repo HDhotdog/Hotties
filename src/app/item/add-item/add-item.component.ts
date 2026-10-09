@@ -141,6 +141,7 @@ export class AddItemComponent implements OnInit, OnDestroy {
 
   private persist(): void {
     const item: Item = {
+      ...this._item,
       id: this._item.id,
       name: this._name,
       price: this._price,

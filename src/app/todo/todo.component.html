@@ -19,6 +19,9 @@
         </ion-row>
       </ion-grid>
       <ion-buttons slot="end">
+        <ion-button (click)="openScanner()" aria-label="Scan a product barcode">
+          <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+        </ion-button>
         <ion-button class="back-button" (click)="changeSort()">
           <ion-icon name="{{this.sortIncreasing ? 'arrow-up' : 'arrow-down'}}"></ion-icon>
         </ion-button>

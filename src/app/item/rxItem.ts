@@ -8,4 +8,7 @@ export interface RxItem {
   unit: AmountUnit;
   amount: number;
   type: ItemType;
+  barcode?: string | null;
+  brand?: string | null;
+  packageQuantity?: string | null;
 }

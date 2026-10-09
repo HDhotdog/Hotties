@@ -9,6 +9,7 @@ import { FridgeItemRepository } from '../fridge/fridge-item.repository';
 import { AmountUnit } from '../shared/amount-unit.enum';
 import { ItemType } from '../todo/item-type.enum';
 import { v4 as uuidv4 } from 'uuid';
+import { FoodProduct } from '../scanner/open-food-facts.service';
 
 @Injectable({
   providedIn: 'root',
@@ -29,6 +30,30 @@ export class ItemService {
 
   public findById(id: string): Observable<Item> {
     return this.itemRepository.findById(id).pipe(map(toItem));
+  }
+
+  /** A scanned product is cached in the shared items collection by barcode. */
+  public findByBarcode(barcode: string): Observable<Item | null> {
+    return this.itemRepository.findAllOnce().pipe(
+      map((docs) => docs.find((doc) => doc.barcode === barcode)),
+      map((doc) => doc ? toItem(doc) : null)
+    );
+  }
+
+  public saveScannedProduct(product: FoodProduct): Observable<Item> {
+    return this.findByBarcode(product.barcode).pipe(
+      switchMap((existing) => existing ? of(existing) : this.save({
+        id: uuidv4(),
+        name: product.name,
+        price: null,
+        unit: AmountUnit.PACKAGE,
+        amount: 1,
+        type: ItemType.FOOD,
+        barcode: product.barcode,
+        brand: product.brand,
+        packageQuantity: product.packageQuantity,
+      }))
+    );
   }
 
   /**
