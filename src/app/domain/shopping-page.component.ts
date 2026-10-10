@@ -132,7 +132,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
       return this.stock.suggestedPackages(this.selectedProduct, normalizeQuantity({
         amount: this.needAmount,
         unit: this.needUnit
-      }));
+      }), this.nodes);
     } catch {
       return null;
     }
@@ -154,8 +154,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   }
 
   public progress(entry: ShoppingEntry): number {
-    return this.lots.flatMap(lot => lot.allocations).filter(a => a.shoppingEntryId === entry.id &&
-      a.unit === (entry.needUnit ?? 'package')).reduce((sum, a) => sum + a.amount, 0);
+    return this.shopping.progressFrom(entry, this.lots);
   }
 
   public remainingLabel(entry: ShoppingEntry): string {
@@ -173,7 +172,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
     return this.stock.suggestedPackages(product, {
       amount: Math.max(0, (entry.needAmount ?? 0) - this.progress(entry)),
       unit: entry.needUnit
-    });
+    }, this.nodes);
   }
 
   public inputChanged(value: string): void {

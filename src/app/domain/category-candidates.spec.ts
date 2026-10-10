@@ -8,7 +8,7 @@ describe('local food category candidates', () => {
     const croissant: CatalogNode = {
       id: 'croissant', parentId: 'bakery', kind: 'product', name: 'Croissant', brand: null,
       barcodes: [], saleKind: 'fixed', packageAmount: 1, packageUnit: 'piece',
-      variableUnit: null, rawPackage: null
+      variableUnit: null, rawPackage: null, unitConversions: {}
     };
     expect(foodCategoryCandidates([
       blankClass('root-food', 'Food', null), blankClass('root-household', 'Household', null),

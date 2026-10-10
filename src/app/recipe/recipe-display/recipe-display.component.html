@@ -37,16 +37,28 @@
       <div class="ingredients">
         <div class="ingredients-header">
           <p class="ingredients-title">Ingredients</p>
-          <ion-button id="export-trigger" fill="clear" class="export-button">
+          <ion-button id="export-trigger" fill="clear" class="export-button"
+                      [disabled]="missingIngredients.length === 0" aria-label="Add missing ingredients to shopping list">
             <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
           </ion-button>
         </div>
         <div class="ingredients-items">
-          @for (item of this.ingredients; track item) {
-            <div class="ingredient-row">
+          @for (item of this.ingredients; track item.id) {
+            <div class="ingredient-row" [class.available]="availabilityFor(item)?.status === 'enough'"
+                 [class.missing]="availabilityFor(item)?.status === 'insufficient'"
+                 [class.unknown]="availabilityFor(item)?.status === 'unknown'">
               <span class="ingredient-amount">{{ item.amount }} <span
                 class="ingredient-unit">{{ item.unit }}</span></span>
               <span class="ingredient-name">{{ item.name }}</span>
+              @if (availabilityFor(item); as availability) {
+                <span class="ingredient-status" [class.available]="availability.status === 'enough'"
+                      [class.missing]="availability.status === 'insufficient'"
+                      [class.unknown]="availability.status === 'unknown'">
+                  {{ availabilityLabel(availability) }}
+                </span>
+              } @else {
+                <span class="ingredient-status checking">Checking…</span>
+              }
             </div>
           }
         </div>
@@ -87,11 +99,20 @@
             <ion-button fill="clear" class="modal-close-button" (click)="exportModal.dismiss()">
               <ion-icon slot="icon-only" name="close"></ion-icon>
             </ion-button>
-            <span class="export-modal-title">Add to shopping list</span>
+            <span class="export-modal-title">Add missing ingredients</span>
             <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmExport()"
                         (click)="confirmExport(); exportModal.dismiss()">
               <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
             </ion-button>
+          </div>
+
+          <div class="export-preview">
+            <p>Only the amounts still needed will be added:</p>
+            <ul>
+              @for (item of missingIngredients; track item.id) {
+                <li>{{ item.amount }} {{ item.unit }} {{ item.name }}</li>
+              }
+            </ul>
           </div>
 
           <div class="category-list">

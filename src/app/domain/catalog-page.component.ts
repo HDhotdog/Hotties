@@ -7,6 +7,7 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonModal,
   IonTitle,
   IonToolbar,
   MenuController
@@ -14,12 +15,13 @@ import {
 import {Subscription} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {CatalogDeleteImpact, CatalogService} from './catalog.service';
-import {blankClass, CatalogKind, CatalogNode, SaleKind} from './catalog.model';
+import {ApproximateUnit, blankClass, CatalogKind, CatalogNode, SaleKind, UnitConversions} from './catalog.model';
 import {BaseUnit} from './quantity';
+import {effectiveConversions} from './unit-conversion';
 
 @Component({
   selector: 'app-catalog-page', standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar],
+  imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonModal, IonTitle, IonToolbar],
   templateUrl: './catalog-page.component.html',
   styleUrls: ['./catalog-page.component.scss']
 })
@@ -47,6 +49,8 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
   public packageUnit: BaseUnit = 'piece';
   public variableUnit: BaseUnit = 'g';
   public rawPackage: string | null = null;
+  public unitConversions: UnitConversions = {};
+  public readonly approximateUnits: ApproximateUnit[] = ['piece', 'bunch', 'pinch'];
   public productDetailsOpen = false;
   public readonly units: BaseUnit[] = ['g', 'ml', 'piece', 'bunch', 'pinch'];
   public error = '';
@@ -120,6 +124,34 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  public focusName(): void {
+    this.nameInput?.nativeElement.focus();
+  }
+
+  public inheritedConversion(unit: ApproximateUnit): {amount: number; unit: 'g' | 'ml'} | undefined {
+    const parent = this.nodes.find(node => node.id === this.parentId);
+    return parent ? effectiveConversions(parent, this.nodes)[unit] : undefined;
+  }
+
+  public setConversionEnabled(unit: ApproximateUnit, enabled: boolean): void {
+    if (enabled) this.unitConversions = {...this.unitConversions, [unit]: {amount: 1, unit: 'g'}};
+    else {
+      const conversions = {...this.unitConversions};
+      delete conversions[unit];
+      this.unitConversions = conversions;
+    }
+  }
+
+  public setConversionAmount(unit: ApproximateUnit, amount: number): void {
+    const current = this.unitConversions[unit];
+    if (current) this.unitConversions = {...this.unitConversions, [unit]: {...current, amount: Number(amount)}};
+  }
+
+  public setConversionUnit(unit: ApproximateUnit, target: 'g' | 'ml'): void {
+    const current = this.unitConversions[unit];
+    if (current) this.unitConversions = {...this.unitConversions, [unit]: {...current, unit: target}};
+  }
+
   public indent(node: CatalogNode): number {
     return Math.min(this.catalog.depth(node.id, this.nodes) * 14, 70);
   }
@@ -167,7 +199,6 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     this.productDetailsOpen = false;
     if (parent) this.collapsedIds.delete(parent.id);
     this.cdr.detectChanges();
-    setTimeout(() => this.nameInput?.nativeElement.focus());
   }
 
   public edit(node: CatalogNode): void {
@@ -188,6 +219,8 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     this.packageUnit = node.packageUnit ?? 'piece';
     this.variableUnit = node.variableUnit ?? 'g';
     this.rawPackage = node.rawPackage;
+    this.unitConversions = Object.fromEntries(Object.entries(node.unitConversions ?? {})
+      .map(([unit, conversion]) => [unit, {...conversion}])) as UnitConversions;
     this.productDetailsOpen = node.kind === 'product';
   }
 
@@ -206,6 +239,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     this.packageUnit = 'piece';
     this.variableUnit = 'g';
     this.rawPackage = null;
+    this.unitConversions = {};
     this.error = '';
     this.productDetailsOpen = false;
     this.cancelDelete();
@@ -216,13 +250,15 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     try {
       const id = this.editingId || uuidv4();
       const parentId = this.parentId || null;
-      const node: CatalogNode = this.kind === 'class' ? blankClass(id, this.name, parentId) :
+      const node: CatalogNode = this.kind === 'class' ? {...blankClass(id, this.name, parentId),
+        unitConversions: this.unitConversions} :
         {
           id, parentId, kind: 'product', name: this.name, brand: this.brand.trim() || null,
           barcodes: this.barcode.trim() ? [this.barcode.trim()] : [], saleKind: this.saleKind,
           packageAmount: this.saleKind === 'fixed' ? Number(this.packageAmount) : null,
           packageUnit: this.saleKind === 'fixed' ? this.packageUnit : null,
-          variableUnit: this.saleKind === 'variable' ? this.variableUnit : null, rawPackage: this.rawPackage
+          variableUnit: this.saleKind === 'variable' ? this.variableUnit : null, rawPackage: this.rawPackage,
+          unitConversions: this.unitConversions
         };
       await this.catalog.save(node);
       if (parentId) this.collapsedIds.delete(parentId);

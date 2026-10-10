@@ -180,6 +180,70 @@ describe('shared catalog, shopping, and stock', () => {
     expect((await stock.availability(milk.id, {amount: 200, unit: 'ml'})).status).toBe('insufficient');
   });
 
+  it('uses an inherited pinch weight for existing salt stock and excludes expired lots', async () => {
+    const spices = await catalog.createClass('Spices');
+    await catalog.save({...spices, unitConversions: {pinch: {amount: 1, unit: 'g'}}});
+    const salt = catalog.productDraft({barcode: 'salt', name: 'Salt', brand: null, packageQuantity: '100 g'}, spices.id);
+    await catalog.save(salt);
+    const lot = await stock.receive(salt.id);
+    expect(await stock.availability(spices.id, {amount: 1, unit: 'pinch'}))
+      .toMatchObject({status: 'enough', available: 100});
+    await stock.save({...lot, remainingAmount: 0.5});
+    expect((await stock.availability(spices.id, {amount: 1, unit: 'pinch'})).status).toBe('insufficient');
+    await stock.save({...lot, remainingAmount: 100, expiryDate: '2000-01-01'});
+    expect((await stock.availability(spices.id, {amount: 1, unit: 'pinch'})).available).toBe(0);
+  });
+
+  it('uses the nearest category and product overrides for mixed products', async () => {
+    const vegetables = await catalog.createClass('Vegetables');
+    await catalog.save({...vegetables, unitConversions: {piece: {amount: 100, unit: 'g'}}});
+    const roots = await catalog.createClass('Roots', vegetables.id);
+    await catalog.save({...roots, unitConversions: {piece: {amount: 150, unit: 'g'}}});
+    const onion = catalog.productDraft({barcode: 'onion', name: 'Onion', brand: null, packageQuantity: '1000 g'}, vegetables.id);
+    const potato = catalog.productDraft({barcode: 'potato', name: 'Potato', brand: null, packageQuantity: '300 g'}, roots.id);
+    await catalog.save({...onion, unitConversions: {piece: {amount: 80, unit: 'g'}}});
+    await catalog.save(potato);
+    await stock.receive(onion.id);
+    await stock.receive(potato.id);
+    expect(await stock.availability(vegetables.id, {amount: 14, unit: 'piece'}))
+      .toMatchObject({status: 'enough', available: 14.5});
+    expect((await stock.availability(roots.id, {amount: 3, unit: 'piece'})).status).toBe('insufficient');
+  });
+
+  it('keeps unmapped and dimension-incompatible stock unknown', async () => {
+    const spices = await catalog.createClass('Spices');
+    const salt = catalog.productDraft({barcode: 'salt', name: 'Salt', brand: null, packageQuantity: '100 g'}, spices.id);
+    await catalog.save(salt);
+    await stock.receive(salt.id);
+    expect((await stock.availability(spices.id, {amount: 1, unit: 'pinch'})).status).toBe('unknown');
+    await catalog.save({...spices, unitConversions: {pinch: {amount: 1, unit: 'ml'}}});
+    expect((await stock.availability(spices.id, {amount: 1, unit: 'pinch'})).status).toBe('unknown');
+    await catalog.save({...spices, unitConversions: {pinch: {amount: 1, unit: 'g'}}});
+    expect((await stock.availability(spices.id, {amount: 1, unit: 'pinch'})).status).toBe('enough');
+    await expect(catalog.save({...spices, unitConversions: {pinch: {amount: 0, unit: 'g'}}}))
+      .rejects.toThrow(/positive amount/);
+  });
+
+  it('converts piece shopping needs without allocating the same onion weight twice', async () => {
+    const onions = await catalog.createClass('Onions');
+    await catalog.save({...onions, unitConversions: {piece: {amount: 80, unit: 'g'}}});
+    const bag = catalog.productDraft({barcode: 'onion-bag', name: 'Onion bag', brand: null, packageQuantity: '1000 g'}, onions.id);
+    await catalog.save(bag);
+    const pieceNeed = await shopping.addProduct('list', bag.id,
+      {kind: 'quantity', quantity: {amount: 1, unit: 'piece'}});
+    const gramNeed = await shopping.addProduct('list', onions.id,
+      {kind: 'quantity', quantity: {amount: 1000, unit: 'g'}});
+    expect(stock.suggestedPackages(bag, {amount: 13, unit: 'piece'}, await catalog.all())).toBe(2);
+    const lot = await stock.receive(bag.id, {shoppingListId: 'list'});
+    expect(lot.allocations).toEqual([
+      {shoppingEntryId: pieceNeed.id, amount: 1, unit: 'piece'},
+      {shoppingEntryId: gramNeed.id, amount: 920, unit: 'g'}
+    ]);
+    expect(await shopping.progress(pieceNeed, [lot])).toBe(1);
+    expect(await shopping.progress(gramNeed, [lot])).toBe(920);
+    expect((await shopping.all('list')).map(entry => entry.id)).toEqual([gramNeed.id]);
+  });
+
   it('stores class and exact-product recipe requirements and exports measured needs', async () => {
     const milk = await catalog.createClass('Milk');
     const carton = catalog.productDraft({

@@ -22,6 +22,7 @@ import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {LabelService} from '../label/label-service.service';
 import {StockService} from '../domain/stock.service';
 import {BaseUnit} from '../domain/quantity';
+import {CatalogService} from '../domain/catalog.service';
 
 import {FormsModule} from '@angular/forms';
 import {combineLatest, firstValueFrom, forkJoin, map, Observable} from 'rxjs';
@@ -69,6 +70,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   labelService = inject(LabelService);
   private menuController = inject(MenuController);
   private stock = inject(StockService);
+  private catalog = inject(CatalogService);
   private cdr = inject(ChangeDetectorRef);
 
   private _recipes: Recipe[] = [];
@@ -82,6 +84,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
 
   private imageUrls = new Map<string, string>();
   private ingredientAvailability = new Map<string, IngredientAvailability>();
+  private availabilityVersion = 0;
 
   public openMainMenu(): void {
     this.menuController.open('main-menu');
@@ -93,7 +96,8 @@ export class RecipeComponent implements OnInit, OnDestroy {
     const labelGroupsObs: Observable<LabelGroup[]> =
       this.labelService.getAllLabelGroups();
     const stockObs = this.stock.observe();
-    combineLatest([recipesObs, labelsObs, labelGroupsObs, stockObs]).subscribe(
+    const catalogObs = this.catalog.observe();
+    combineLatest([recipesObs, labelsObs, labelGroupsObs, stockObs, catalogObs]).subscribe(
       ([recipes, labels, labelGroups]) => {
         this._recipes = recipes;
         this._labels = labels;
@@ -155,6 +159,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
    * never claim an ingredient is ready.
    */
   private async loadIngredientAvailability(recipes: Recipe[]): Promise<void> {
+    const version = ++this.availabilityVersion;
     if (recipes.length === 0) {
       this.ingredientAvailability = new Map();
       this.cdr.markForCheck();
@@ -175,7 +180,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
         unknown: statuses.filter(status => status.status === 'unknown').length
       };
     }));
-    {
+    if (version === this.availabilityVersion) {
       const availability = new Map<string, IngredientAvailability>();
       results.forEach(({id, total, available, unknown}) => availability.set(id, {total, available, unknown}));
       this.ingredientAvailability = availability;

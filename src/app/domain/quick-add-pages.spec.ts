@@ -16,12 +16,12 @@ describe('Quick add pages', () => {
   const carton: CatalogNode = {
     id: 'carton', parentId: milkClass.id, kind: 'product', name: 'Milk',
     brand: 'Dairy', barcodes: [], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'ml',
-    variableUnit: null, rawPackage: null
+    variableUnit: null, rawPackage: null, unitConversions: {}
   };
   const loose: CatalogNode = {
     id: 'apples', parentId: 'fruit', kind: 'product', name: 'Apples',
     brand: null, barcodes: [], saleKind: 'variable', packageAmount: null, packageUnit: null,
-    variableUnit: 'g', rawPackage: null
+    variableUnit: 'g', rawPackage: null, unitConversions: {}
   };
   let catalog: { findOrCreateClass: jest.Mock; save: jest.Mock; all: jest.Mock; byId: jest.Mock; matches: jest.Mock };
   let shopping: { addProduct: jest.Mock; addTask: jest.Mock };

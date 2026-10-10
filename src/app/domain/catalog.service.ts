@@ -92,6 +92,13 @@ export class CatalogService {
       throw new Error('Only products can have barcodes or package details.');
     }
     if (node.kind === 'product' && !node.parentId) throw new Error('Products need a parent class.');
+    for (const [unit, conversion] of Object.entries(node.unitConversions ?? {})) {
+      if (!['piece', 'bunch', 'pinch'].includes(unit) || !conversion ||
+        !Number.isFinite(conversion.amount) || conversion.amount <= 0 ||
+        !['g', 'ml'].includes(conversion.unit)) {
+        throw new Error('Conversions need a positive amount in g or ml for piece, bunch, or pinch.');
+      }
+    }
     if (node.saleKind === 'fixed' && (!(node.packageAmount && node.packageAmount > 0) || !node.packageUnit)) {
       throw new Error('A fixed package needs its content amount and unit.');
     }
@@ -110,7 +117,8 @@ export class CatalogService {
       throw new Error('Barcode already belongs to another product.');
     }
     const db = await this.database.getDb();
-    await db['catalog_nodes'].upsert({...node, name: node.name.trim(), barcodes});
+    await db['catalog_nodes'].upsert({...node, name: node.name.trim(), barcodes,
+      unitConversions: node.unitConversions ?? {}});
   }
 
   /** Removing only a class moves its direct children to its parent. Recursive removal deletes the subtree. */
@@ -229,14 +237,14 @@ export class CatalogService {
       id: uuidv4(), parentId, kind: 'product', name: food.name, brand: food.brand,
       barcodes: [food.barcode], saleKind: packageContent ? 'fixed' : 'unknown',
       packageAmount: packageContent?.amount ?? null, packageUnit: packageContent?.unit ?? null,
-      variableUnit: null, rawPackage: food.packageQuantity
+      variableUnit: null, rawPackage: food.packageQuantity, unitConversions: {}
     };
   }
 
   public createLooseDraft(name: string, parentId: string, unit: BaseUnit): CatalogNode {
     return {
       id: uuidv4(), parentId, kind: 'product', name, brand: null, barcodes: [], saleKind: 'variable',
-      packageAmount: null, packageUnit: null, variableUnit: unit, rawPackage: null
+      packageAmount: null, packageUnit: null, variableUnit: unit, rawPackage: null, unitConversions: {}
     };
   }
 }

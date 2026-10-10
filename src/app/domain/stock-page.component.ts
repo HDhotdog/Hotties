@@ -232,7 +232,8 @@ export class StockPageComponent implements OnInit, OnDestroy {
         if (!category) throw new Error('Choose or create a food category.');
         product = {
           id: uuidv4(), parentId: category.id, kind: 'product', name, brand: null, barcodes: [],
-          saleKind: 'fixed', packageAmount: 1, packageUnit: 'piece', variableUnit: null, rawPackage: null
+          saleKind: 'fixed', packageAmount: 1, packageUnit: 'piece', variableUnit: null, rawPackage: null,
+          unitConversions: {}
         };
         await this.catalog.save(product);
         review.productId = product.id;
@@ -388,7 +389,7 @@ export class StockPageComponent implements OnInit, OnDestroy {
     const draft: CatalogNode = {
       id: uuidv4(), parentId: parent.id, kind: 'product', name: parent.name,
       brand: null, barcodes: [], saleKind: 'unknown', packageAmount: null, packageUnit: null,
-      variableUnit: null, rawPackage: null
+      variableUnit: null, rawPackage: null, unitConversions: {}
     };
     await this.catalog.save(draft);
     return draft;

@@ -7,6 +7,7 @@ import {ShoppingService} from './shopping.service';
 import {CatalogNode} from './catalog.model';
 import {ScanAllocation, ShoppingEntry, StockLot} from './shopping.model';
 import {BaseQuantity, BaseUnit} from './quantity';
+import {convertQuantity, effectiveConversions} from './unit-conversion';
 
 export type Availability = { status: 'enough' | 'insufficient' | 'unknown'; available: number; unit: BaseUnit };
 
@@ -121,16 +122,19 @@ export class StockService {
     let remaining = acquired.amount;
     let remainingPackages = packages;
     const allocations: ScanAllocation[] = [];
+    const conversions = effectiveConversions(product, nodes);
     for (const entry of eligible) {
       const unit = entry.needUnit ?? 'package';
       const already = await this.shopping.progress(entry, lots);
       const outstanding = Math.max(0, (entry.needAmount ?? 1) - already);
       if (outstanding <= 0) continue;
       if (entry.needKind === 'quantity') {
-        if (unit !== acquired.unit || remaining <= 0) continue;
-        const amount = Math.min(outstanding, remaining);
+        const convertible = convertQuantity({amount: remaining, unit: acquired.unit}, unit, conversions);
+        if (convertible === null || convertible <= 0) continue;
+        const amount = Math.min(outstanding, convertible);
+        const consumed = convertQuantity({amount, unit}, acquired.unit, conversions)!;
         allocations.push({shoppingEntryId: entry.id, amount, unit});
-        remaining -= amount;
+        remaining = Math.max(0, remaining - consumed);
         if (product.saleKind === 'fixed') {
           remainingPackages = Math.min(remainingPackages, Math.floor((remaining + 1e-9) / product.packageAmount!));
         }
@@ -154,17 +158,28 @@ export class StockService {
     const matching = (await this.all()).filter(lot => lot.remainingAmount > 0 &&
       (!lot.expiryDate || lot.expiryDate >= today) &&
       this.catalog.matches(targetNodeId, lot.productId, nodes));
-    const available = matching.filter(lot => lot.acquiredUnit === required.unit)
-      .reduce((sum, lot) => sum + lot.remainingAmount, 0);
+    let available = 0;
+    let unknown = false;
+    for (const lot of matching) {
+      const product = nodes.find(node => node.id === lot.productId);
+      const converted = product && convertQuantity(
+        {amount: lot.remainingAmount, unit: lot.acquiredUnit}, required.unit,
+        effectiveConversions(product, nodes));
+      if (converted === null || converted === undefined) unknown = true;
+      else available += converted;
+    }
     return {
-      status: available >= required.amount ? 'enough' :
-        matching.some(lot => lot.acquiredUnit !== required.unit) ? 'unknown' : 'insufficient',
+      status: available + 1e-9 >= required.amount ? 'enough' : unknown ? 'unknown' : 'insufficient',
       available, unit: required.unit
     };
   }
 
-  public suggestedPackages(product: CatalogNode, needed: BaseQuantity): number | null {
-    return product.kind === 'product' && product.saleKind === 'fixed' && product.packageUnit === needed.unit
-      ? Math.ceil(needed.amount / product.packageAmount!) : null;
+  public suggestedPackages(product: CatalogNode, needed: BaseQuantity, nodes: CatalogNode[]): number | null {
+    if (product.kind !== 'product' || product.saleKind !== 'fixed' || !product.packageUnit || !product.packageAmount) {
+      return null;
+    }
+    const perPackage = convertQuantity({amount: product.packageAmount, unit: product.packageUnit},
+      needed.unit, effectiveConversions(product, nodes));
+    return perPackage === null ? null : Math.ceil(needed.amount / perPackage - 1e-9);
   }
 }

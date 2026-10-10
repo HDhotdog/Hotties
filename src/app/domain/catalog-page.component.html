@@ -8,8 +8,7 @@
     <ion-title>Catalog</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="openAdd(null)"
-                  [attr.aria-label]="editorOpen && !editingId && addParentId === null ? 'Close new category form' : 'Add top-level category'"
-                  [attr.aria-expanded]="editorOpen && !editingId && addParentId === null">
+                  aria-label="Add top-level category">
         <ion-icon name="add"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -18,42 +17,36 @@
 
 <ion-content>
   <main class="catalog-tree">
-    @if (editorOpen && !editingId && addParentId === null) {
-      <ng-container *ngTemplateOutlet="editorTemplate"></ng-container>
-    }
     @for (node of visibleNodes; track node.id) {
       <div class="node-group" [style.margin-left.px]="indent(node)">
         <div class="node-row" [class.product]="node.kind === 'product'">
-          @if (node.kind === 'class' && hasChildren(node)) {
-            <button class="fold-button" type="button" (click)="toggleExpanded(node)"
-                    [attr.aria-label]="(isExpanded(node) ? 'Collapse ' : 'Expand ') + node.name"
-                    [attr.aria-expanded]="isExpanded(node)">
-              <ion-icon [name]="isExpanded(node) ? 'chevron-down-outline' : 'chevron-forward-outline'"></ion-icon>
+          @if (node.kind === 'class') {
+            <button class="node-label category-label" type="button" (click)="toggleExpanded(node)"
+                    [attr.aria-label]="(isExpanded(node) ? 'Collapse ' : 'Expand ') + path(node)"
+                    [attr.aria-expanded]="isExpanded(node)" [disabled]="!hasChildren(node)">
+              <ion-icon [name]="isExpanded(node) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                        aria-hidden="true"></ion-icon>
+              <span class="node-name">{{ node.name }}</span>
             </button>
           } @else {
-            <span class="fold-spacer" aria-hidden="true"></span>
-          }
-          <button class="node-label" type="button" (click)="edit(node)"
-                  [attr.aria-label]="editorOpen && (editingId === node.id || (!editingId && addParentId === node.id)) ? 'Close form under ' + path(node) : 'Edit ' + path(node)"
-                  [attr.aria-expanded]="editorOpen && editingId === node.id">
+            <div class="node-label product-label">
             <span class="node-name">{{ node.name }} @if (node.brand) {
               <small>· {{ node.brand }}</small>
             }</span>
-            @if (node.kind === 'product') {
               <span class="node-meta">{{ saleLabel(node) }}</span>
-            }
-          </button>
+            </div>
+          }
           @if (node.kind === 'class') {
             <button class="node-add" type="button" (click)="openAdd(node)"
-                    [attr.aria-label]="editorOpen && !editingId && addParentId === node.id ? 'Close add form under ' + path(node) : 'Add under ' + path(node)"
-                    [attr.aria-expanded]="editorOpen && !editingId && addParentId === node.id">
+                    [attr.aria-label]="'Add under ' + path(node)">
               <ion-icon name="add"></ion-icon>
             </button>
           }
+          <button class="node-edit" type="button" (click)="edit(node)"
+                  [attr.aria-label]="'Edit ' + path(node)">
+            <ion-icon name="create-outline"></ion-icon>
+          </button>
         </div>
-        @if (editorOpen && (editingId === node.id || (!editingId && addParentId === node.id))) {
-          <ng-container *ngTemplateOutlet="editorTemplate"></ng-container>
-        }
       </div>
     } @empty {
       <div class="empty-state">No catalog entries yet. Add a top-level category to start.</div>
@@ -61,7 +54,17 @@
   </main>
 </ion-content>
 
-<ng-template #editorTemplate>
+<ion-modal class="catalog-editor-modal" [isOpen]="editorOpen" (didPresent)="focusName()" (didDismiss)="reset()">
+<ng-template>
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>{{ editingId ? 'Edit ' + (selectedNode?.name ?? 'entry') : 'Add catalog entry' }}</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="reset()" aria-label="Close catalog form"><ion-icon name="close"></ion-icon></ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
   <section class="editor-panel">
     <h2>{{ editingId ? 'Edit ' + (selectedNode?.name ?? 'entry') : addParentId ? 'Add under ' + parentLabel() : 'Add top-level category' }}</h2>
     @if (error) {
@@ -134,6 +137,35 @@
         </div>
       }
     }
+    <fieldset class="conversion-fields">
+      <legend>Unit conversions</legend>
+      <p>Set the approximate weight or volume of one unit. Categories pass these values to their products.</p>
+      @for (unit of approximateUnits; track unit) {
+        <div class="conversion-row">
+          <label class="conversion-toggle">
+            <input type="checkbox" [checked]="!!unitConversions[unit]"
+                   (change)="setConversionEnabled(unit, $any($event.target).checked)">
+            1 {{ unit }} equals
+          </label>
+          @if (unitConversions[unit]; as conversion) {
+            <label>
+              <span class="sr-only">Amount for {{ unit }}</span>
+              <input type="number" min="0.001" step="any" [ngModel]="conversion.amount"
+                     (ngModelChange)="setConversionAmount(unit, $event)" [attr.aria-label]="'Amount for ' + unit">
+            </label>
+            <label>
+              <span class="sr-only">Unit for {{ unit }}</span>
+              <select [ngModel]="conversion.unit" (ngModelChange)="setConversionUnit(unit, $event)"
+                      [attr.aria-label]="'Unit for ' + unit">
+                <option value="g">g</option><option value="ml">ml</option>
+              </select>
+            </label>
+          } @else if (inheritedConversion(unit); as inherited) {
+            <span class="inherited-conversion">Inherited: {{ inherited.amount }} {{ inherited.unit }}</span>
+          }
+        </div>
+      }
+    </fieldset>
     <div class="editor-actions">
       <ion-button (click)="save()">Save</ion-button>
       <ion-button fill="clear" (click)="reset()">Cancel</ion-button>
@@ -173,4 +205,6 @@
       </div>
     }
   </section>
+  </ion-content>
 </ng-template>
+</ion-modal>

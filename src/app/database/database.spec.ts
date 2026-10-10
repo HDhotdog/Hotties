@@ -3,6 +3,7 @@ import {getRxStorageMemory} from 'rxdb/plugins/storage-memory';
 import {wrappedValidateAjvStorage} from 'rxdb/plugins/validate-ajv';
 import {v4 as uuidv4} from 'uuid';
 import {createHottiesDatabase} from './database';
+import {CATALOG_SCHEMA_LITERAL} from './schema/catalog.schema';
 
 describe('createHottiesDatabase() seeding', () => {
   let db: RxDatabase;
@@ -95,6 +96,34 @@ describe('createHottiesDatabase() seeding', () => {
 
     const categories = await db['categories'].find().exec();
     expect(categories).toHaveLength(1);
+  });
+});
+
+describe('catalog schema migration (v0 -> v1, unit conversions)', () => {
+  it('preserves an existing catalog node and gives it an empty conversion map', async () => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+    const properties = {...CATALOG_SCHEMA_LITERAL.schema.properties};
+    delete (properties as any).unitConversions;
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    await oldDb.addCollections({catalog_nodes: {schema: {
+      ...CATALOG_SCHEMA_LITERAL.schema, version: 0, properties,
+      required: CATALOG_SCHEMA_LITERAL.schema.required.filter(field => field !== 'unitConversions')
+    }}});
+    await oldDb['catalog_nodes'].upsert({
+      id: 'salt', parentId: 'root-food', kind: 'product', name: 'Salt', brand: null,
+      barcodes: [], saleKind: 'fixed', packageAmount: 100, packageUnit: 'g',
+      variableUnit: null, rawPackage: null
+    });
+    await oldDb.close();
+
+    const db = await createHottiesDatabase(storage, dbName, false);
+    try {
+      expect((await db['catalog_nodes'].findOne('salt').exec())?.toJSON())
+        .toMatchObject({name: 'Salt', packageAmount: 100, unitConversions: {}});
+    } finally {
+      await db.close();
+    }
   });
 });
 

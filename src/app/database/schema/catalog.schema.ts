@@ -1,6 +1,6 @@
 export const CATALOG_SCHEMA_LITERAL = {
   schema: {
-    version: 0, primaryKey: 'id', type: 'object',
+    version: 1, primaryKey: 'id', type: 'object',
     properties: {
       id: {type: 'string', maxLength: 255},
       parentId: {type: ['string', 'null']},
@@ -13,7 +13,18 @@ export const CATALOG_SCHEMA_LITERAL = {
       packageUnit: {type: ['string', 'null']},
       variableUnit: {type: ['string', 'null']},
       rawPackage: {type: ['string', 'null']},
+      unitConversions: {
+        type: 'object', default: {}, additionalProperties: false,
+        properties: Object.fromEntries(['piece', 'bunch', 'pinch'].map(unit => [unit, {
+          type: 'object', additionalProperties: false,
+          properties: {amount: {type: 'number', exclusiveMinimum: 0}, unit: {type: 'string', enum: ['g', 'ml']}},
+          required: ['amount', 'unit']
+        }]))
+      },
     },
-    required: ['id', 'parentId', 'kind', 'name', 'brand', 'barcodes', 'saleKind', 'packageAmount', 'packageUnit', 'variableUnit', 'rawPackage'],
+    required: ['id', 'parentId', 'kind', 'name', 'brand', 'barcodes', 'saleKind', 'packageAmount', 'packageUnit', 'variableUnit', 'rawPackage', 'unitConversions'],
+  },
+  migrationStrategies: {
+    1: (oldDoc: any) => ({...oldDoc, unitConversions: {}})
   }
 };

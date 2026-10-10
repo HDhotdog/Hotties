@@ -24,7 +24,7 @@ describe('ScanProductComponent', () => {
     packageAmount: 1000,
     packageUnit: 'ml',
     variableUnit: null,
-    rawPackage: found.packageQuantity
+    rawPackage: found.packageQuantity, unitConversions: {}
   };
   let component: ScanProductComponent;
   let lookup: { lookup: jest.Mock; getEntry: jest.Mock; isFresh: jest.Mock; markReviewed: jest.Mock };

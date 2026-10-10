@@ -50,7 +50,7 @@ describe('AddRecipeComponent', () => {
     const product: CatalogNode = {
       id: 'carton', parentId: 'milk', kind: 'product', name: 'Brand milk',
       brand: 'Brand', barcodes: [], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'ml',
-      variableUnit: null, rawPackage: '1 l'
+      variableUnit: null, rawPackage: '1 l', unitConversions: {}
     };
     component.ingredientModalMode = 'existing';
     component.selectExistingItem(product);
