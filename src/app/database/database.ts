@@ -24,6 +24,8 @@ import {SHOPPING_ENTRY_SCHEMA_LITERAL} from './schema/shopping-entry.schema';
 import {STOCK_LOT_SCHEMA_LITERAL} from './schema/stock-lot.schema';
 import {blankClass} from '../domain/catalog.model';
 import {RECIPE_INGREDIENT_SCHEMA_LITERAL} from './schema/recipe-ingredient.schema';
+import {OFF_PRODUCT_CACHE_SCHEMA_LITERAL} from './schema/off-product-cache.schema';
+import {INTERNAL_PRODUCT_MAP_SCHEMA_LITERAL} from './schema/internal-product-map.schema';
 
 if (!environment.production) {
   addRxPlugin(RxDBDevModePlugin);
@@ -107,16 +109,16 @@ async function runPendingMigrations(db: RxDatabase): Promise<void> {
 
 /**
  * Creates and seeds a Hotties RxDatabase for the given storage. Extracted from
- * `DatabaseService` so tests can build an equivalent database against an
- * in-memory storage instead of the production IndexedDB (Dexie) adapter.
+ * `DatabaseService` so tests can use in-memory storage. Legacy mode loads
+ * retired collections for migration tests; the app opens the active set.
  */
-export async function createHottiesDatabase(storage: RxStorage<any, any>, dbName: string, includeLegacy = true): Promise<RxDatabase> {
+export async function createHottiesDatabase(storage: RxStorage<any, any>, dbName: string, legacyMode = true): Promise<RxDatabase> {
   const db = await createRxDatabase({
     name: dbName,
     storage: wrappedValidateAjvStorage({storage}),
   });
 
-  await db.addCollections({
+  const commonCollections = {
     settings: SETTINGS_SCHEMA_LITERAL,
     categories: CATEGORY_SCHEMA_LITERAL,
     suggestions: SUGGESTION_SCHEMA_LITERAL,
@@ -124,16 +126,23 @@ export async function createHottiesDatabase(storage: RxStorage<any, any>, dbName
     labels: LABEL_SCHEMA_LITERAL,
     label_groups: LABEL_GROUP_SCHEMA_LITERAL,
     catalog_nodes: CATALOG_SCHEMA_LITERAL,
-    shopping_entries: SHOPPING_ENTRY_SCHEMA_LITERAL,
-    stock_lots: STOCK_LOT_SCHEMA_LITERAL,
-    recipe_ingredients: RECIPE_INGREDIENT_SCHEMA_LITERAL,
-    ...(includeLegacy ? {
+  };
+  if (legacyMode) {
+    await db.addCollections({...commonCollections,
       todos: TODO_SCHEMA_LITERAL,
       ingredients: INGREDIENT_SCHEMA_LITERAL,
       fridge_items: FRIDGE_ITEM_SCHEMA_LITERAL,
       items: ITEM_SCHEMA_LITERAL,
-    } : {})
-  });
+    });
+  } else {
+    await db.addCollections({...commonCollections,
+      shopping_entries: SHOPPING_ENTRY_SCHEMA_LITERAL,
+      stock_lots: STOCK_LOT_SCHEMA_LITERAL,
+      recipe_ingredients: RECIPE_INGREDIENT_SCHEMA_LITERAL,
+      off_product_cache: OFF_PRODUCT_CACHE_SCHEMA_LITERAL,
+      internal_product_map: INTERNAL_PRODUCT_MAP_SCHEMA_LITERAL,
+    });
+  }
 
   await runPendingMigrations(db);
   await seedInitialData(db);

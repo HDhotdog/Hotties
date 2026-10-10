@@ -33,17 +33,22 @@ export class StockService {
     if (!(lot.acquiredAmount > 0) || lot.remainingAmount < 0 || lot.remainingAmount > lot.acquiredAmount) {
       throw new Error('Remaining stock must be within the acquired quantity.');
     }
-    if (product.saleKind === 'fixed' && (lot.acquiredUnit !== product.packageUnit ||
+    const db = await this.database.getDb();
+    const previous = await db['stock_lots'].findOne(lot.id).exec();
+    // Existing lots retain their acquired quantity when a product's current package changes.
+    const sameAcquisition = previous && previous.productId === lot.productId &&
+      previous.acquiredAmount === lot.acquiredAmount && previous.acquiredUnit === lot.acquiredUnit &&
+      previous.acquiredPackages === lot.acquiredPackages;
+    if (!sameAcquisition && product.saleKind === 'fixed' && (lot.acquiredUnit !== product.packageUnit ||
       lot.acquiredAmount > lot.acquiredPackages * (product.packageAmount ?? 0))) {
       throw new Error('Stock exceeds the acquired packages.');
     }
-    if (product.saleKind === 'variable' && lot.acquiredUnit !== product.variableUnit) {
+    if (!sameAcquisition && product.saleKind === 'variable' && lot.acquiredUnit !== product.variableUnit) {
       throw new Error('Stock unit does not match this product.');
     }
-    if (product.saleKind === 'unknown' && lot.acquiredUnit !== 'package') {
+    if (!sameAcquisition && product.saleKind === 'unknown' && lot.acquiredUnit !== 'package') {
       throw new Error('Confirm package content before recording a measured amount.');
     }
-    const db = await this.database.getDb();
     await db['stock_lots'].upsert(lot);
   }
 
@@ -110,7 +115,8 @@ export class StockService {
       const exactA = Number(a.targetNodeId === product.id);
       const exactB = Number(b.targetNodeId === product.id);
       return exactB - exactA || this.catalog.depth(b.targetNodeId!, nodes) - this.catalog.depth(a.targetNodeId!, nodes) ||
-        Number(b.checked) - Number(a.checked) || a.createdAt - b.createdAt;
+        Number(b.checked) - Number(a.checked) || a.createdAt - b.createdAt ||
+        Number(b.needKind === 'quantity') - Number(a.needKind === 'quantity');
     });
     let remaining = acquired.amount;
     let remainingPackages = packages;

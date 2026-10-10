@@ -13,12 +13,12 @@ describe('createHottiesDatabase() seeding', () => {
     }
   });
 
-  it('creates all expected collections', async () => {
+  it('creates the legacy collections for migration tests', async () => {
     db = await createHottiesDatabase(getRxStorageMemory(), `test-db-${uuidv4()}`);
 
     expect(Object.keys(db.collections).sort()).toEqual([
       'catalog_nodes', 'categories', 'fridge_items', 'ingredients', 'items', 'label_groups', 'labels',
-      'recipe_ingredients', 'recipes', 'settings', 'shopping_entries', 'stock_lots', 'suggestions', 'todos'
+      'recipes', 'settings', 'suggestions', 'todos'
     ].sort());
   });
 
@@ -26,7 +26,7 @@ describe('createHottiesDatabase() seeding', () => {
     db = await createHottiesDatabase(getRxStorageMemory(), `test-db-${uuidv4()}`, false);
     expect(Object.keys(db.collections).sort()).toEqual([
       'catalog_nodes', 'categories', 'label_groups', 'labels', 'recipe_ingredients', 'recipes',
-      'settings', 'shopping_entries', 'stock_lots', 'suggestions'
+      'settings', 'shopping_entries', 'stock_lots', 'suggestions', 'off_product_cache', 'internal_product_map'
     ].sort());
   });
 

@@ -24,6 +24,11 @@
   background: var(--ion-color-success);
 }
 
+.info {
+  background: var(--ion-color-step-100, #303030);
+  color: var(--ion-text-color);
+}
+
 .product-card {
   background: #2a2a2a;
   color: #fff;
@@ -69,6 +74,22 @@
 }
 
 .details-fields select, .details-fields input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #515151;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #fff;
+  background: #1f1f1f;
+}
+
+.product-card > label {
+  display: grid;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.product-card > label select, .product-card > label input {
   width: 100%;
   min-height: 44px;
   border: 1px solid #515151;

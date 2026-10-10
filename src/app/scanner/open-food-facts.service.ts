@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Capacitor, CapacitorHttp} from '@capacitor/core';
 import {VERSION} from '../../environments/version';
+import {isInternalBarcode} from './internal-barcode';
 
 export interface FoodProduct {
   barcode: string;
@@ -11,6 +12,7 @@ export interface FoodProduct {
 
 export type ProductLookupErrorCode =
   'invalid-barcode'
+  | 'internal-barcode'
   | 'native-only'
   | 'rate-limited'
   | 'not-found'
@@ -36,6 +38,9 @@ export class OpenFoodFactsService {
   private fallbackCooldown = 0;
 
   public async getProduct(barcode: string): Promise<FoodProduct> {
+    if (isInternalBarcode(barcode)) {
+      throw new ProductLookupError('internal-barcode', 'Internal barcodes are handled locally.');
+    }
     if (!/^\d{8,14}$/.test(barcode)) {
       throw new ProductLookupError('invalid-barcode', 'Enter a valid 8–14 digit food barcode.');
     }

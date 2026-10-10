@@ -23,9 +23,13 @@ import {firstValueFrom, Subscription, take} from 'rxjs';
 import {CatalogService} from '../domain/catalog.service';
 import {CatalogNode, SaleKind} from '../domain/catalog.model';
 import {StockService} from '../domain/stock.service';
-import {BaseUnit, parsePackageQuantity} from '../domain/quantity';
+import {BaseQuantity, BaseUnit, parsePackageQuantity} from '../domain/quantity';
 import {CategoryService} from '../category/category.service';
-import {FoodProduct, OpenFoodFactsService, ProductLookupError} from './open-food-facts.service';
+import {Category} from '../category/category.dto';
+import {FoodProduct, ProductLookupError} from './open-food-facts.service';
+import {OffProductCacheService} from './off-product-cache.service';
+import {InternalProductMapService} from './internal-product-map.service';
+import {decodeWeightedBarcode, isInternalBarcode, WeightedBarcode} from './internal-barcode';
 import {v4 as uuidv4} from 'uuid';
 
 type ScanState = 'idle' | 'scanning' | 'looking-up' | 'saving';
@@ -39,7 +43,8 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly lookup = inject(OpenFoodFactsService);
+  private readonly lookup = inject(OffProductCacheService);
+  private readonly internalMap = inject(InternalProductMapService);
   private readonly catalog = inject(CatalogService);
   private readonly stock = inject(StockService);
   private readonly categories = inject(CategoryService);
@@ -51,6 +56,17 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   public savedName: string | null = null;
   public readonly nativeScanner = Capacitor.isNativePlatform();
   public pendingProduct: FoodProduct | null = null;
+  public pendingRefresh: {saved: CatalogNode; fresh: FoodProduct} | null = null;
+  public pendingInternal: WeightedBarcode | null = null;
+  public stores: Category[] = [];
+  public selectedStoreId = '';
+  public mappedProduct: CatalogNode | null = null;
+  public mappingMode = false;
+  public selectedInternalProductId = '';
+  public internalName = '';
+  public internalClassId = '';
+  public infoMessage: string | null = null;
+  public retryAvailable = false;
   public selectedClassId = '';
   public newClassName = '';
   public saleKind: SaleKind = 'unknown';
@@ -76,17 +92,26 @@ export class ScanProductComponent implements OnInit, OnDestroy {
     return this.nodes.filter(node => node.kind === 'class' && node.parentId !== null);
   }
 
+  public get gramProducts(): CatalogNode[] {
+    return this.nodes.filter(node => node.kind === 'product' && node.saleKind === 'variable' && node.variableUnit === 'g');
+  }
+
+  public get selectedStoreName(): string {
+    return this.stores.find(store => store.id === this.selectedStoreId)?.name ?? '';
+  }
+
   public get categoryName(): string {
     return this.classes.find(node => node.id === this.selectedClassId)?.name ??
       (this.newClassName.trim() || this.pendingProduct?.name || '');
   }
 
   public ionViewDidEnter(): void {
-    if (this.nativeScanner && !this.savedName && !this.pendingProduct && this.state === 'idle') void this.scan();
+    if (this.nativeScanner && !this.savedName && !this.pendingProduct && !this.pendingInternal &&
+      !this.pendingRefresh && this.state === 'idle') void this.scan();
   }
 
   public async scan(): Promise<void> {
-    if (this.state !== 'idle' || this.pendingProduct) return;
+    if (this.state !== 'idle' || this.pendingProduct || this.pendingInternal || this.pendingRefresh) return;
     this.setState('scanning');
     this.errorMessage = null;
     this.savedName = null;
@@ -110,10 +135,10 @@ export class ScanProductComponent implements OnInit, OnDestroy {
     }
   }
 
-  public async addBarcode(value: string): Promise<void> {
+  public async addBarcode(value: string, retry = false): Promise<void> {
     if (this.state !== 'idle' && this.state !== 'scanning') return;
     const barcode = value.trim();
-    if (!/^\d{8,14}$/.test(barcode)) {
+    if (!isInternalBarcode(barcode) && !/^\d{8,14}$/.test(barcode)) {
       this.errorMessage = 'Enter a valid 8–14 digit barcode.';
       this.setState('idle');
       return;
@@ -123,15 +148,38 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.activeScanId = uuidv4();
     }
     this.errorMessage = null;
+    this.infoMessage = null;
+    this.retryAvailable = false;
     this.savedName = null;
     this.setState('looking-up');
     try {
+      if (isInternalBarcode(barcode)) {
+        if (!barcode.startsWith('29')) throw new Error('This internal barcode format is not supported yet.');
+        await this.startInternal(decodeWeightedBarcode(barcode));
+        return;
+      }
       const existing = await this.catalog.byBarcode(barcode);
       if (existing) {
+        const cached = await this.lookup.getEntry(barcode);
+        if (cached?.status === 'found' && !this.lookup.isFresh(cached)) {
+          try {
+            await this.lookup.lookup(barcode);
+          } catch {
+            this.infoMessage = 'Using saved product details. Open Food Facts can be checked on a later scan.';
+            await this.receive(existing);
+            return;
+          }
+        }
+        const latest = await this.lookup.getEntry(barcode);
+        if (latest?.status === 'found' && latest.product && this.lookup.isFresh(latest) &&
+            latest.reviewedAt !== latest.fetchedAt && this.detailsDiffer(existing, latest.product)) {
+          this.pendingRefresh = {saved: existing, fresh: latest.product};
+          return;
+        }
         await this.receive(existing);
         return;
       }
-      const found = await this.lookup.getProduct(barcode);
+      const found = await this.lookup.lookup(barcode, retry);
       this.pendingProduct = found;
       this.detailsOpen = false;
       this.selectedClassId = this.catalog.suggestedClass(found.name, this.nodes)?.id ?? '';
@@ -141,9 +189,116 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.packageUnit = parsed?.unit ?? 'piece';
     } catch (error) {
       this.errorMessage = error instanceof ProductLookupError ? error.message : 'Could not process this product. Try again.';
+      if (error instanceof ProductLookupError) this.retryAvailable = error.code === 'not-found';
+      if (isInternalBarcode(barcode) && error instanceof Error) this.errorMessage = error.message;
     } finally {
       this.setState('idle');
     }
+  }
+
+  private detailsDiffer(saved: CatalogNode, fresh: FoodProduct): boolean {
+    return saved.name !== fresh.name || saved.brand !== fresh.brand || saved.rawPackage !== fresh.packageQuantity;
+  }
+
+  public async confirmRefresh(useFresh: boolean): Promise<void> {
+    if (!this.pendingRefresh) return;
+    this.errorMessage = null;
+    this.setState('saving');
+    try {
+      const {saved, fresh} = this.pendingRefresh;
+      let product = saved;
+      if (useFresh) {
+        const parsed = parsePackageQuantity(fresh.packageQuantity);
+        product = {...saved, name: fresh.name, brand: fresh.brand, rawPackage: fresh.packageQuantity,
+          saleKind: parsed ? 'fixed' : 'unknown', packageAmount: parsed?.amount ?? null,
+          packageUnit: parsed?.unit ?? null, variableUnit: null};
+        await this.catalog.save(product);
+      } else {
+        await this.lookup.markReviewed(fresh.barcode);
+      }
+      await this.receive(product);
+      this.pendingRefresh = null;
+    } catch (error) {
+      this.errorMessage = String(error instanceof Error ? error.message : error);
+    } finally {
+      this.setState('idle');
+    }
+  }
+
+  private async startInternal(decoded: WeightedBarcode): Promise<void> {
+    this.pendingInternal = decoded;
+    this.stores = await firstValueFrom(this.categories.getCategories().pipe(take(1)));
+    const selected = await firstValueFrom(this.categories.getSelectedCategoryId().pipe(take(1)));
+    this.selectedStoreId = this.route.snapshot.queryParamMap.get('from') === 'fridge' ? '' :
+      this.stores.some(store => store.id === selected) ? selected ?? '' : '';
+    this.mappedProduct = null;
+    this.mappingMode = false;
+    this.selectedInternalProductId = '';
+    this.internalName = '';
+    this.internalClassId = '';
+    if (this.selectedStoreId) await this.selectInternalStore();
+  }
+
+  public async selectInternalStore(): Promise<void> {
+    if (!this.pendingInternal || !this.selectedStoreId) return;
+    this.errorMessage = null;
+    this.setState('looking-up');
+    try {
+      this.mappedProduct = await this.internalMap.get(this.selectedStoreId, this.pendingInternal.productCode);
+      this.mappingMode = !this.mappedProduct;
+    } catch (error) {
+      this.errorMessage = String(error instanceof Error ? error.message : error);
+    } finally {
+      this.setState('idle');
+    }
+  }
+
+  public changeInternalProduct(): void {
+    this.mappingMode = true;
+    this.selectedInternalProductId = this.mappedProduct?.id ?? '';
+    this.cdr.markForCheck();
+  }
+
+  public async confirmInternal(): Promise<void> {
+    if (!this.pendingInternal || !this.selectedStoreId) return;
+    this.errorMessage = null;
+    this.setState('saving');
+    try {
+      let product = this.mappedProduct;
+      if (this.mappingMode) {
+        if (this.selectedInternalProductId) {
+          product = await this.catalog.byId(this.selectedInternalProductId);
+        } else {
+          const name = this.internalName.trim();
+          if (!name) throw new Error('Enter the product name.');
+          const classId = this.internalClassId || (await this.catalog.findOrCreateClass(name)).id;
+          product = this.catalog.createLooseDraft(name, classId, 'g');
+          await this.catalog.save(product);
+        }
+        await this.internalMap.save(this.selectedStoreId, this.pendingInternal.productCode, product.id);
+      }
+      if (!product) throw new Error('Choose a product sold by the gram.');
+      await this.receive(product, {amount: this.pendingInternal.grams, unit: 'g'}, this.selectedStoreId);
+      this.pendingInternal = null;
+      this.mappedProduct = null;
+      this.mappingMode = false;
+    } catch (error) {
+      this.errorMessage = String(error instanceof Error ? error.message : error);
+    } finally {
+      this.setState('idle');
+    }
+  }
+
+  public clearPending(): void {
+    this.pendingInternal = null;
+    this.pendingRefresh = null;
+    this.pendingProduct = null;
+    this.mappingMode = false;
+    this.activeScanId = null;
+    this.activeBarcode = '';
+    this.barcodeInput = '';
+    this.errorMessage = null;
+    this.cdr.markForCheck();
   }
 
   public async confirmProduct(): Promise<void> {
@@ -169,11 +324,13 @@ export class ScanProductComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async receive(product: CatalogNode): Promise<void> {
+  private async receive(product: CatalogNode, bulkQuantity?: BaseQuantity, storeId?: string): Promise<void> {
     this.setState('saving');
-    const listId = await firstValueFrom(this.categories.getSelectedCategoryId().pipe(take(1)));
-    await this.stock.receive(product.id, {shoppingListId: listId ?? undefined, scanId: this.activeScanId ?? uuidv4()});
-    this.savedName = product.name;
+    const listId = storeId ?? await firstValueFrom(this.categories.getSelectedCategoryId().pipe(take(1)));
+    await this.stock.receive(product.id, {
+      shoppingListId: listId ?? undefined, scanId: this.activeScanId ?? uuidv4(), bulkQuantity
+    });
+    this.savedName = bulkQuantity ? `${bulkQuantity.amount} g ${product.name}` : product.name;
     this.barcodeInput = '';
     this.activeScanId = null;
     this.activeBarcode = '';

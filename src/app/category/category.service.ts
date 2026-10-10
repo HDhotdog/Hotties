@@ -1,12 +1,13 @@
 import {inject, Injectable} from '@angular/core';
 import {Ingredient} from '../ingredients/ingredient.dto';
 import {CategoryRepository} from './category.repository';
-import {from, map, Observable} from 'rxjs';
+import {from, map, Observable, switchMap} from 'rxjs';
 import {ShoppingService} from '../domain/shopping.service';
 import {normalizeQuantity, QuantityUnit} from '../domain/quantity';
 import {SettingsService} from '../database/settings/settings.service';
 import {Category} from './category.dto';
 import {toCategory, toRxCategory} from './category.mapper';
+import {DatabaseService} from '../database/database';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +16,7 @@ export class CategoryService {
   private categoryRepository = inject(CategoryRepository);
   private shopping = inject(ShoppingService);
   private settingsService = inject(SettingsService);
+  private database = inject(DatabaseService);
 
   public initCategories(categories: Category[]): Observable<Category[]> {
     return this.categoryRepository
@@ -45,11 +47,20 @@ export class CategoryService {
   }
 
   public deleteAllCategories(): Observable<number> {
-    return this.categoryRepository.deleteAll();
+    return this.categoryRepository.deleteAll().pipe(switchMap(count =>
+      from(this.clearMappings()).pipe(map(() => count))));
   }
 
   public deleteCategory(id: string): Observable<boolean> {
-    return this.categoryRepository.deleteById(id);
+    return this.categoryRepository.deleteById(id).pipe(switchMap(deleted =>
+      from(this.clearMappings(id)).pipe(map(() => deleted))));
+  }
+
+  private async clearMappings(storeId?: string): Promise<void> {
+    const db = await this.database.getDb();
+    for (const mapping of await db['internal_product_map'].find().exec()) {
+      if (!storeId || mapping.storeId === storeId) await mapping.remove();
+    }
   }
 
   public getSelectedCategoryId(): Observable<string | null> {

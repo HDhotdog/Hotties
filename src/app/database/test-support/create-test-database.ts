@@ -12,7 +12,7 @@ export interface TestDatabaseAccessor {
  * Creates a fresh, seeded, in-memory RxDatabase for tests (no IndexedDB/Dexie involved).
  * Each call gets its own uniquely-named database so tests don't leak state into each other.
  */
-export async function createTestDatabase(): Promise<{ db: RxDatabase; accessor: TestDatabaseAccessor }> {
-  const db = await createHottiesDatabase(getRxStorageMemory(), `test-db-${uuidv4()}`);
+export async function createTestDatabase(legacyMode = true): Promise<{ db: RxDatabase; accessor: TestDatabaseAccessor }> {
+  const db = await createHottiesDatabase(getRxStorageMemory(), `test-db-${uuidv4()}`, legacyMode);
   return {db, accessor: {getDb: async () => db}};
 }

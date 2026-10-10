@@ -132,6 +132,10 @@ export class CatalogService {
     for (const doc of plan.shoppingEntries) await doc.remove();
     for (const doc of plan.recipeIngredients) await doc.remove();
     for (const doc of plan.stockLots) await doc.remove();
+    const deletedIds = new Set(plan.nodesToDelete.map(node => node.id));
+    for (const mapping of await db['internal_product_map'].find().exec()) {
+      if (deletedIds.has(mapping.productId)) await mapping.remove();
+    }
     for (const node of plan.nodesToDelete) {
       const doc = await db['catalog_nodes'].findOne(node.id).exec();
       if (doc) await doc.remove();

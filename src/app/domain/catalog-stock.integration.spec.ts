@@ -18,7 +18,7 @@ describe('shared catalog, shopping, and stock', () => {
   let categories: CategoryService;
 
   beforeEach(async () => {
-    const test = await createTestDatabase();
+    const test = await createTestDatabase(false);
     db = test.db;
     TestBed.configureTestingModule({providers: [{provide: DatabaseService, useValue: test.accessor}]});
     catalog = TestBed.inject(CatalogService);
@@ -84,6 +84,20 @@ describe('shared catalog, shopping, and stock', () => {
     await stock.save({...lot, remainingAmount: 550});
     expect((await stock.all())[0].remainingAmount).toBe(550);
     await expect(stock.save({...lot, remainingAmount: 650})).rejects.toThrow(/Remaining stock/);
+  });
+
+  it('keeps an older lot editable after the catalog package size changes', async () => {
+    const drinks = await catalog.createClass('Drinks');
+    const carton = catalog.productDraft({
+      barcode: '1234567890999', name: 'Oat drink', brand: null, packageQuantity: '1 l'
+    }, drinks.id);
+    await catalog.save(carton);
+    const oldLot = await stock.receive(carton.id);
+    await catalog.save({...carton, packageAmount: 750, rawPackage: '750 ml'});
+    await stock.save({...oldLot, remainingAmount: 500});
+    expect((await stock.all()).find(lot => lot.id === oldLot.id)?.acquiredAmount).toBe(1000);
+    const newLot = await stock.receive(carton.id);
+    expect(newLot.acquiredAmount).toBe(750);
   });
 
   it('keeps a partially fulfilled entry until enough packages have been scanned', async () => {

@@ -26,11 +26,87 @@
     @if (errorMessage) {
       <p class="message error" role="alert">{{ errorMessage }}</p>
     }
+    @if (infoMessage) {
+      <p class="message info" role="status">{{ infoMessage }}</p>
+    }
+    @if (retryAvailable) {
+      <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'"
+                  (click)="addBarcode(barcodeInput, true)">Retry Open Food Facts</ion-button>
+    }
     @if (savedName) {
       <p class="message success" role="status">{{ savedName }} added to fridge.</p>
       <ion-button expand="block" fill="outline" (click)="viewFridge()">View fridge</ion-button>
     }
-    @if (pendingProduct) {
+    @if (pendingInternal) {
+      <section class="product-card">
+        <h2>Store product · {{ pendingInternal.grams }} g</h2>
+        <p>Product ID {{ pendingInternal.productCode }}</p>
+        @if (!selectedStoreId) {
+          <label>Shopping store
+            <select [(ngModel)]="selectedStoreId" (ngModelChange)="selectInternalStore()">
+              <option value="">Choose a store</option>
+              @for (store of stores; track store.id) {
+                <option [value]="store.id">{{ store.name }}</option>
+              }
+            </select>
+          </label>
+          @if (!stores.length) {
+            <p>Create a shopping list before assigning this internal product.</p>
+          }
+        } @else {
+          <p>Store: {{ selectedStoreName }}</p>
+          @if (mappingMode) {
+            <label>Product
+              <select [(ngModel)]="selectedInternalProductId">
+                <option value="">Create a new product</option>
+                @for (product of gramProducts; track product.id) {
+                  <option [value]="product.id">{{ product.name }}</option>
+                }
+              </select>
+            </label>
+            @if (!selectedInternalProductId) {
+              <label>Product name <input [(ngModel)]="internalName" placeholder="e.g. Zucchini"></label>
+              <label>Category
+                <select [(ngModel)]="internalClassId">
+                  <option value="">Create category from product name</option>
+                  @for (node of classes; track node.id) {
+                    <option [value]="node.id">{{ node.name }}</option>
+                  }
+                </select>
+              </label>
+            }
+            <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmInternal()">
+              Save product and add {{ pendingInternal.grams }} g
+            </ion-button>
+          } @else if (mappedProduct) {
+            <h2>{{ mappedProduct.name }}</h2>
+            <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmInternal()">
+              Add {{ pendingInternal.grams }} g
+            </ion-button>
+            <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'"
+                        (click)="changeInternalProduct()">Change product</ion-button>
+          }
+          <button class="details-toggle" type="button" (click)="selectedStoreId = ''; mappedProduct = null">
+            Change store
+          </button>
+        }
+        <ion-button fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel</ion-button>
+      </section>
+    } @else if (pendingRefresh) {
+      <section class="product-card">
+        <h2>Product details changed</h2>
+        <p>Saved: {{ pendingRefresh.saved.name }} · {{ pendingRefresh.saved.rawPackage || 'size unknown' }}</p>
+        <p>Open Food Facts: {{ pendingRefresh.fresh.name }} · {{ pendingRefresh.fresh.packageQuantity || 'size unknown' }}</p>
+        <p>Brand: {{ pendingRefresh.saved.brand || 'none' }} → {{ pendingRefresh.fresh.brand || 'none' }}</p>
+        <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmRefresh(true)">
+          Use new details and add
+        </ion-button>
+        <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'" (click)="confirmRefresh(false)">
+          Keep saved details and add
+        </ion-button>
+        <ion-button fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel</ion-button>
+      </section>
+    } @else if (pendingProduct) {
       <section class="product-card">
         <h2>{{ pendingProduct.name }}</h2>
         @if (pendingProduct.brand) {
@@ -39,6 +115,7 @@
         <p>{{ saleKind === 'fixed' ? packageAmount + ' ' + packageUnit : 'Package size unknown' }}
           · {{ categoryName }}</p>
         <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmProduct()">Add to fridge</ion-button>
+        <ion-button expand="block" fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel</ion-button>
         <button class="details-toggle" type="button" (click)="detailsOpen = !detailsOpen"
                 [attr.aria-expanded]="detailsOpen">
           {{ detailsOpen ? 'Hide details' : 'Edit category or package size' }}

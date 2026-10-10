@@ -49,6 +49,10 @@ describe('OpenFoodFactsService', () => {
 
   it('does not request unsupported barcodes or browser requests', async () => {
     await expect(service.getProduct('abc')).rejects.toBeInstanceOf(ProductLookupError);
+    for (let prefix = 20; prefix <= 29; prefix++) {
+      await expect(service.getProduct(`${prefix}12345678901`)).rejects.toMatchObject({code: 'internal-barcode'});
+    }
+    await expect(service.getProduct('2914374')).rejects.toMatchObject({code: 'internal-barcode'});
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
     await expect(service.getProduct('12345678')).rejects.toMatchObject({code: 'native-only'});
     expect(get).not.toHaveBeenCalled();
