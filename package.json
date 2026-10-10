@@ -14,7 +14,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "ng lint",
-    "native:configure": "node scripts/configure-native-barcode.mjs",
+    "native:configure": "node scripts/prepare-native-llm.mjs && node scripts/configure-native-barcode.mjs",
     "native:assets": "capacitor-assets generate --android",
     "export": "npm run build && npm run native:configure && npm run native:assets && ionic cap copy && npx cap sync android && ionic cap open android",
     "android:install": "bash scripts/install-android.sh"

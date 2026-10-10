@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.22)
+project(shopping_llm LANGUAGES C CXX)
+set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
+
+get_filename_component(REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
+set(GGML_OPENMP OFF CACHE BOOL "" FORCE)
+set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
+set(GGML_LLAMAFILE OFF CACHE BOOL "" FORCE)
+
+add_subdirectory("${REPO_ROOT}/.model-cache/native/llama.cpp" "${CMAKE_BINARY_DIR}/llama")
+add_library(shopping_llm SHARED shopping_llm.cpp)
+target_compile_features(shopping_llm PRIVATE cxx_std_17)
+target_link_libraries(shopping_llm PRIVATE llama log android)

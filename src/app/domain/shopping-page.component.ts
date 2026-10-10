@@ -22,6 +22,17 @@ import {ShoppingService} from './shopping.service';
 import {StockService} from './stock.service';
 import {NeedKind, ShoppingEntry, StockLot} from './shopping.model';
 import {normalizeQuantity, QuantityUnit} from './quantity';
+import {OfflineSpeech} from './offline-speech';
+import {CategorySuggestionService} from './category-suggestion.service';
+import {ShoppingSentenceService} from './shopping-sentence.service';
+import {normalizedCatalogName, ParsedShoppingItem} from './shopping-sentence';
+
+interface ShoppingReviewRow extends ParsedShoppingItem {
+  id: string;
+  targetNodeId: string;
+  suggestedProductIds: string[];
+  ranking: boolean;
+}
 
 @Component({
   selector: 'app-shopping-page', standalone: true,
@@ -38,6 +49,8 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   private readonly shopping = inject(ShoppingService);
   private readonly stock = inject(StockService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly categorySuggestions = inject(CategorySuggestionService);
+  private readonly sentenceParser = inject(ShoppingSentenceService);
   private readonly subscriptions = new Subscription();
   private entriesSubscription?: Subscription;
   public lists: Category[] = [];
@@ -58,8 +71,22 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   public suggestionsOpen = false;
   public expandedEntryId: string | null = null;
   public adding = false;
+  public voiceSupported = false;
+  public listening = false;
+  public parsing = false;
+  public sentenceOpen = false;
+  public sentenceText = '';
+  public reviewRows: ShoppingReviewRow[] = [];
+  public reviewListId = '';
+  private reviewVersion = 0;
+  public readonly sentenceUnits: Array<QuantityUnit | null> = [null, 'piece', 'package', 'g', 'kg', 'ml', 'l', 'bunch', 'pinch'];
 
   public async ngOnInit(): Promise<void> {
+    void OfflineSpeech.available().then(available => {
+      this.voiceSupported = available;
+      this.cdr.markForCheck();
+    }).catch(() => { this.voiceSupported = false; });
+    this.sentenceParser.warmUp();
     this.subscriptions.add(this.catalog.observe().subscribe(nodes => {
       this.nodes = nodes;
       this.cdr.detectChanges();
@@ -85,6 +112,9 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.reviewVersion++;
+    if (this.listening) void OfflineSpeech.cancel();
+    this.sentenceParser.cancel();
     this.entriesSubscription?.unsubscribe();
     this.subscriptions.unsubscribe();
   }
@@ -244,5 +274,155 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
 
   public async remove(entry: ShoppingEntry): Promise<void> {
     await this.shopping.remove(entry.id);
+  }
+
+  public openSentence(): void {
+    this.sentenceOpen = true;
+    this.reviewListId = this.selectedListId;
+  }
+
+  public async startSentenceVoice(): Promise<void> {
+    if (!this.voiceSupported || this.listening || this.parsing) return;
+    this.openSentence();
+    const version = this.reviewVersion;
+    this.error = '';
+    this.listening = true;
+    this.cdr.markForCheck();
+    try {
+      const transcription = await OfflineSpeech.listen();
+      if (version !== this.reviewVersion) return;
+      this.sentenceText = transcription;
+      await this.parseSentence();
+    } catch (error) {
+      if (version === this.reviewVersion) this.error = error instanceof Error ? error.message : String(error);
+    } finally {
+      this.listening = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  public async parseSentence(): Promise<void> {
+    if (this.parsing || !this.sentenceText.trim()) return;
+    const version = ++this.reviewVersion;
+    this.error = '';
+    this.parsing = true;
+    this.reviewRows = [];
+    this.reviewListId = this.selectedListId;
+    this.cdr.markForCheck();
+    try {
+      const parsed = await this.sentenceParser.parse(this.sentenceText);
+      if (version !== this.reviewVersion) return;
+      this.reviewRows = parsed.map(item => ({...item, id: uuidv4(), targetNodeId: '', suggestedProductIds: [], ranking: false}));
+      for (const row of this.reviewRows) void this.suggestMatches(row, version);
+    } catch (error) {
+      if (version !== this.reviewVersion) return;
+      this.error = error instanceof Error ? error.message : String(error);
+      this.reviewRows = [{id: uuidv4(), name: this.sentenceText.trim(), amount: 1, unit: null,
+        targetNodeId: '', suggestedProductIds: [], ranking: false}];
+    } finally {
+      if (version === this.reviewVersion) {
+        this.parsing = false;
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  public reviewNameChanged(row: ShoppingReviewRow): void {
+    row.targetNodeId = '';
+    row.suggestedProductIds = [];
+  }
+
+  public async suggestMatches(row: ShoppingReviewRow, version = this.reviewVersion): Promise<void> {
+    const normalized = normalizedCatalogName(row.name);
+    const products = this.nodes.filter(node => node.kind === 'product');
+    const exact = products.filter(node => normalizedCatalogName(node.name) === normalized);
+    row.targetNodeId = exact.length === 1 ? exact[0].id : '';
+    row.ranking = true;
+    this.cdr.markForCheck();
+    try {
+      const ids = await this.categorySuggestions.rankProducts(row.name, this.nodes);
+      if (version === this.reviewVersion && this.reviewRows.includes(row) &&
+        normalizedCatalogName(row.name) === normalized) row.suggestedProductIds = ids;
+    } catch {
+      if (version === this.reviewVersion && this.reviewRows.includes(row)) row.suggestedProductIds = [];
+    } finally {
+      row.ranking = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  public reviewCandidates(row: ShoppingReviewRow): CatalogNode[] {
+    const normalized = normalizedCatalogName(row.name);
+    const candidates = [
+      this.nodes.find(node => node.id === row.targetNodeId),
+      ...row.suggestedProductIds.map(id => this.nodes.find(node => node.id === id)),
+      ...this.nodes.filter(node => node.parentId !== null && normalizedCatalogName(node.name).includes(normalized))
+    ];
+    const seen = new Set<string>();
+    const result: CatalogNode[] = [];
+    for (const node of candidates) {
+      if (!node?.parentId || seen.has(node.id)) continue;
+      seen.add(node.id);
+      result.push(node);
+      if (result.length === 12) break;
+    }
+    return result;
+  }
+
+  public addReviewRow(): void {
+    if (this.reviewRows.length >= 12) return;
+    this.reviewRows.push({id: uuidv4(), name: '', amount: 1, unit: null, targetNodeId: '',
+      suggestedProductIds: [], ranking: false});
+  }
+
+  public removeReviewRow(row: ShoppingReviewRow): void {
+    this.reviewRows = this.reviewRows.filter(item => item !== row);
+  }
+
+  public cancelSentence(): void {
+    this.reviewVersion++;
+    if (this.listening) void OfflineSpeech.cancel();
+    this.sentenceParser.cancel();
+    this.listening = false;
+    this.parsing = false;
+    this.sentenceOpen = false;
+    this.reviewRows = [];
+    this.error = '';
+  }
+
+  public async addSentenceItems(): Promise<void> {
+    if (this.adding || this.parsing) return;
+    this.error = '';
+    this.adding = true;
+    try {
+      if (!this.reviewListId || !this.reviewRows.length) throw new Error('Review at least one item.');
+      for (const row of this.reviewRows) {
+        const name = row.name.trim();
+        if (!name) throw new Error('Each item needs a name.');
+        if (row.amount !== null && (!Number.isFinite(Number(row.amount)) || Number(row.amount) <= 0)) {
+          throw new Error(`Enter a valid amount for ${name}.`);
+        }
+        if (!row.targetNodeId) throw new Error(`Choose a catalog item or create a class for ${name}.`);
+      }
+      for (const row of this.reviewRows) {
+        const target = row.targetNodeId === '__new__' ?
+          (await this.catalog.findOrCreateClass(row.name)).id : row.targetNodeId;
+        const amount = row.amount === null ? 1 : Number(row.amount);
+        if (row.unit === 'package') {
+          await this.shopping.addProduct(this.reviewListId, target, {kind: 'packages', count: amount}, row.id);
+        } else if (row.unit || amount !== 1) {
+          await this.shopping.addProduct(this.reviewListId, target,
+            {kind: 'quantity', quantity: normalizeQuantity({amount, unit: row.unit ?? 'piece'})}, row.id);
+        } else {
+          await this.shopping.addProduct(this.reviewListId, target, {kind: 'unspecified'}, row.id);
+        }
+      }
+      this.cancelSentence();
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : String(error);
+    } finally {
+      this.adding = false;
+      this.cdr.markForCheck();
+    }
   }
 }

@@ -10,6 +10,7 @@ import {CategoryService} from '../category/category.service';
 import {ShoppingPageComponent} from './shopping-page.component';
 import {StockPageComponent} from './stock-page.component';
 import {CategorySuggestionService} from './category-suggestion.service';
+import {ShoppingSentenceService} from './shopping-sentence.service';
 
 describe('Quick add pages', () => {
   const milkClass = blankClass('milk', 'Milk', 'root-food');
@@ -26,7 +27,8 @@ describe('Quick add pages', () => {
   let catalog: { findOrCreateClass: jest.Mock; save: jest.Mock; all: jest.Mock; byId: jest.Mock; matches: jest.Mock };
   let shopping: { addProduct: jest.Mock; addTask: jest.Mock };
   let stock: { receive: jest.Mock; suggestedPackages: jest.Mock };
-  let categorySuggestions: { rank: jest.Mock };
+  let categorySuggestions: { rank: jest.Mock; rankProducts: jest.Mock };
+  let sentenceParser: {parse: jest.Mock; warmUp: jest.Mock; cancel: jest.Mock};
 
   beforeEach(() => {
     catalog = {
@@ -38,7 +40,8 @@ describe('Quick add pages', () => {
     };
     shopping = {addProduct: jest.fn().mockResolvedValue({}), addTask: jest.fn().mockResolvedValue({})};
     stock = {receive: jest.fn().mockResolvedValue({}), suggestedPackages: jest.fn().mockReturnValue(1)};
-    categorySuggestions = {rank: jest.fn().mockResolvedValue([])};
+    categorySuggestions = {rank: jest.fn().mockResolvedValue([]), rankProducts: jest.fn().mockResolvedValue([])};
+    sentenceParser = {parse: jest.fn(), warmUp: jest.fn(), cancel: jest.fn()};
     TestBed.configureTestingModule({
       providers: [
         {provide: Router, useValue: {navigate: jest.fn()}},
@@ -49,6 +52,7 @@ describe('Quick add pages', () => {
         {provide: ShoppingService, useValue: shopping},
         {provide: StockService, useValue: stock},
         {provide: CategorySuggestionService, useValue: categorySuggestions},
+        {provide: ShoppingSentenceService, useValue: sentenceParser},
       ]
     });
   });
@@ -81,6 +85,91 @@ describe('Quick add pages', () => {
     await page.add();
     expect(shopping.addProduct).toHaveBeenLastCalledWith('list', carton.id,
       {kind: 'quantity', quantity: {amount: 200, unit: 'ml'}});
+  });
+
+  it('reviews decoded items, suggests catalog products, and preserves quantities on confirmation', async () => {
+    sentenceParser.parse.mockResolvedValue([
+      {name: 'Milk', amount: 1, unit: 'l'},
+      {name: 'Eier', amount: 1, unit: 'package'},
+      {name: 'Tomaten', amount: 3, unit: null}
+    ]);
+    categorySuggestions.rankProducts.mockResolvedValue([carton.id]);
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    page.selectedListId = 'list';
+    page.nodes = [milkClass, carton];
+    page.openSentence();
+    page.sentenceText = 'Ein Liter Milk, eine Packung Eier, drei Tomaten';
+    await page.parseSentence();
+    expect(page.reviewRows).toHaveLength(3);
+    expect(page.reviewRows[0].targetNodeId).toBe(carton.id);
+    expect(page.reviewRows[1].targetNodeId).toBe('');
+    page.reviewRows[1].targetNodeId = milkClass.id;
+    page.reviewRows[2].targetNodeId = '__new__';
+    await page.addSentenceItems();
+    expect(shopping.addProduct).toHaveBeenNthCalledWith(1, 'list', carton.id,
+      {kind: 'quantity', quantity: {amount: 1000, unit: 'ml'}}, expect.any(String));
+    expect(shopping.addProduct).toHaveBeenNthCalledWith(2, 'list', milkClass.id,
+      {kind: 'packages', count: 1}, expect.any(String));
+    expect(shopping.addProduct).toHaveBeenNthCalledWith(3, 'list', milkClass.id,
+      {kind: 'quantity', quantity: {amount: 3, unit: 'piece'}}, expect.any(String));
+    expect(page.sentenceOpen).toBe(false);
+  });
+
+  it('keeps row IDs stable when a partially saved review is retried', async () => {
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    page.selectedListId = 'list';
+    page.openSentence();
+    page.reviewRows = [
+      {id: 'row-one', name: 'Milk', amount: 1, unit: 'package', targetNodeId: carton.id,
+        suggestedProductIds: [], ranking: false},
+      {id: 'row-two', name: 'Milk', amount: 2, unit: 'package', targetNodeId: carton.id,
+        suggestedProductIds: [], ranking: false}
+    ];
+    shopping.addProduct.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('Interrupted after write'));
+    await page.addSentenceItems();
+    expect(page.sentenceOpen).toBe(true);
+    await page.addSentenceItems();
+    expect(shopping.addProduct.mock.calls.map(call => call[3])).toEqual(['row-one', 'row-two', 'row-one', 'row-two']);
+  });
+
+  it('does not preselect an ambiguous exact product match', async () => {
+    const secondCarton = {...carton, id: 'second-carton', brand: 'Other dairy'};
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    page.nodes = [milkClass, carton, secondCarton];
+    page.reviewRows = [{id: 'row', name: 'Milk', amount: 1, unit: 'package', targetNodeId: '',
+      suggestedProductIds: [], ranking: false}];
+    await page.suggestMatches(page.reviewRows[0]);
+    expect(page.reviewRows[0].targetNodeId).toBe('');
+    expect(page.reviewCandidates(page.reviewRows[0]).map(node => node.id)).toEqual([milkClass.id, carton.id, secondCarton.id]);
+  });
+
+  it('keeps an invalid model result editable and cancels without writes', async () => {
+    sentenceParser.parse.mockRejectedValue(new Error('Could not read the item list.'));
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    page.selectedListId = 'list';
+    page.openSentence();
+    page.sentenceText = 'Ähm, noch Eier bitte';
+    await page.parseSentence();
+    expect(page.reviewRows[0].name).toBe('Ähm, noch Eier bitte');
+    expect(shopping.addProduct).not.toHaveBeenCalled();
+    page.cancelSentence();
+    expect(page.reviewRows).toEqual([]);
+    expect(shopping.addProduct).not.toHaveBeenCalled();
+  });
+
+  it('discards a decoder result when the user cancels while parsing', async () => {
+    let finish!: (items: Array<{name: string; amount: number; unit: null}>) => void;
+    sentenceParser.parse.mockReturnValue(new Promise(resolve => { finish = resolve; }));
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    page.selectedListId = 'list';
+    page.openSentence();
+    page.sentenceText = 'Zwei Tomaten';
+    const parsing = page.parseSentence();
+    page.cancelSentence();
+    finish([{name: 'Tomaten', amount: 2, unit: null}]);
+    await parsing;
+    expect(page.reviewRows).toEqual([]);
+    expect(shopping.addProduct).not.toHaveBeenCalled();
   });
 
   it('adds a fixed product to stock with one package', async () => {

@@ -30,8 +30,8 @@
               },
               {
                 "glob": "**/*",
-                "input": ".model-cache/models",
-                "output": "assets/models"
+                "input": ".model-cache/models/Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+                "output": "assets/models/Xenova/paraphrase-multilingual-MiniLM-L12-v2"
               },
               {
                 "glob": "**/*",

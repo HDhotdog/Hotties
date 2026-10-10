@@ -47,14 +47,21 @@ export class CategorySuggestionService {
   }
 
   public async rank(name: string, nodes: CatalogNode[]): Promise<string[]> {
+    return this.requestRank('category', name, nodes);
+  }
+
+  public async rankProducts(name: string, nodes: CatalogNode[]): Promise<string[]> {
+    return this.requestRank('product', name, nodes);
+  }
+
+  private async requestRank(kind: 'category' | 'product', name: string, nodes: CatalogNode[]): Promise<string[]> {
     if (!name.trim() || !nodes.length) return [];
 
     const worker = await this.getOrInitWorker();
     const id = ++this.nextId;
     return new Promise<string[]>((resolve, reject) => {
       this.pending.set(id, {resolve, reject});
-      // Pass the raw nodes array directly; the worker handles filtering and embedding
-      worker.postMessage({id, name: name.trim(), nodes});
+      worker.postMessage({id, kind, name: name.trim(), nodes});
     });
   }
 }

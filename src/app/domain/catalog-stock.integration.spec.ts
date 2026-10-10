@@ -134,6 +134,18 @@ describe('shared catalog, shopping, and stock', () => {
     expect((await shopping.all('list')).map(entry => entry.id)).toEqual([generic.id]);
   });
 
+  it('fulfills a package count targeted at a class', async () => {
+    const eggs = await catalog.createClass('Eier');
+    const carton = catalog.productDraft({
+      barcode: '1234567890199', name: 'Bio Eier', brand: null, packageQuantity: '6 pieces'
+    }, eggs.id);
+    await catalog.save(carton);
+    const entry = await shopping.addProduct('list', eggs.id, {kind: 'packages', count: 2});
+    const lot = await stock.receive(carton.id, {shoppingListId: 'list', packages: 2});
+    expect(lot.allocations).toEqual([{shoppingEntryId: entry.id, amount: 2, unit: 'package'}]);
+    expect(await shopping.all('list')).toHaveLength(0);
+  });
+
   it('does not reuse a partly allocated package as a second whole package', async () => {
     const milk = await catalog.createClass('Milk');
     const carton = catalog.productDraft({

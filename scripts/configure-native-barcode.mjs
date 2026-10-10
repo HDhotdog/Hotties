@@ -43,7 +43,30 @@ if (existsSync(androidVariables)) {
       if (!activity.includes('OfflineSpeechPlugin.class')) throw new Error('Could not register offline speech plugin.');
       writeFileSync(mainActivityPath, activity);
     }
+    if (!activity.includes('LocalShoppingModelPlugin.class')) {
+      activity = activity.replace('registerPlugin(OfflineSpeechPlugin.class);',
+        'registerPlugin(OfflineSpeechPlugin.class);\n    registerPlugin(LocalShoppingModelPlugin.class);');
+      if (!activity.includes('LocalShoppingModelPlugin.class')) throw new Error('Could not register local shopping model plugin.');
+      writeFileSync(mainActivityPath, activity);
+    }
     copyFileSync('native/android/OfflineSpeechPlugin.java', `${javaDir}/OfflineSpeechPlugin.java`);
+    copyFileSync('native/android/LocalShoppingModelPlugin.java', `${javaDir}/LocalShoppingModelPlugin.java`);
+    const modelAsset = 'android/app/src/main/assets/shopping-model.gguf';
+    copyFileSync('.model-cache/native/qwen2.5-0.5b-instruct-q4_k_m.gguf', modelAsset);
+  }
+
+  const gradlePath = 'android/app/build.gradle';
+  if (existsSync(gradlePath)) {
+    let gradle = readFileSync(gradlePath, 'utf8');
+    if (!gradle.includes('ndkVersion "30.0.16248370"')) {
+      gradle = gradle.replace('android {', 'android {\n    ndkVersion "30.0.16248370"');
+    }
+    if (!gradle.includes('shopping-llm/CMakeLists.txt')) {
+      gradle = gradle.replace('android {',
+        'android {\n    externalNativeBuild { cmake { path "../../native/android/shopping-llm/CMakeLists.txt" } }');
+      if (!gradle.includes('shopping-llm/CMakeLists.txt')) throw new Error('Could not configure native shopping model build.');
+    }
+    writeFileSync(gradlePath, gradle);
   }
 }
 

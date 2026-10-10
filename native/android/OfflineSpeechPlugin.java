@@ -37,7 +37,7 @@ public class OfflineSpeechPlugin extends Plugin {
     public void listen(PluginCall call) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
             !SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext())) {
-            call.reject("On-device speech recognition is unavailable. Type the product instead.");
+            call.reject("On-device speech recognition is unavailable. Type the sentence instead.");
             return;
         }
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
@@ -50,7 +50,7 @@ public class OfflineSpeechPlugin extends Plugin {
     @PermissionCallback
     private void microphoneResult(PluginCall call) {
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
-            call.reject("Microphone permission was denied. Type the product instead.");
+            call.reject("Microphone permission was denied. Type the sentence instead.");
             return;
         }
         startListening(call);
@@ -76,18 +76,18 @@ public class OfflineSpeechPlugin extends Plugin {
                     @Override public void onError(int error) {
                         String message;
                         if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
-                            message = "No speech was recognized. Try again or type the product.";
+                            message = "No speech was recognized. Try again or type the sentence.";
                         } else if (error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
-                            message = "Microphone access is needed for voice entry. Type the product instead.";
+                            message = "Microphone access is needed for voice entry. Type the sentence instead.";
                         } else {
-                            message = "On-device speech recognition is unavailable right now. Type the product instead.";
+                            message = "On-device speech recognition is unavailable right now. Type the sentence instead.";
                         }
                         finish(null, message);
                     }
                     @Override public void onResults(Bundle results) {
                         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         String text = matches == null || matches.isEmpty() ? "" : matches.get(0).trim();
-                        finish(text, text.isEmpty() ? "No speech was recognized. Try again or type the product." : null);
+                        finish(text, text.isEmpty() ? "No speech was recognized. Try again or type the sentence." : null);
                     }
                 });
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -96,7 +96,7 @@ public class OfflineSpeechPlugin extends Plugin {
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
                 recognizer.startListening(intent);
             } catch (Exception error) {
-                finish(null, "Could not start on-device speech recognition. Type the product instead.");
+                finish(null, "Could not start on-device speech recognition. Type the sentence instead.");
             }
         });
     }

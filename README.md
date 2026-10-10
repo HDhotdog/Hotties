@@ -20,7 +20,7 @@ Shopping, recipes, scanning, and stock now share a [catalog tree and quantity mo
 - Review the recognized product and amount before adding stock
 - Receive local category suggestions from a bundled multilingual embedding model; choose the category yourself
 
-See [offline voice entry](docs/OFFLINE-VOICE-ENTRY.md) for device support and verification.
+See [offline voice entry](docs/OFFLINE-VOICE-ENTRY.md) for device support, shopping sentences, and verification.
 
 ### Recipes
 - Create, view, edit, and delete recipes

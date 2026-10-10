@@ -29,16 +29,18 @@ export class ShoppingService {
     kind: NeedKind;
     quantity?: BaseQuantity | null;
     count?: number
-  }): Promise<ShoppingEntry> {
+  }, entryId = uuidv4()): Promise<ShoppingEntry> {
     const node = await this.catalog.byId(targetNodeId);
-    if (need.kind === 'packages' && node.kind !== 'product') throw new Error('Package counts require an exact product.');
+    if (need.kind === 'packages' && (!Number.isInteger(need.count) || (need.count ?? 0) < 1)) {
+      throw new Error('Package count must be a positive whole number.');
+    }
     const amount = need.kind === 'quantity' ? need.quantity?.amount : need.kind === 'packages' ? need.count : null;
     const unit = need.kind === 'quantity' ? need.quantity?.unit : need.kind === 'packages' ? 'package' : null;
     if (need.kind !== 'unspecified' && (!(amount && Number.isFinite(amount) && amount > 0) || !unit)) {
       throw new Error('Enter a valid shopping quantity.');
     }
     const entry: ShoppingEntry = {
-      id: uuidv4(), shoppingListId: listId, kind: 'product', targetNodeId,
+      id: entryId, shoppingListId: listId, kind: 'product', targetNodeId,
       label: node.name, needKind: need.kind, needAmount: amount ?? null, needUnit: unit ?? null,
       checked: false, createdAt: Date.now()
     };

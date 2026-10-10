@@ -23,6 +23,74 @@
 </ion-header>
 
 <ion-content>
+  <section class="sentence-entry" aria-label="Add several shopping items">
+    <div class="sentence-actions">
+      <button type="button" (click)="openSentence()" [attr.aria-expanded]="sentenceOpen">
+        Add several items
+      </button>
+      <button type="button" (click)="startSentenceVoice()" [disabled]="!voiceSupported || listening || parsing"
+              [attr.aria-label]="listening ? 'Listening' : voiceSupported ? 'Speak shopping items in German' : 'On-device speech unavailable; type shopping items'">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+          <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"></path>
+        </svg>
+        <span>{{ listening ? 'Listening…' : 'Speak items' }}</span>
+      </button>
+    </div>
+    @if (sentenceOpen) {
+      <div class="sentence-panel">
+        <label for="shopping-sentence">Shopping sentence</label>
+        <textarea id="shopping-sentence" [(ngModel)]="sentenceText" rows="2"
+                  placeholder="Ein Kilo Kartoffeln, eine Packung Eier, drei Tomaten"></textarea>
+        <div class="sentence-actions">
+          <button type="button" (click)="parseSentence()" [disabled]="parsing || listening || !sentenceText.trim()">
+            {{ parsing ? 'Preparing items…' : 'Review sentence' }}
+          </button>
+          <button type="button" (click)="cancelSentence()">Cancel</button>
+        </div>
+        @if (error) { <p class="error" role="alert">{{ error }}</p> }
+        @if (reviewRows.length) {
+          <p class="review-heading">Review each item and its catalog match</p>
+          @for (row of reviewRows; track row.id) {
+            <div class="sentence-row">
+              <label>Name
+                <input type="text" [(ngModel)]="row.name" (ngModelChange)="reviewNameChanged(row)"
+                       (blur)="suggestMatches(row)" maxlength="100" autocomplete="off">
+              </label>
+              <div class="sentence-quantity">
+                <label>Amount <input type="number" min="0.001" step="any" [(ngModel)]="row.amount"></label>
+                <label>Unit
+                  <select [(ngModel)]="row.unit">
+                    @for (unit of sentenceUnits; track unit) {
+                      <option [ngValue]="unit">{{ unit ?? 'No unit' }}</option>
+                    }
+                  </select>
+                </label>
+              </div>
+              <label>Catalog item
+                <select [(ngModel)]="row.targetNodeId" [attr.aria-label]="'Catalog match for ' + row.name">
+                  <option value="">Choose a match</option>
+                  @for (node of reviewCandidates(row); track node.id) {
+                    <option [value]="node.id">{{ nodeLabel(node) }}</option>
+                  }
+                  <option value="__new__">Create class “{{ row.name || 'new item' }}”</option>
+                </select>
+              </label>
+              @if (row.ranking) { <span class="ranking-note">Finding matches…</span> }
+              <button type="button" class="remove-review-row" (click)="removeReviewRow(row)"
+                      [attr.aria-label]="'Remove ' + row.name + ' from review'">Remove item</button>
+            </div>
+          }
+          <div class="sentence-actions">
+            <button type="button" (click)="addReviewRow()" [disabled]="reviewRows.length >= 12">Add another item</button>
+            <button type="button" class="confirm-sentence" (click)="addSentenceItems()" [disabled]="adding">
+              {{ adding ? 'Adding…' : 'Add items' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </section>
   <div class="entries">
     @for (entry of entries; track entry.id) {
       <div class="entry" [class.checked]="entry.checked" [class.task]="entry.kind === 'task'">
@@ -78,7 +146,7 @@
 </ion-content>
 
 <ion-footer class="quick-add">
-  @if (error) {
+  @if (error && !sentenceOpen) {
     <p class="error" role="alert">{{ error }}</p>
   }
   @if (suggestions.length > 0) {
