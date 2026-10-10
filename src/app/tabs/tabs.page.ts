@@ -1,4 +1,6 @@
 import {
+  IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -24,6 +26,8 @@ import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RouterModule,
+    IonButton,
+    IonButtons,
     IonContent,
     IonHeader,
     IonIcon,
