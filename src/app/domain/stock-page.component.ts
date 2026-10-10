@@ -20,6 +20,22 @@ import {CatalogNode} from './catalog.model';
 import {StockService} from './stock.service';
 import {StockLot} from './shopping.model';
 import {BaseUnit, formatQuantity} from './quantity';
+import {parseGermanStockInput} from './german-stock-input';
+import {OfflineSpeech} from './offline-speech';
+import {CategorySuggestionService} from './category-suggestion.service';
+
+interface StockReview {
+  stockId: string;
+  name: string;
+  count: number | null;
+  productId: string;
+  categoryId: string;
+  newCategoryName: string;
+  bulkAmount: number | null;
+  suggestedIds: string[];
+  ranking: boolean;
+  categoryError: boolean;
+}
 
 @Component({
   selector: 'app-stock-page', standalone: true,
@@ -34,6 +50,7 @@ export class StockPageComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly catalog = inject(CatalogService);
   private readonly stock = inject(StockService);
+  private readonly categorySuggestions = inject(CategorySuggestionService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly subscriptions = new Subscription();
   public nodes: CatalogNode[] = [];
@@ -49,8 +66,18 @@ export class StockPageComponent implements OnInit, OnDestroy {
   public detailsOpen = false;
   public suggestionsOpen = false;
   public adding = false;
+  public review: StockReview | null = null;
+  public voiceSupported = false;
+  public listening = false;
+  public success = '';
+  private reviewVersion = 0;
+  private reviewTimer: ReturnType<typeof setTimeout> | null = null;
 
   public ngOnInit(): void {
+    void OfflineSpeech.available().then(available => {
+      this.voiceSupported = available;
+      this.cdr.markForCheck();
+    }).catch(() => { this.voiceSupported = false; });
     this.subscriptions.add(this.catalog.observe().subscribe(nodes => {
       this.nodes = nodes;
       this.cdr.detectChanges();
@@ -63,6 +90,172 @@ export class StockPageComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    if (this.listening) void OfflineSpeech.cancel();
+    this.reviewVersion++;
+    if (this.reviewTimer) clearTimeout(this.reviewTimer);
+  }
+
+  public get foodClasses(): CatalogNode[] {
+    return this.nodes.filter(node => node.kind === 'class' && node.parentId !== null &&
+      this.catalog.matches('root-food', node.id, this.nodes));
+  }
+
+  public get reviewProduct(): CatalogNode | null {
+    return this.products.find(node => node.id === this.review?.productId) ?? null;
+  }
+
+  public get reviewSuggestions(): CatalogNode[] {
+    return (this.review?.suggestedIds ?? []).map(id => this.nodes.find(node => node.id === id))
+      .filter((node): node is CatalogNode => !!node);
+  }
+
+  public async startVoice(): Promise<void> {
+    if (!this.voiceSupported || this.listening || this.adding) return;
+    this.error = '';
+    this.success = '';
+    this.listening = true;
+    this.cdr.markForCheck();
+    try {
+      const text = await OfflineSpeech.listen();
+      await this.prepareReview(text);
+    } catch (error) {
+      this.error = String(error instanceof Error ? error.message : error);
+    } finally {
+      this.listening = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  public async prepareReview(raw: string, selectedNode?: CatalogNode): Promise<void> {
+    const parsed = parseGermanStockInput(raw);
+    this.error = '';
+    this.success = '';
+    if (!parsed.name) {
+      this.error = 'Enter or say a product name.';
+      return;
+    }
+    this.review = {
+      stockId: uuidv4(),
+      name: parsed.name, count: parsed.count,
+      productId: selectedNode?.kind === 'product' ? selectedNode.id : '',
+      categoryId: selectedNode?.kind === 'class' ? selectedNode.id : '',
+      newCategoryName: '', bulkAmount: null, suggestedIds: [], ranking: false, categoryError: false
+    };
+    this.suggestionsOpen = false;
+    await this.refreshReview();
+  }
+
+  public reviewNameChanged(name: string): void {
+    if (!this.review) return;
+    this.review.name = name;
+    this.review.productId = '';
+    this.review.categoryId = '';
+    this.review.newCategoryName = '';
+    this.reviewVersion++;
+    if (this.reviewTimer) clearTimeout(this.reviewTimer);
+    this.reviewTimer = setTimeout(() => {
+      this.reviewTimer = null;
+      void this.refreshReview();
+    }, 250);
+  }
+
+  private findProductByName(name: string): CatalogNode | null {
+    const normalized = name.trim().toLocaleLowerCase('de-DE');
+    const exact = this.products.find(node => node.name.toLocaleLowerCase('de-DE') === normalized);
+    if (exact) return exact;
+    // Resolve common German plurals against existing catalog names without
+    // rewriting a new product's name or assuming a general lemmatizer.
+    if (normalized.endsWith('n')) {
+      return this.products.find(node => node.name.toLocaleLowerCase('de-DE') === normalized.slice(0, -1)) ?? null;
+    }
+    return null;
+  }
+
+  private async refreshReview(): Promise<void> {
+    const review = this.review;
+    if (!review) return;
+    const version = ++this.reviewVersion;
+    const product = review.productId ? this.products.find(node => node.id === review.productId) :
+      this.findProductByName(review.name);
+    if (product) {
+      review.productId = product.id;
+      review.categoryId = product.parentId ?? '';
+      review.suggestedIds = [];
+      review.ranking = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    review.productId = '';
+    review.suggestedIds = [];
+    review.ranking = this.foodClasses.length > 0;
+    review.categoryError = false;
+    this.cdr.markForCheck();
+    if (!review.ranking) return;
+    try {
+      const ids = await this.categorySuggestions.rank(review.name, this.nodes);
+      if (this.review === review && version === this.reviewVersion) review.suggestedIds = ids;
+    } catch {
+      if (this.review === review && version === this.reviewVersion) review.categoryError = true;
+    } finally {
+      if (this.review === review && version === this.reviewVersion) {
+        review.ranking = false;
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  public cancelReview(): void {
+    this.reviewVersion++;
+    if (this.reviewTimer) clearTimeout(this.reviewTimer);
+    this.reviewTimer = null;
+    this.review = null;
+    this.error = '';
+  }
+
+  public async confirmReview(): Promise<void> {
+    const review = this.review;
+    if (!review || this.adding) return;
+    this.error = '';
+    this.adding = true;
+    try {
+      const name = review.name.trim();
+      if (!name) throw new Error('Enter a product name.');
+      if (!Number.isInteger(review.count) || review.count! < 1 || review.count! > 999) {
+        throw new Error('Enter a whole number from 1 to 999.');
+      }
+      let product = review.productId ? await this.catalog.byId(review.productId) : this.findProductByName(name);
+      if (!product) {
+        const newCategory = review.newCategoryName.trim();
+        let category: CatalogNode | undefined;
+        if (newCategory) category = await this.catalog.findOrCreateClass(newCategory);
+        else category = this.foodClasses.find(node => node.id === review.categoryId);
+        if (!category) throw new Error('Choose or create a food category.');
+        product = {
+          id: uuidv4(), parentId: category.id, kind: 'product', name, brand: null, barcodes: [],
+          saleKind: 'fixed', packageAmount: 1, packageUnit: 'piece', variableUnit: null, rawPackage: null
+        };
+        await this.catalog.save(product);
+        review.productId = product.id;
+      }
+      if (product.saleKind === 'variable' && !(Number(review.bulkAmount) > 0)) {
+        throw new Error(`Enter the amount in ${product.variableUnit} for this weight-based product.`);
+      }
+      await this.stock.receive(product.id, {
+        packages: product.saleKind === 'variable' ? 1 : review.count!,
+        bulkQuantity: product.saleKind === 'variable' ?
+          {amount: Number(review.bulkAmount), unit: product.variableUnit as BaseUnit} : undefined,
+        expiryDate: null, scanId: review.stockId
+      });
+      this.success = `${review.count} ${product.name} added to fridge.`;
+      this.quickName = '';
+      this.cancelReview();
+      this.quickInput?.nativeElement.focus();
+    } catch (error) {
+      this.error = String(error instanceof Error ? error.message : error);
+    } finally {
+      this.adding = false;
+      this.cdr.markForCheck();
+    }
   }
 
   public openMenu(): void {
@@ -130,16 +323,14 @@ export class StockPageComponent implements OnInit, OnDestroy {
     this.productId = '';
     this.suggestionsOpen = true;
     this.error = '';
+    this.success = '';
   }
 
   public chooseSuggestion(node: CatalogNode): void {
     this.quickName = node.name;
     this.productId = node.kind === 'product' ? node.id : '';
     this.suggestionsOpen = false;
-    if (node.kind === 'product' && node.saleKind === 'variable') {
-      this.detailsOpen = true;
-      setTimeout(() => this.bulkInput?.nativeElement.focus());
-    } else if (!this.detailsOpen) void this.addQuick(node);
+    void this.prepareReview(node.name, node);
   }
 
   public toggleDetails(): void {

@@ -36,6 +36,7 @@ log.txt
 
 # Node
 /node_modules
+/.model-cache
 npm-debug.log
 yarn-error.log
 

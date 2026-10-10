@@ -15,6 +15,13 @@ Shopping, recipes, scanning, and stock now share a [catalog tree and quantity mo
 - Scan purchased products after shopping; matching needs clear once their quantities are covered
 - Keep partial needs visible and show package suggestions for a chosen product
 
+### Fridge entry
+- Add products by typing, barcode scanning, or German on-device speech on supported Android phones
+- Review the recognized product and amount before adding stock
+- Receive local category suggestions from a bundled multilingual embedding model; choose the category yourself
+
+See [offline voice entry](docs/OFFLINE-VOICE-ENTRY.md) for device support and verification.
+
 ### Recipes
 - Create, view, edit, and delete recipes
 - Fields: name, description, preparation time, ingredients, labels

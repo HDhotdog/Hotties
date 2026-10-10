@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 // Native projects are generated locally and gitignored. Apply required scanner
 // settings after `cap add` and before every `cap sync`.
@@ -14,12 +14,36 @@ if (existsSync(androidVariables)) {
   const manifestPath = 'android/app/src/main/AndroidManifest.xml';
   if (existsSync(manifestPath)) {
     let manifest = readFileSync(manifestPath, 'utf8');
-    for (const permission of ['android.permission.CAMERA', 'android.permission.INTERNET']) {
+    for (const permission of ['android.permission.CAMERA', 'android.permission.INTERNET', 'android.permission.RECORD_AUDIO']) {
       if (!manifest.includes(permission)) {
         manifest = manifest.replace(/<manifest\b[^>]*>/, (tag) => `${tag}\n    <uses-permission android:name="${permission}" />`);
       }
     }
+    if (!manifest.includes('android.speech.RecognitionService')) {
+      manifest = manifest.replace('</manifest>',
+        '    <queries><intent><action android:name="android.speech.RecognitionService" /></intent></queries>\n</manifest>');
+    }
     writeFileSync(manifestPath, manifest);
+  }
+
+  const javaDir = 'android/app/src/main/java/io/ionic/hotties';
+  const mainActivityPath = `${javaDir}/MainActivity.java`;
+  if (existsSync(mainActivityPath)) {
+    let activity = readFileSync(mainActivityPath, 'utf8');
+    if (!activity.includes('OfflineSpeechPlugin.class')) {
+      activity = activity.replace('import com.getcapacitor.BridgeActivity;',
+        'import com.getcapacitor.BridgeActivity;\nimport android.os.Bundle;');
+      activity = activity.replace(/public class MainActivity extends BridgeActivity \{\s*\}/,
+        'public class MainActivity extends BridgeActivity {\n' +
+        '  @Override public void onCreate(Bundle savedInstanceState) {\n' +
+        '    registerPlugin(OfflineSpeechPlugin.class);\n' +
+        '    super.onCreate(savedInstanceState);\n' +
+        '  }\n' +
+        '}');
+      if (!activity.includes('OfflineSpeechPlugin.class')) throw new Error('Could not register offline speech plugin.');
+      writeFileSync(mainActivityPath, activity);
+    }
+    copyFileSync('native/android/OfflineSpeechPlugin.java', `${javaDir}/OfflineSpeechPlugin.java`);
   }
 }
 

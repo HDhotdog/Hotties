@@ -9,6 +9,7 @@ import {StockService} from './stock.service';
 import {CategoryService} from '../category/category.service';
 import {ShoppingPageComponent} from './shopping-page.component';
 import {StockPageComponent} from './stock-page.component';
+import {CategorySuggestionService} from './category-suggestion.service';
 
 describe('Quick add pages', () => {
   const milkClass = blankClass('milk', 'Milk', 'root-food');
@@ -22,26 +23,32 @@ describe('Quick add pages', () => {
     brand: null, barcodes: [], saleKind: 'variable', packageAmount: null, packageUnit: null,
     variableUnit: 'g', rawPackage: null
   };
-  let catalog: { findOrCreateClass: jest.Mock; save: jest.Mock; all: jest.Mock };
+  let catalog: { findOrCreateClass: jest.Mock; save: jest.Mock; all: jest.Mock; byId: jest.Mock; matches: jest.Mock };
   let shopping: { addProduct: jest.Mock; addTask: jest.Mock };
   let stock: { receive: jest.Mock; suggestedPackages: jest.Mock };
+  let categorySuggestions: { rank: jest.Mock };
 
   beforeEach(() => {
     catalog = {
       findOrCreateClass: jest.fn().mockResolvedValue(milkClass),
-      save: jest.fn().mockResolvedValue(undefined), all: jest.fn().mockResolvedValue([milkClass, carton, loose])
+      save: jest.fn().mockResolvedValue(undefined), all: jest.fn().mockResolvedValue([milkClass, carton, loose]),
+      byId: jest.fn(async (id: string) => [milkClass, carton, loose].find(node => node.id === id)),
+      matches: jest.fn((_root: string, id: string, nodes: CatalogNode[]) =>
+        nodes.find(node => node.id === id)?.parentId === 'root-food')
     };
     shopping = {addProduct: jest.fn().mockResolvedValue({}), addTask: jest.fn().mockResolvedValue({})};
     stock = {receive: jest.fn().mockResolvedValue({}), suggestedPackages: jest.fn().mockReturnValue(1)};
+    categorySuggestions = {rank: jest.fn().mockResolvedValue([])};
     TestBed.configureTestingModule({
       providers: [
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: MenuController, useValue: {open: jest.fn()}},
-        {provide: ChangeDetectorRef, useValue: {detectChanges: jest.fn()}},
+        {provide: ChangeDetectorRef, useValue: {detectChanges: jest.fn(), markForCheck: jest.fn()}},
         {provide: CategoryService, useValue: {}},
         {provide: CatalogService, useValue: catalog},
         {provide: ShoppingService, useValue: shopping},
         {provide: StockService, useValue: stock},
+        {provide: CategorySuggestionService, useValue: categorySuggestions},
       ]
     });
   });
@@ -96,5 +103,71 @@ describe('Quick add pages', () => {
     await page.addQuick(loose);
     expect(stock.receive).toHaveBeenCalledWith(loose.id,
       {packages: 1, bulkQuantity: {amount: 550, unit: 'g'}, expiryDate: null});
+  });
+
+  it('reviews a German voice phrase and creates a one-piece product in the chosen category', async () => {
+    const bakery = blankClass('bakery', 'Backwaren', 'root-food');
+    categorySuggestions.rank.mockResolvedValue([bakery.id]);
+    const page = TestBed.runInInjectionContext(() => new StockPageComponent());
+    page.nodes = [blankClass('root-food', 'Food', null), bakery];
+    await page.prepareReview('Eine Brezel');
+    expect(page.review).toMatchObject({name: 'Brezel', count: 1, suggestedIds: ['bakery'], categoryId: ''});
+    expect(stock.receive).not.toHaveBeenCalled();
+    page.review!.categoryId = bakery.id;
+    await page.confirmReview();
+    expect(catalog.save).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'Brezel', parentId: bakery.id, saleKind: 'fixed', packageAmount: 1, packageUnit: 'piece'
+    }));
+    expect(stock.receive).toHaveBeenCalledWith(expect.any(String),
+      {packages: 1, bulkQuantity: undefined, expiryDate: null, scanId: expect.any(String)});
+  });
+
+  it('requires a category for any new product and allows cancellation without writes', async () => {
+    const page = TestBed.runInInjectionContext(() => new StockPageComponent());
+    page.nodes = [blankClass('root-food', 'Food', null)];
+    await page.prepareReview('Drei Tomaten');
+    expect(page.review).toMatchObject({name: 'Tomaten', count: 3});
+    await page.confirmReview();
+    expect(page.error).toMatch(/Choose or create a food category/);
+    page.cancelReview();
+    expect(catalog.save).not.toHaveBeenCalled();
+    expect(stock.receive).not.toHaveBeenCalled();
+  });
+
+  it('reuses an existing product and prevents a double confirm', async () => {
+    const bread: CatalogNode = {...carton, id: 'bread', name: 'Brot', parentId: milkClass.id,
+      packageAmount: 1, packageUnit: 'piece'};
+    catalog.byId.mockResolvedValue(bread);
+    let release!: () => void;
+    stock.receive.mockReturnValue(new Promise(resolve => { release = () => resolve({}); }));
+    const page = TestBed.runInInjectionContext(() => new StockPageComponent());
+    page.nodes = [milkClass, bread];
+    await page.prepareReview('2 Brot');
+    const first = page.confirmReview();
+    const second = page.confirmReview();
+    release();
+    await Promise.all([first, second]);
+    expect(catalog.save).not.toHaveBeenCalled();
+    expect(stock.receive).toHaveBeenCalledTimes(1);
+    expect(stock.receive).toHaveBeenCalledWith('bread',
+      {packages: 2, bulkQuantity: undefined, expiryDate: null, scanId: expect.any(String)});
+  });
+
+  it('keeps the stock request ID when a save is retried', async () => {
+    const bakery = blankClass('bakery', 'Backwaren', 'root-food');
+    let created: CatalogNode | null = null;
+    catalog.save.mockImplementation(async (node: CatalogNode) => { created = node; });
+    catalog.byId.mockImplementation(async () => created);
+    stock.receive.mockRejectedValueOnce(new Error('Interrupted after write')).mockResolvedValueOnce({});
+    const page = TestBed.runInInjectionContext(() => new StockPageComponent());
+    page.nodes = [blankClass('root-food', 'Food', null), bakery];
+    await page.prepareReview('eine Brezel');
+    page.review!.categoryId = bakery.id;
+    await page.confirmReview();
+    expect(page.review).not.toBeNull();
+    await page.confirmReview();
+    expect(catalog.save).toHaveBeenCalledTimes(1);
+    expect(stock.receive).toHaveBeenCalledTimes(2);
+    expect(stock.receive.mock.calls[0][1].scanId).toBe(stock.receive.mock.calls[1][1].scanId);
   });
 });

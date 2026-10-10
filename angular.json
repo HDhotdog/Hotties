@@ -29,6 +29,16 @@
                 "output": "assets"
               },
               {
+                "glob": "**/*",
+                "input": ".model-cache/models",
+                "output": "assets/models"
+              },
+              {
+                "glob": "**/*",
+                "input": ".model-cache/wasm",
+                "output": "assets/wasm"
+              },
+              {
                 "glob": "**/*.svg",
                 "input": "node_modules/ionicons/dist/ionicons/svg",
                 "output": "./svg"

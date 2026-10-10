@@ -220,6 +220,83 @@ ion-toolbar {
   font-size: 21px;
 }
 
+.voice-button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}
+
+.voice-button:disabled { opacity: .45; }
+.voice-button svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.review {
+  max-height: min(68vh, 620px);
+  overflow-y: auto;
+  display: grid;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.review-heading, .category-chips {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.review-heading button, .category-chips button {
+  min-height: 44px;
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ion-text-color);
+  padding: 7px 12px;
+}
+
+.category-chips {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.category-chips button.selected {
+  border-color: var(--ion-color-primary);
+  color: var(--ion-color-primary);
+}
+
+.review-fields, .review-categories {
+  display: grid;
+  gap: 8px;
+}
+
+.review label { display: grid; gap: 4px; font-size: 13px; }
+.review input, .review select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 8px;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
+  padding: 8px;
+  font-size: 16px;
+}
+
+.review-hint { margin: 0; font-size: 13px; color: var(--ion-color-medium); }
+.success { margin: 0 0 8px; color: var(--ion-color-success); }
+
 .add-button {
   --padding-start: 8px;
   --padding-end: 8px;
