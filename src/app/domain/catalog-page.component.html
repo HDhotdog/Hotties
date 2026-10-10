@@ -22,10 +22,12 @@
         <div class="node-row" [class.product]="node.kind === 'product'">
           @if (node.kind === 'class') {
             <button class="node-label category-label" type="button" (click)="toggleExpanded(node)"
-                    [attr.aria-label]="(isExpanded(node) ? 'Collapse ' : 'Expand ') + path(node)"
-                    [attr.aria-expanded]="isExpanded(node)" [disabled]="!hasChildren(node)">
-              <ion-icon [name]="isExpanded(node) ? 'chevron-down-outline' : 'chevron-forward-outline'"
-                        aria-hidden="true"></ion-icon>
+                    [attr.aria-label]="hasChildren(node) ? (isExpanded(node) ? 'Collapse ' : 'Expand ') + path(node) : path(node)"
+                    [attr.aria-expanded]="hasChildren(node) ? isExpanded(node) : null" [disabled]="!hasChildren(node)">
+              @if (hasChildren(node)) {
+                <ion-icon [name]="isExpanded(node) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                          aria-hidden="true"></ion-icon>
+              }
               <span class="node-name">{{ node.name }}</span>
             </button>
           } @else {
@@ -44,7 +46,7 @@
           }
           <button class="node-edit" type="button" (click)="edit(node)"
                   [attr.aria-label]="'Edit ' + path(node)">
-            <ion-icon name="create-outline"></ion-icon>
+            <ion-icon name="pencil" aria-hidden="true"></ion-icon>
           </button>
         </div>
       </div>

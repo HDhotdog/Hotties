@@ -5,7 +5,7 @@ import {CatalogPageComponent} from './catalog-page.component';
 import {CatalogService} from './catalog.service';
 import {blankClass, CatalogNode} from './catalog.model';
 import {addIcons} from 'ionicons';
-import {add, chevronDownOutline, chevronForwardOutline, close, createOutline, menu} from 'ionicons/icons';
+import {add, chevronDownOutline, chevronForwardOutline, close, menu, pencil} from 'ionicons/icons';
 
 describe('CatalogPageComponent', () => {
   let fixture: ComponentFixture<CatalogPageComponent>;
@@ -13,6 +13,7 @@ describe('CatalogPageComponent', () => {
   let save: jest.Mock;
   const food = blankClass('root-food', 'Food', null);
   const vegetables = blankClass('vegetables', 'Vegetables', food.id);
+  const empty = blankClass('empty', 'Empty', food.id);
   const onion: CatalogNode = {
     id: 'onion', parentId: vegetables.id, kind: 'product', name: 'Onion', brand: null,
     barcodes: [], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'g',
@@ -21,7 +22,7 @@ describe('CatalogPageComponent', () => {
 
   beforeEach(async () => {
     addIcons({add, 'chevron-down-outline': chevronDownOutline,
-      'chevron-forward-outline': chevronForwardOutline, close, 'create-outline': createOutline, menu});
+      'chevron-forward-outline': chevronForwardOutline, close, menu, pencil});
     save = jest.fn().mockResolvedValue(undefined);
     await TestBed.configureTestingModule({
       imports: [CatalogPageComponent],
@@ -29,7 +30,7 @@ describe('CatalogPageComponent', () => {
         provideIonicAngular(),
         {provide: MenuController, useValue: {open: jest.fn()}},
         {provide: CatalogService, useValue: {
-          observe: () => of([food, vegetables, onion]), save,
+          observe: () => of([food, vegetables, onion, empty]), save,
           descendantsOf: (id: string, nodes: CatalogNode[]) => nodes.filter(node => node.parentId === id),
           depth: (id: string, nodes: CatalogNode[]) => id === food.id ? 0 :
             nodes.find(node => node.id === id)?.parentId === food.id ? 1 : 2
@@ -48,9 +49,25 @@ describe('CatalogPageComponent', () => {
     expect(label.getAttribute('aria-expanded')).toBe('true');
     expect(foodRow.querySelector('.node-add')).toBeTruthy();
     expect(foodRow.querySelector('.node-edit')).toBeTruthy();
+    expect(foodRow.querySelector('.node-edit ion-icon')?.getAttribute('name')).toBe('pencil');
     label.click();
     fixture.detectChanges();
     expect(page.visibleNodes).toEqual([food]);
+  });
+
+  it('shows chevrons only for categories with children, while retaining edit actions on every row', () => {
+    const rowFor = (name: string): HTMLElement => (Array.from(fixture.nativeElement.querySelectorAll('.node-row')) as HTMLElement[])
+      .find(row => row.querySelector('.node-name')?.textContent?.trim() === name)!;
+    (rowFor('Vegetables').querySelector('.category-label') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(rowFor('Food').querySelector('.category-label ion-icon')).toBeTruthy();
+    expect(rowFor('Vegetables').querySelector('.category-label ion-icon')).toBeTruthy();
+    expect(rowFor('Empty').querySelector('.category-label ion-icon')).toBeNull();
+    expect(rowFor('Empty').querySelector('.category-label')?.hasAttribute('aria-expanded')).toBe(false);
+    expect(rowFor('Onion').querySelector('.node-label ion-icon')).toBeNull();
+    for (const name of ['Food', 'Vegetables', 'Empty', 'Onion']) {
+      expect(rowFor(name).querySelector('.node-edit ion-icon')?.getAttribute('name')).toBe('pencil');
+    }
   });
 
   it('opens editing in the modal and discards an unsaved conversion on close', () => {

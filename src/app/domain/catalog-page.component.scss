@@ -63,6 +63,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 16px;
+  padding-left: 5px;
 }
 
 .node-name small {
@@ -73,6 +74,7 @@
 .node-meta {
   font-size: 12px;
   opacity: .62;
+  padding-left: 5px;
 }
 
 .node-add, .node-edit {
@@ -85,6 +87,10 @@
 
 .node-add ion-icon {
   font-size: 21px;
+}
+
+.node-edit ion-icon {
+  font-size: 20px;
 }
 
 .node-row button:focus-visible, .kind-switch button:focus-visible, .more-details:focus-visible {
@@ -124,14 +130,54 @@
   border-radius: 8px;
 }
 
-.conversion-fields legend { padding: 0 4px; }
-.conversion-fields p { margin: 0 0 4px; font-size: 13px; color: #ccc; }
-.conversion-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.conversion-row .conversion-toggle { display: flex; align-items: center; gap: 8px; min-width: 120px; min-height: 44px; }
-.conversion-toggle input { width: 20px; height: 20px; margin: 0; }
-.conversion-row label:not(.conversion-toggle) { flex: 1; min-width: 75px; }
-.inherited-conversion { color: #ccc; font-size: 13px; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.conversion-fields legend {
+  padding: 0 4px;
+}
+
+.conversion-fields p {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.conversion-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.conversion-row .conversion-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  min-height: 44px;
+}
+
+.conversion-toggle input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.conversion-row label:not(.conversion-toggle) {
+  flex: 1;
+  min-width: 75px;
+}
+
+.inherited-conversion {
+  color: #ccc;
+  font-size: 13px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
 
 .editor-panel h2 {
   margin: 0 0 3px;
