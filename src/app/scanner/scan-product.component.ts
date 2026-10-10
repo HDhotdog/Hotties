@@ -33,6 +33,7 @@ import {decodeWeightedBarcode, isInternalBarcode, WeightedBarcode} from './inter
 import {v4 as uuidv4} from 'uuid';
 
 type ScanState = 'idle' | 'scanning' | 'looking-up' | 'saving';
+type BarcodeOutcome = 'added' | 'pending' | 'stopped';
 
 @Component({
   selector: 'app-scan-product', standalone: true, templateUrl: './scan-product.component.html',
@@ -75,6 +76,9 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   public detailsOpen = false;
   private activeScanId: string | null = null;
   private activeBarcode = '';
+  private cameraSession = false;
+  private cameraSessionId = 0;
+  private viewActive = true;
   public readonly units: BaseUnit[] = ['g', 'ml', 'piece', 'bunch'];
 
   public ngOnInit(): void {
@@ -85,6 +89,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.ionViewWillLeave();
     this.subscription?.unsubscribe();
   }
 
@@ -106,15 +111,23 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public ionViewDidEnter(): void {
-    if (this.nativeScanner && !this.savedName && !this.pendingProduct && !this.pendingInternal &&
+    this.viewActive = true;
+    if (this.nativeScanner && !this.pendingProduct && !this.pendingInternal &&
       !this.pendingRefresh && this.state === 'idle') void this.scan();
   }
 
+  public ionViewWillLeave(): void {
+    this.viewActive = false;
+    this.endCameraSession();
+  }
+
   public async scan(): Promise<void> {
-    if (this.state !== 'idle' || this.pendingProduct || this.pendingInternal || this.pendingRefresh) return;
+    if (!this.viewActive || this.state !== 'idle' || this.pendingProduct || this.pendingInternal || this.pendingRefresh) return;
+    this.cameraSession = true;
+    const sessionId = this.cameraSessionId;
     this.setState('scanning');
     this.errorMessage = null;
-    this.savedName = null;
+    let outcome: BarcodeOutcome = 'stopped';
     try {
       const result = await CapacitorBarcodeScanner.scanBarcode({
         hint: CapacitorBarcodeScannerTypeHintALLOption.ALL,
@@ -124,24 +137,26 @@ export class ScanProductComponent implements OnInit, OnDestroy {
         torchButtonOnAccessibilityLabel: 'Turn flashlight off',
         torchButtonOffAccessibilityLabel: 'Turn flashlight on'
       });
-      if (result.ScanResult) {
+      if (this.cameraSession && sessionId === this.cameraSessionId && result.ScanResult) {
         this.barcodeInput = result.ScanResult;
-        await this.addBarcode(result.ScanResult);
+        outcome = await this.addBarcode(result.ScanResult);
       }
     } catch (error) {
       if (!String(error).toLowerCase().includes('cancel')) this.errorMessage = 'Could not open the camera. Enter the barcode below.';
     } finally {
       this.setState('idle');
+      if (outcome === 'added') this.queueNextScan(sessionId);
+      else if (outcome === 'stopped') this.endCameraSession();
     }
   }
 
-  public async addBarcode(value: string, retry = false): Promise<void> {
-    if (this.state !== 'idle' && this.state !== 'scanning') return;
+  public async addBarcode(value: string, retry = false): Promise<BarcodeOutcome> {
+    if (this.state !== 'idle' && this.state !== 'scanning') return 'stopped';
     const barcode = value.trim();
     if (!isInternalBarcode(barcode) && !/^\d{8,14}$/.test(barcode)) {
       this.errorMessage = 'Enter a valid 8–14 digit barcode.';
       this.setState('idle');
-      return;
+      return 'stopped';
     }
     if (barcode !== this.activeBarcode || !this.activeScanId) {
       this.activeBarcode = barcode;
@@ -156,7 +171,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       if (isInternalBarcode(barcode)) {
         if (!barcode.startsWith('29')) throw new Error('This internal barcode format is not supported yet.');
         await this.startInternal(decodeWeightedBarcode(barcode));
-        return;
+        return 'pending';
       }
       const existing = await this.catalog.byBarcode(barcode);
       if (existing) {
@@ -167,17 +182,17 @@ export class ScanProductComponent implements OnInit, OnDestroy {
           } catch {
             this.infoMessage = 'Using saved product details. Open Food Facts can be checked on a later scan.';
             await this.receive(existing);
-            return;
+            return 'stopped';
           }
         }
         const latest = await this.lookup.getEntry(barcode);
         if (latest?.status === 'found' && latest.product && this.lookup.isFresh(latest) &&
             latest.reviewedAt !== latest.fetchedAt && this.detailsDiffer(existing, latest.product)) {
           this.pendingRefresh = {saved: existing, fresh: latest.product};
-          return;
+          return 'pending';
         }
         await this.receive(existing);
-        return;
+        return 'added';
       }
       const found = await this.lookup.lookup(barcode, retry);
       this.pendingProduct = found;
@@ -187,10 +202,12 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.saleKind = parsed ? 'fixed' : 'unknown';
       this.packageAmount = parsed?.amount ?? 1;
       this.packageUnit = parsed?.unit ?? 'piece';
+      return 'pending';
     } catch (error) {
       this.errorMessage = error instanceof ProductLookupError ? error.message : 'Could not process this product. Try again.';
       if (error instanceof ProductLookupError) this.retryAvailable = error.code === 'not-found';
       if (isInternalBarcode(barcode) && error instanceof Error) this.errorMessage = error.message;
+      return 'stopped';
     } finally {
       this.setState('idle');
     }
@@ -201,7 +218,9 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public async confirmRefresh(useFresh: boolean): Promise<void> {
-    if (!this.pendingRefresh) return;
+    if (!this.pendingRefresh || this.state !== 'idle') return;
+    const sessionId = this.cameraSessionId;
+    let added = false;
     this.errorMessage = null;
     this.setState('saving');
     try {
@@ -218,10 +237,13 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       }
       await this.receive(product);
       this.pendingRefresh = null;
+      added = true;
     } catch (error) {
       this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.endCameraSession();
     } finally {
       this.setState('idle');
+      if (added) this.queueNextScan(sessionId);
     }
   }
 
@@ -248,6 +270,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.mappingMode = !this.mappedProduct;
     } catch (error) {
       this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.endCameraSession();
     } finally {
       this.setState('idle');
     }
@@ -260,7 +283,9 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public async confirmInternal(): Promise<void> {
-    if (!this.pendingInternal || !this.selectedStoreId) return;
+    if (!this.pendingInternal || !this.selectedStoreId || this.state !== 'idle') return;
+    const sessionId = this.cameraSessionId;
+    let added = false;
     this.errorMessage = null;
     this.setState('saving');
     try {
@@ -282,14 +307,18 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.pendingInternal = null;
       this.mappedProduct = null;
       this.mappingMode = false;
+      added = true;
     } catch (error) {
       this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.endCameraSession();
     } finally {
       this.setState('idle');
+      if (added) this.queueNextScan(sessionId);
     }
   }
 
   public clearPending(): void {
+    this.endCameraSession();
     this.pendingInternal = null;
     this.pendingRefresh = null;
     this.pendingProduct = null;
@@ -302,7 +331,9 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public async confirmProduct(): Promise<void> {
-    if (!this.pendingProduct) return;
+    if (!this.pendingProduct || this.state !== 'idle') return;
+    const sessionId = this.cameraSessionId;
+    let added = false;
     this.errorMessage = null;
     this.setState('saving');
     try {
@@ -317,10 +348,13 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.newClassName = '';
       this.selectedClassId = '';
       this.detailsOpen = false;
+      added = true;
     } catch (error) {
       this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.endCameraSession();
     } finally {
       this.setState('idle');
+      if (added) this.queueNextScan(sessionId);
     }
   }
 
@@ -341,15 +375,32 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public backToShopping(): void {
+    this.endCameraSession();
     void this.router.navigate([this.route.snapshot.queryParamMap.get('from') === 'fridge' ? '/tabs/fridge' : '/tabs/todo']);
   }
 
   public viewFridge(): void {
+    this.endCameraSession();
     void this.router.navigate(['/tabs/fridge']);
   }
 
   public addManually(): void {
+    this.endCameraSession();
     void this.router.navigate(['/tabs/items']);
+  }
+
+  private queueNextScan(sessionId: number): void {
+    queueMicrotask(() => {
+      if (this.viewActive && this.cameraSession && sessionId === this.cameraSessionId &&
+          this.state === 'idle' && !this.pendingProduct && !this.pendingInternal && !this.pendingRefresh) {
+        void this.scan();
+      }
+    });
+  }
+
+  private endCameraSession(): void {
+    this.cameraSession = false;
+    this.cameraSessionId++;
   }
 
   private setState(state: ScanState): void {
