@@ -169,6 +169,30 @@ ion-img {
   --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
 }
 
+.cooked-button { margin: 8px 0; }
+
+.cook-modal {
+  --width: min(420px, 94vw);
+  --height: auto;
+  --max-height: 75vh;
+  --border-radius: 16px;
+}
+
+.cook-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 75vh;
+  overflow-y: auto;
+  padding: 8px 12px 16px;
+}
+
+.cook-review-list { padding: 4px 8px; }
+.cook-review-item { padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.cook-review-item p { margin: 5px 0; font-size: 13px; }
+.cook-shortage { color: var(--ion-color-danger-tint); }
+.cook-unknown { color: var(--ion-color-warning-tint); }
+.cook-review-message { margin: 4px 8px; color: var(--ion-color-warning-tint); }
+
 // See add-recipe.component.scss's .ingredient-modal-content for why this
 // wrapper matters: ion-modal spaces its ng-template's direct children with
 // space-between, which would otherwise stretch the header and list apart.

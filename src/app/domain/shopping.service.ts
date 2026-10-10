@@ -40,7 +40,7 @@ export class ShoppingService {
     const entry: ShoppingEntry = {
       id: uuidv4(), shoppingListId: listId, kind: 'product', targetNodeId,
       label: node?.name ?? name, needKind: need.kind, needAmount: amount ?? null, needUnit: unit ?? null,
-      checked: false, createdAt: Date.now()
+      checked: false, createdAt: Date.now(), retiredAllocations: []
     };
     await this.save(entry);
     return entry;
@@ -57,7 +57,8 @@ export class ShoppingService {
       needAmount: null,
       needUnit: null,
       checked: false,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      retiredAllocations: []
     };
     await this.save(entry);
     return entry;
@@ -66,7 +67,7 @@ export class ShoppingService {
   public async save(entry: ShoppingEntry): Promise<void> {
     if (!entry.label?.trim()) throw new Error('A shopping entry needs a name.');
     const db = await this.database.getDb();
-    await db['shopping_entries'].upsert(entry);
+    await db['shopping_entries'].upsert({...entry, retiredAllocations: entry.retiredAllocations ?? []});
   }
 
   public async toggleChecked(entry: ShoppingEntry): Promise<void> {
@@ -86,8 +87,29 @@ export class ShoppingService {
   public async progress(entry: ShoppingEntry, lots?: StockLot[]): Promise<number> {
     const db = await this.database.getDb();
     const stock = lots ?? (await db['stock_lots'].find().exec()).map((doc: any) => doc.toJSON() as StockLot);
-    return stock.flatMap(lot => lot.allocations).filter(allocation => allocation.shoppingEntryId === entry.id &&
-      allocation.unit === (entry.needUnit ?? 'package')).reduce((sum, allocation) => sum + allocation.amount, 0);
+    const current = (await db['shopping_entries'].findOne(entry.id).exec())?.toJSON() as ShoppingEntry | undefined;
+    return this.progressFrom(current ?? entry, stock);
+  }
+
+  public progressFrom(entry: ShoppingEntry, lots: StockLot[]): number {
+    const unit = entry.needUnit ?? 'package';
+    const retired = (entry.retiredAllocations ?? []).filter(allocation => allocation.unit === unit);
+    const retiredIds = new Set(retired.map(allocation => allocation.lotId));
+    const active = lots.filter(lot => !retiredIds.has(lot.id)).flatMap(lot => lot.allocations)
+      .filter(allocation => allocation.shoppingEntryId === entry.id && allocation.unit === unit)
+      .reduce((sum, allocation) => sum + allocation.amount, 0);
+    return active + retired.reduce((sum, allocation) => sum + allocation.amount, 0);
+  }
+
+  /** Save each allocation before deleting its lot. Repeating this transfer is harmless. */
+  public async retireAllocations(lot: StockLot): Promise<void> {
+    const entries = await this.all();
+    for (const entry of entries) {
+      const matching = lot.allocations.filter(allocation => allocation.shoppingEntryId === entry.id);
+      if (!matching.length || (entry.retiredAllocations ?? []).some(item => item.lotId === lot.id)) continue;
+      await this.save({...entry, retiredAllocations: [...(entry.retiredAllocations ?? []),
+        ...matching.map(allocation => ({lotId: lot.id, amount: allocation.amount, unit: allocation.unit}))]});
+    }
   }
 
   public async reconcileCompleted(lots: StockLot[]): Promise<void> {

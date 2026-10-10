@@ -1,6 +1,6 @@
 export const SHOPPING_ENTRY_SCHEMA_LITERAL = {
   schema: {
-    version: 0, primaryKey: 'id', type: 'object',
+    version: 1, primaryKey: 'id', type: 'object',
     properties: {
       id: {type: 'string', maxLength: 255},
       shoppingListId: {type: 'string'},
@@ -12,7 +12,16 @@ export const SHOPPING_ENTRY_SCHEMA_LITERAL = {
       needUnit: {type: ['string', 'null']},
       checked: {type: 'boolean'},
       createdAt: {type: 'number'},
+      retiredAllocations: {type: 'array', items: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          lotId: {type: 'string'}, amount: {type: 'number', exclusiveMinimum: 0}, unit: {type: 'string'}
+        }, required: ['lotId', 'amount', 'unit']
+      }},
     },
-    required: ['id', 'shoppingListId', 'kind', 'needKind', 'needAmount', 'needUnit', 'checked', 'createdAt'],
+    required: ['id', 'shoppingListId', 'kind', 'needKind', 'needAmount', 'needUnit', 'checked', 'createdAt', 'retiredAllocations'],
   },
+  migrationStrategies: {
+    1: (oldDoc: any) => ({...oldDoc, retiredAllocations: []})
+  }
 };

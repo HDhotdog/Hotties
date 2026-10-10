@@ -13,6 +13,14 @@ export interface ShoppingEntry {
   needUnit: BaseUnit | null;
   checked: boolean;
   createdAt: number;
+  /** Purchase allocations retained after their stock lot has been consumed. */
+  retiredAllocations: RetiredAllocation[];
+}
+
+export interface RetiredAllocation {
+  lotId: string;
+  amount: number;
+  unit: BaseUnit;
 }
 
 export interface ScanAllocation {

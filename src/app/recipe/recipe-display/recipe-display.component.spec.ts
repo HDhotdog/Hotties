@@ -6,7 +6,7 @@ import {BehaviorSubject, of} from 'rxjs';
 import {RecipeService} from '../recipe.service';
 import {CategoryService} from '../../category/category.service';
 import {LabelService} from '../../label/label-service.service';
-import {StockService, Availability} from '../../domain/stock.service';
+import {StockService, Availability, CookingPlan} from '../../domain/stock.service';
 import {CatalogService} from '../../domain/catalog.service';
 import {Ingredient} from '../../ingredients/ingredient.dto';
 
@@ -19,6 +19,14 @@ describe('RecipeDisplayComponent', () => {
   let catalogChanges: BehaviorSubject<unknown[]>;
   let availabilityById: Map<string, Availability>;
   let addIngredientsToCategory: jest.Mock;
+  let planCook: jest.Mock;
+  let cook: jest.Mock;
+  const cookPlan: CookingPlan = {
+    recipeId: 'recipe', operationId: 'cook-one', fingerprint: 'snapshot', lotChanges: [{lotId: 'salt-lot', remainingAmount: 98}],
+    ingredients: [{ingredientId: 'salt', name: 'Salt', required: {amount: 1, unit: 'pinch'},
+      used: 1, missing: 0, unknown: false,
+      deductions: [{lotId: 'salt-lot', productName: 'Salt', amount: 2, unit: 'g', remainingAmount: 98}]}]
+  };
   const ingredients: Ingredient[] = [
     {id: 'salt', recipeId: 'recipe', targetNodeId: 'salt-product', name: 'Salt', amount: 1, unit: 'pinch'},
     {id: 'onion', recipeId: 'recipe', targetNodeId: 'onion-product', name: 'Onion', amount: 1, unit: 'piece'},
@@ -36,6 +44,8 @@ describe('RecipeDisplayComponent', () => {
       ['milk-product', {status: 'unknown', available: 0, unit: 'ml'}]
     ]);
     addIngredientsToCategory = jest.fn(() => of(undefined));
+    planCook = jest.fn(async () => cookPlan);
+    cook = jest.fn(async () => ({status: 'cooked', plan: cookPlan}));
     TestBed.configureTestingModule({
       imports: [RecipeDisplayComponent],
       providers: [
@@ -61,7 +71,7 @@ describe('RecipeDisplayComponent', () => {
         {provide: LabelService, useValue: {getLabelsForRecipe: () => of([])}},
         {provide: StockService, useValue: {
           observe: () => stockChanges,
-          availability: jest.fn(async (id: string) => availabilityById.get(id))
+          availability: jest.fn(async (id: string) => availabilityById.get(id)), planCook, cook
         }},
         {provide: CatalogService, useValue: {observe: () => catalogChanges}}
       ]
@@ -127,5 +137,45 @@ describe('RecipeDisplayComponent', () => {
     component.initExportModal();
     component.confirmExport();
     expect(addIngredientsToCategory).not.toHaveBeenCalled();
+  });
+
+  it('opens a Cooked review, cancels without saving, and confirms only after review', async () => {
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('.cooked-button') as HTMLElement;
+    expect(button.textContent).toContain('Cooked');
+    button.click();
+    await fixture.whenStable();
+    expect(planCook).toHaveBeenCalledWith('recipe');
+    expect(component.cookReviewOpen).toBe(true);
+    expect(component.cookReview?.ingredients[0].deductions[0].amount).toBe(2);
+    component.closeCookReview();
+    expect(cook).not.toHaveBeenCalled();
+    await component.openCookReview();
+    await component.confirmCook();
+    expect(cook).toHaveBeenCalledWith('recipe', cookPlan);
+    expect(component.cookReviewOpen).toBe(false);
+  });
+
+  it('keeps the review open when stock changes and blocks a duplicate save', async () => {
+    await component.openCookReview();
+    const updated = {...cookPlan, fingerprint: 'new-snapshot'};
+    cook.mockResolvedValueOnce({status: 'changed', plan: updated});
+    await component.confirmCook();
+    expect(component.cookReviewOpen).toBe(true);
+    expect(component.cookReview?.fingerprint).toBe('new-snapshot');
+    expect(component.cookReviewMessage).toMatch(/Review the updated amounts/);
+
+    let finish!: (result: unknown) => void;
+    cook.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const pending = component.confirmCook();
+    await component.confirmCook();
+    expect(cook).toHaveBeenCalledTimes(2);
+    expect(component.cookReviewOpen).toBe(true);
+    component.closeCookReview();
+    expect(component.cookReviewOpen).toBe(true);
+    finish({status: 'cooked', plan: updated});
+    await pending;
+    expect(component.cookReviewOpen).toBe(false);
   });
 });

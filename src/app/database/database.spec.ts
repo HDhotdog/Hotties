@@ -4,6 +4,7 @@ import {wrappedValidateAjvStorage} from 'rxdb/plugins/validate-ajv';
 import {v4 as uuidv4} from 'uuid';
 import {createHottiesDatabase} from './database';
 import {CATALOG_SCHEMA_LITERAL} from './schema/catalog.schema';
+import {SHOPPING_ENTRY_SCHEMA_LITERAL} from './schema/shopping-entry.schema';
 
 describe('createHottiesDatabase() seeding', () => {
   let db: RxDatabase;
@@ -121,6 +122,32 @@ describe('catalog schema migration (v0 -> v1, unit conversions)', () => {
     try {
       expect((await db['catalog_nodes'].findOne('salt').exec())?.toJSON())
         .toMatchObject({name: 'Salt', packageAmount: 100, unitConversions: {}});
+    } finally {
+      await db.close();
+    }
+  });
+});
+
+describe('shopping entry schema migration (v0 -> v1, retired allocations)', () => {
+  it('preserves an existing need and starts with no retired allocations', async () => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+    const properties = {...SHOPPING_ENTRY_SCHEMA_LITERAL.schema.properties};
+    delete (properties as any).retiredAllocations;
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    await oldDb.addCollections({shopping_entries: {schema: {
+      ...SHOPPING_ENTRY_SCHEMA_LITERAL.schema, version: 0, properties,
+      required: SHOPPING_ENTRY_SCHEMA_LITERAL.schema.required.filter(field => field !== 'retiredAllocations')
+    }}});
+    await oldDb['shopping_entries'].upsert({
+      id: 'need', shoppingListId: 'list', kind: 'product', targetNodeId: 'salt', label: 'Salt',
+      needKind: 'quantity', needAmount: 200, needUnit: 'g', checked: false, createdAt: 1
+    });
+    await oldDb.close();
+    const db = await createHottiesDatabase(storage, dbName, false);
+    try {
+      expect((await db['shopping_entries'].findOne('need').exec())?.toJSON())
+        .toMatchObject({needAmount: 200, retiredAllocations: []});
     } finally {
       await db.close();
     }

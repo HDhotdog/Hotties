@@ -22,7 +22,7 @@ import {Category} from '../../category/category.dto';
 import {Ingredient} from '../../ingredients/ingredient.dto';
 import {Label} from '../../label/models/label.dto';
 import {LabelService} from '../../label/label-service.service';
-import {StockService, Availability} from '../../domain/stock.service';
+import {StockService, Availability, CookingPlan} from '../../domain/stock.service';
 import {CatalogService} from '../../domain/catalog.service';
 import {BaseUnit} from '../../domain/quantity';
 
@@ -61,6 +61,11 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private availabilityVersion = 0;
   private ingredientAvailability = new Map<string, Availability>();
   public availabilityPending = true;
+  public cookReviewOpen = false;
+  public cookReviewLoading = false;
+  public cooking = false;
+  public cookReview: CookingPlan | null = null;
+  public cookReviewMessage = '';
 
   private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
@@ -193,6 +198,67 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     this.categoryService
       .addIngredientsToCategory(this._selectedCategoryId, this.missingIngredients)
       .subscribe(() => this.showExportSuccessToast(categoryName));
+  }
+
+  public async openCookReview(): Promise<void> {
+    if (this.cookReviewLoading || this.cooking || !this._recipe.id || !this._ingredients.length) return;
+    this.cookReviewLoading = true;
+    this.cookReviewMessage = '';
+    this.cdr.markForCheck();
+    try {
+      this.cookReview = await this.stock.planCook(this._recipe.id);
+      this.cookReviewOpen = true;
+    } catch (error) {
+      await this.showCookToast(error instanceof Error ? error.message : 'Could not review stock.', 'danger');
+    } finally {
+      this.cookReviewLoading = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  public closeCookReview(): void {
+    if (this.cooking) return;
+    this.cookReviewOpen = false;
+    this.cookReview = null;
+    this.cookReviewMessage = '';
+    this.cdr.markForCheck();
+  }
+
+  public async confirmCook(): Promise<void> {
+    if (!this.cookReview || this.cooking) return;
+    this.cooking = true;
+    this.cookReviewMessage = '';
+    this.cdr.markForCheck();
+    try {
+      const result = await this.stock.cook(this.cookReview.recipeId, this.cookReview);
+      if (result.status === 'changed') {
+        this.cookReview = result.plan;
+        this.cookReviewMessage = 'Recipe or stock changed. Review the updated amounts, then confirm again.';
+      } else {
+        this.closeCookReviewAfterSuccess();
+        await this.showCookToast('Cooked. Stock updated.', 'success');
+      }
+    } catch (error) {
+      this.cookReviewMessage = error instanceof Error ? error.message : 'Could not update stock. Review and try again.';
+    } finally {
+      this.cooking = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  private closeCookReviewAfterSuccess(): void {
+    this.cookReviewOpen = false;
+    this.cookReview = null;
+    this.cookReviewMessage = '';
+  }
+
+  public displayAmount(amount: number): number {
+    return Number(amount.toPrecision(6));
+  }
+
+  private async showCookToast(message: string, color: 'success' | 'danger'): Promise<void> {
+    const toast = await this.toastCtrl.create({message, duration: 2000, position: 'bottom', color});
+    await toast.present();
   }
 
   private showExportSuccessToast(categoryName: string | undefined): void {

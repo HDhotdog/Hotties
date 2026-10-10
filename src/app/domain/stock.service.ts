@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {from, map, Observable, switchMap} from 'rxjs';
+import {firstValueFrom, from, map, Observable, switchMap, take} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {DatabaseService} from '../database/database';
 import {CatalogService} from './catalog.service';
@@ -8,24 +8,73 @@ import {CatalogNode} from './catalog.model';
 import {ScanAllocation, ShoppingEntry, StockLot} from './shopping.model';
 import {BaseQuantity, BaseUnit} from './quantity';
 import {convertQuantity, effectiveConversions} from './unit-conversion';
+import {IngredientService} from '../ingredients/ingredient.service';
+import {Ingredient} from '../ingredients/ingredient.dto';
 
 export type Availability = { status: 'enough' | 'insufficient' | 'unknown'; available: number; unit: BaseUnit };
+export interface CookingDeduction {
+  lotId: string;
+  productName: string;
+  amount: number;
+  unit: BaseUnit;
+  remainingAmount: number;
+}
+export interface CookingIngredientPlan {
+  ingredientId: string;
+  name: string;
+  required: BaseQuantity;
+  used: number;
+  missing: number;
+  unknown: boolean;
+  deductions: CookingDeduction[];
+}
+export interface CookingPlan {
+  recipeId: string;
+  operationId: string;
+  fingerprint: string;
+  ingredients: CookingIngredientPlan[];
+  lotChanges: {lotId: string; remainingAmount: number}[];
+}
+export type CookingResult = {status: 'changed' | 'cooked'; plan: CookingPlan};
 
 @Injectable({providedIn: 'root'})
 export class StockService {
   private readonly database = inject(DatabaseService);
   private readonly catalog = inject(CatalogService);
   private readonly shopping = inject(ShoppingService);
+  private readonly ingredients = inject(IngredientService);
   private receiveQueue: Promise<void> = Promise.resolve();
+  private recoveryPromise?: Promise<void>;
 
   public async all(): Promise<StockLot[]> {
+    await this.ensureRecovered();
     const db = await this.database.getDb();
     return (await db['stock_lots'].find().exec()).map((doc: any) => doc.toJSON() as StockLot);
   }
 
   public observe(): Observable<StockLot[]> {
-    return from(this.database.getDb()).pipe(switchMap(db => db['stock_lots'].find().$),
+    return from(this.ensureRecovered()).pipe(switchMap(() => this.database.getDb()),
+      switchMap(db => db['stock_lots'].find().$),
       map((docs: any[]) => docs.map(doc => doc.toJSON() as StockLot)));
+  }
+
+  private ensureRecovered(): Promise<void> {
+    if (!this.recoveryPromise) {
+      this.recoveryPromise = this.recoverPendingCooks().catch(error => {
+        this.recoveryPromise = undefined;
+        throw error;
+      });
+    }
+    return this.recoveryPromise;
+  }
+
+  private async recoverPendingCooks(): Promise<void> {
+    const db = await this.database.getDb();
+    const pending = (await db['settings'].find().exec()).filter((doc: any) => doc.get('key').startsWith('cook:'));
+    for (const journal of pending) {
+      await this.applyCookChanges(JSON.parse(journal.get('value')) as CookingPlan['lotChanges']);
+      await journal.remove();
+    }
   }
 
   public async save(lot: StockLot): Promise<void> {
@@ -56,7 +105,106 @@ export class StockService {
   public async remove(id: string): Promise<void> {
     const db = await this.database.getDb();
     const doc = await db['stock_lots'].findOne(id).exec();
-    if (doc) await doc.remove();
+    if (doc) {
+      await this.shopping.retireAllocations(doc.toJSON() as StockLot);
+      await doc.remove();
+    }
+  }
+
+  /** Preview one batch, using a shared remaining balance across its ingredients. */
+  public async planCook(recipeId: string): Promise<CookingPlan> {
+    const [ingredients, nodes, lots] = await Promise.all([
+      firstValueFrom(this.ingredients.getIngredientsForRecipe(recipeId).pipe(take(1))),
+      this.catalog.all(), this.all()
+    ]);
+    return this.buildCookingPlan(recipeId, ingredients, nodes, lots);
+  }
+
+  public cook(recipeId: string, reviewed: CookingPlan): Promise<CookingResult> {
+    const result = this.receiveQueue.then(async (): Promise<CookingResult> => {
+      if (recipeId !== reviewed.recipeId) throw new Error('Recipe changed. Please review again.');
+      const db = await this.database.getDb();
+      const journalKey = `cook:${reviewed.operationId}`;
+      const journal = await db['settings'].findOne(journalKey).exec();
+      if (!journal) {
+        const current = await this.planCook(recipeId);
+        if (current.fingerprint !== reviewed.fingerprint) return {status: 'changed', plan: current};
+        if (!current.ingredients.length) throw new Error('This recipe has no ingredients.');
+        // Absolute target balances make a retry after an interrupted write safe.
+        await db['settings'].upsert({key: journalKey, value: JSON.stringify(reviewed.lotChanges)});
+      }
+      const changes = journal ? JSON.parse(journal.get('value')) as CookingPlan['lotChanges'] : reviewed.lotChanges;
+      await this.applyCookChanges(changes);
+      await (await db['settings'].findOne(journalKey).exec())?.remove();
+      return {status: 'cooked', plan: reviewed};
+    });
+    this.receiveQueue = result.then(() => undefined, () => undefined);
+    return result;
+  }
+
+  private async applyCookChanges(changes: CookingPlan['lotChanges']): Promise<void> {
+    const db = await this.database.getDb();
+    for (const change of changes) {
+      const doc = await db['stock_lots'].findOne(change.lotId).exec();
+      const lot = doc?.toJSON() as StockLot | undefined;
+      if (!lot) continue; // Already removed by an interrupted attempt.
+      if (change.remainingAmount <= 1e-9) await this.remove(change.lotId);
+      else if (lot.remainingAmount > change.remainingAmount + 1e-9) {
+        await this.save({...lot, remainingAmount: change.remainingAmount});
+      }
+    }
+  }
+
+  private buildCookingPlan(recipeId: string, ingredients: Ingredient[], nodes: CatalogNode[], lots: StockLot[]): CookingPlan {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const fingerprint = JSON.stringify({today, ingredients: [...ingredients].sort((a, b) => a.id.localeCompare(b.id)),
+      nodes: [...nodes].sort((a, b) => a.id.localeCompare(b.id)),
+      lots: [...lots].sort((a, b) => a.id.localeCompare(b.id))});
+    const remaining = new Map(lots.map(lot => [lot.id, lot.remainingAmount]));
+    const sorted = [...ingredients].sort((a, b) => {
+      const nodeA = nodes.find(node => node.id === a.targetNodeId);
+      const nodeB = nodes.find(node => node.id === b.targetNodeId);
+      return Number(nodeB?.kind === 'product') - Number(nodeA?.kind === 'product') ||
+        this.catalog.depth(b.targetNodeId ?? '', nodes) -
+        this.catalog.depth(a.targetNodeId ?? '', nodes) || a.id.localeCompare(b.id);
+    });
+    const planned = new Map<string, CookingIngredientPlan>();
+    for (const ingredient of sorted) {
+      const required = {amount: ingredient.amount, unit: ingredient.unit as BaseUnit};
+      let outstanding = required.amount;
+      let unknown = false;
+      const deductions: CookingDeduction[] = [];
+      const matching = lots.filter(lot => lot.remainingAmount > 0 &&
+        (!lot.expiryDate || lot.expiryDate >= today) && !!ingredient.targetNodeId &&
+        this.catalog.matches(ingredient.targetNodeId, lot.productId, nodes)).sort((a, b) =>
+        (a.expiryDate ?? '9999-12-31').localeCompare(b.expiryDate ?? '9999-12-31') ||
+        a.createdAt - b.createdAt || a.id.localeCompare(b.id));
+      for (const lot of matching) {
+        const available = remaining.get(lot.id) ?? 0;
+        if (available <= 1e-9) continue;
+        const product = nodes.find(node => node.id === lot.productId);
+        if (!product) { unknown = true; continue; }
+        const conversions = effectiveConversions(product, nodes);
+        const converted = convertQuantity({amount: available, unit: lot.acquiredUnit}, required.unit, conversions);
+        if (converted === null) { unknown = true; continue; }
+        if (outstanding <= 1e-9 || converted <= 0) continue;
+        const used = Math.min(outstanding, converted);
+        const nativeAmount = convertQuantity({amount: used, unit: required.unit}, lot.acquiredUnit, conversions);
+        if (nativeAmount === null) continue;
+        const after = Math.max(0, available - nativeAmount);
+        remaining.set(lot.id, after <= 1e-9 ? 0 : after);
+        deductions.push({lotId: lot.id, productName: product.name, amount: Math.min(available, nativeAmount),
+          unit: lot.acquiredUnit, remainingAmount: remaining.get(lot.id)!});
+        outstanding = Math.max(0, outstanding - used);
+      }
+      planned.set(ingredient.id, {ingredientId: ingredient.id, name: ingredient.name, required,
+        used: required.amount - outstanding, missing: outstanding, unknown, deductions});
+    }
+    return {recipeId, operationId: uuidv4(), fingerprint, ingredients: ingredients.map(item => planned.get(item.id)!),
+      lotChanges: lots.filter(lot => (remaining.get(lot.id) ?? lot.remainingAmount) < lot.remainingAmount - 1e-9 ||
+          ((remaining.get(lot.id) ?? lot.remainingAmount) === 0 && lot.remainingAmount > 0))
+        .map(lot => ({lotId: lot.id, remainingAmount: remaining.get(lot.id)!}))};
   }
 
   public receive(productId: string, options: {

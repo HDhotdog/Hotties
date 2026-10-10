@@ -63,6 +63,11 @@
           }
         </div>
       </div>
+      <ion-button expand="block" color="success" class="cooked-button"
+                  [disabled]="cookReviewLoading || cooking || ingredients.length === 0"
+                  (click)="openCookReview()">
+        {{ cookReviewLoading ? 'Checking stock…' : 'Cooked' }}
+      </ion-button>
       <div class="recipe-description">
         <p class="recipe-descirption-title">Instructions</p>
         @if (recipe.description) {
@@ -125,6 +130,47 @@
               <p class="no-categories-hint">No shopping list categories yet.</p>
             }
           </div>
+        </div>
+      </ng-template>
+    </ion-modal>
+    <ion-modal class="cook-modal" aria-label="Review stock use" [isOpen]="cookReviewOpen" [canDismiss]="!cooking"
+               (didDismiss)="closeCookReview()">
+      <ng-template>
+        <div class="cook-modal-content">
+          <div class="picker-header">
+            <ion-button fill="clear" aria-label="Cancel cooking" [disabled]="cooking" (click)="closeCookReview()">
+              Cancel
+            </ion-button>
+            <strong id="cook-review-title">Review stock use</strong>
+            <ion-button fill="clear" aria-label="Confirm cooked recipe" [disabled]="cooking || !cookReview"
+                        (click)="confirmCook()">
+              {{ cooking ? 'Saving…' : 'Confirm' }}
+            </ion-button>
+          </div>
+          @if (cookReview; as review) {
+            <div class="cook-review-list" role="group" aria-labelledby="cook-review-title">
+              @for (item of review.ingredients; track item.ingredientId) {
+                <section class="cook-review-item">
+                  <strong>{{ item.name }} · {{ displayAmount(item.required.amount) }} {{ item.required.unit }}</strong>
+                  @for (deduction of item.deductions; track deduction.lotId) {
+                    <p>{{ deduction.productName }}: use {{ displayAmount(deduction.amount) }} {{ deduction.unit }}
+                      ({{ displayAmount(deduction.remainingAmount) }} {{ deduction.unit }} left)</p>
+                  } @empty {
+                    <p>No compatible stock will be used.</p>
+                  }
+                  @if (item.missing > 0.000000001) {
+                    <p class="cook-shortage">{{ displayAmount(item.missing) }} {{ item.required.unit }} not covered by compatible stock.</p>
+                  }
+                  @if (item.unknown) {
+                    <p class="cook-unknown">Some matching stock has an unknown or incompatible quantity.</p>
+                  }
+                </section>
+              }
+            </div>
+          }
+          @if (cookReviewMessage) {
+            <p class="cook-review-message" role="status">{{ cookReviewMessage }}</p>
+          }
         </div>
       </ng-template>
     </ion-modal>
