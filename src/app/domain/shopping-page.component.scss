@@ -117,6 +117,8 @@ ion-toolbar {
 }
 
 .entry-name {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -124,11 +126,12 @@ ion-toolbar {
 }
 
 .entry-meta {
+  flex: 0 0 auto;
+  min-width: 9ch;
+  text-align: right;
   font-size: 12px;
   opacity: .67;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .entry-details {
@@ -316,6 +319,9 @@ ion-toolbar {
 
 @media (max-width: 360px) {
   .entry-main {
+    display: block;
+  }
+  .entry-name {
     display: block;
   }
   .entry-meta {
