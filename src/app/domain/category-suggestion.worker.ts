@@ -74,7 +74,6 @@ self.onmessage = async (event: MessageEvent) => {
       }
       if (topCategoryIds.length >= 3) break;
     }
-    console.log(topCategoryIds);
 
     self.postMessage({id, ids: topCategoryIds});
 
