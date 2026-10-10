@@ -139,4 +139,77 @@ describe('shared catalog, shopping, and stock', () => {
     expect(await shopping.all('list')).toHaveLength(0);
     expect((await stock.availability(carton.id, {amount: 200, unit: 'ml'})).status).toBe('enough');
   });
+
+  it('deletes a class alone, moves its children up, and removes only its own references', async () => {
+    const drinks = await catalog.createClass('Drinks');
+    const milk = await catalog.createClass('Milk', drinks.id);
+    const carton = catalog.productDraft({barcode: '1234567890140', name: 'Milk carton', brand: null, packageQuantity: '1 l'}, milk.id);
+    await catalog.save(carton);
+    const removedEntry = await shopping.addProduct('list', drinks.id,
+      {kind: 'quantity', quantity: {amount: 1500, unit: 'ml'}});
+    const lot = await stock.receive(carton.id, {shoppingListId: 'list'});
+    expect(lot.allocations.some(allocation => allocation.shoppingEntryId === removedEntry.id)).toBe(true);
+    const keptEntry = await shopping.addProduct('list', milk.id, {kind: 'unspecified'});
+    await firstValueFrom(ingredients.saveIngredientsForRecipe('recipe', [
+      {id: 'drinks-ingredient', recipeId: 'recipe', targetNodeId: drinks.id, name: 'Drinks', amount: 100, unit: 'ml'},
+      {id: 'milk-ingredient', recipeId: 'recipe', targetNodeId: milk.id, name: 'Milk', amount: 100, unit: 'ml'},
+    ]));
+
+    const impact = await catalog.previewDelete(drinks.id, false);
+    expect(impact).toMatchObject({movedChildCount: 1, deletedNodeCount: 1,
+      shoppingEntryCount: 1, recipeIngredientCount: 1, stockLotCount: 0});
+    await catalog.delete(drinks.id, false);
+
+    expect((await catalog.byId(milk.id)).parentId).toBe('root-food');
+    expect(await catalog.byId(carton.id)).toBeDefined();
+    expect((await shopping.all('list')).map(entry => entry.id)).toEqual([keptEntry.id]);
+    expect((await stock.all()).map(item => item.id)).toEqual([lot.id]);
+    expect((await stock.all())[0].allocations).toEqual([]);
+    expect((await firstValueFrom(ingredients.getIngredientsForRecipe('recipe').pipe(take(1)))).map(item => item.id))
+      .toEqual(['milk-ingredient']);
+  });
+
+  it('deletes a class subtree and the shopping, fridge, and recipe records that use it', async () => {
+    const drinks = await catalog.createClass('Drinks');
+    const milk = await catalog.createClass('Milk', drinks.id);
+    const carton = catalog.productDraft({barcode: '1234567890141', name: 'Milk carton', brand: null, packageQuantity: '1 l'}, milk.id);
+    await catalog.save(carton);
+    await stock.receive(carton.id);
+    await shopping.addProduct('list', drinks.id, {kind: 'unspecified'});
+    await shopping.addProduct('list', carton.id, {kind: 'packages', count: 1});
+    await firstValueFrom(ingredients.saveIngredientsForRecipe('recipe', [
+      {id: 'milk-ingredient', recipeId: 'recipe', targetNodeId: milk.id, name: 'Milk', amount: 100, unit: 'ml'},
+    ]));
+
+    const impact = await catalog.previewDelete(drinks.id, true);
+    expect(impact).toMatchObject({descendantCount: 2, deletedNodeCount: 3,
+      shoppingEntryCount: 2, recipeIngredientCount: 1, stockLotCount: 1});
+    await catalog.delete(drinks.id, true);
+
+    expect((await catalog.all()).map(node => node.id)).toEqual(expect.arrayContaining(['root-food', 'root-household']));
+    expect((await catalog.all()).some(node => [drinks.id, milk.id, carton.id].includes(node.id))).toBe(false);
+    expect(await shopping.all('list')).toHaveLength(0);
+    expect(await stock.all()).toHaveLength(0);
+    expect(await firstValueFrom(ingredients.getIngredientsForRecipe('recipe').pipe(take(1)))).toHaveLength(0);
+    expect(await catalog.byBarcode('1234567890141')).toBeNull();
+  });
+
+  it('protects roots and refuses a child move that would create duplicate sibling classes', async () => {
+    const milk = await catalog.createClass('Milk');
+    const drinks = await catalog.createClass('Drinks');
+    const nestedMilk = await catalog.createClass('Milk', drinks.id);
+    await expect(catalog.delete('root-food', true)).rejects.toThrow(/Built-in root categories/);
+    await expect(catalog.delete(drinks.id, false)).rejects.toThrow(/subcategory already exists/);
+    expect(await catalog.byId(drinks.id)).toBeDefined();
+    expect((await catalog.byId(nestedMilk.id)).parentId).toBe(drinks.id);
+    expect((await catalog.byId(milk.id)).parentId).toBe('root-food');
+  });
+
+  it('can delete a custom top-level category while keeping its child categories', async () => {
+    const customRoot = await catalog.createClass('Other', null);
+    const child = await catalog.createClass('Supplies', customRoot.id);
+    await catalog.delete(customRoot.id, false);
+    expect((await catalog.byId(child.id)).parentId).toBeNull();
+    await expect(catalog.byId(customRoot.id)).rejects.toThrow(/not found/);
+  });
 });

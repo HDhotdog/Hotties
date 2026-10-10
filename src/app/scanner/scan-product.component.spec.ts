@@ -1,6 +1,6 @@
 import {provideIonicAngular} from '@ionic/angular';
 import {TestBed} from '@angular/core/testing';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router, convertToParamMap} from '@angular/router';
 import {of} from 'rxjs';
 import {CatalogService} from '../domain/catalog.service';
 import {StockService} from '../domain/stock.service';
@@ -26,6 +26,7 @@ describe('ScanProductComponent', () => {
     stock = {receive: jest.fn().mockResolvedValue({id: 'lot'})};
     await TestBed.configureTestingModule({imports: [ScanProductComponent], providers: [
       provideIonicAngular(), {provide: Router, useValue: {navigate: jest.fn()}},
+      {provide: ActivatedRoute, useValue: {snapshot: {queryParamMap: convertToParamMap({})}}},
       {provide: OpenFoodFactsService, useValue: lookup}, {provide: CatalogService, useValue: catalog},
       {provide: StockService, useValue: stock}, {provide: CategoryService, useValue: {getSelectedCategoryId: () => of('list')}},
     ]}).compileComponents();
@@ -41,6 +42,13 @@ describe('ScanProductComponent', () => {
     expect(catalog.save).toHaveBeenCalledWith(product);
     expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({shoppingListId: 'list', scanId: expect.any(String)}));
     expect(component.savedName).toBe(found.name);
+  });
+
+  it('uses the product name as a category for a one-tap new barcode confirmation', async () => {
+    await component.addBarcode(found.barcode);
+    await component.confirmProduct();
+    expect(catalog.findOrCreateClass).toHaveBeenCalledWith(found.name);
+    expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({scanId: expect.any(String)}));
   });
 
   it('uses a locally saved product without another lookup', async () => {

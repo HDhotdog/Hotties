@@ -1,0 +1,101 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="openMenu()" aria-label="Open menu"><ion-icon name="menu"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Fridge</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openScanner()" aria-label="Scan product"><ion-icon name="scan-outline"></ion-icon></ion-button>
+      <ion-button (click)="openCatalog()" aria-label="Manage products"><ion-icon name="pricetags-outline"></ion-icon></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="lots">
+    @for (lot of lots; track lot.id) {
+      <div class="lot" [class.expired]="expiryStatus(lot) === 'expired'" [class.soon]="expiryStatus(lot) === 'soon'">
+        <button class="lot-main" type="button" (click)="editing?.id === lot.id ? cancelEdit() : edit(lot)"
+          [attr.aria-label]="'Edit ' + productName(lot.productId)" [attr.aria-expanded]="editing?.id === lot.id">
+          <span class="lot-quantity"><strong>{{lotAmount(lot)}}</strong><small>{{lotUnit(lot)}}</small></span>
+          <span class="lot-info">
+            <span class="lot-name">{{productName(lot.productId)}}</span>
+            @if (productSubtitle(lot.productId)) { <small>{{productSubtitle(lot.productId)}}</small> }
+            @if (lot.expiryDate) { <small>Expires {{lot.expiryDate}}</small> }
+          </span>
+        </button>
+        <button class="remove-button" type="button" (click)="remove(lot)" [attr.aria-label]="'Remove ' + productName(lot.productId)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+      @if (editing?.id === lot.id) {
+        <div class="edit-panel">
+          <div class="edit-fields">
+            <label>Remaining {{lot.acquiredUnit}}
+              <input type="number" min="0" step="any" [(ngModel)]="remainingAmount" aria-label="Remaining amount">
+            </label>
+            <label>Expiry date
+              <input type="date" [(ngModel)]="expiryDate" aria-label="Expiry date">
+            </label>
+          </div>
+          <div class="edit-actions">
+            <button type="button" (click)="cancelEdit()">Cancel</button>
+            <button class="primary-action" type="button" (click)="saveEdit()">Save</button>
+          </div>
+        </div>
+      }
+    } @empty {
+      <div class="empty-state">
+        <ion-icon name="snow-outline" aria-hidden="true"></ion-icon>
+        <p>Your fridge is empty</p>
+        <span>Type a product below to add it.</span>
+      </div>
+    }
+  </div>
+</ion-content>
+
+<ion-footer class="quick-add">
+  @if (error) { <p class="error" role="alert">{{error}}</p> }
+  @if (suggestions.length > 0) {
+    <div class="suggestions" role="listbox" aria-label="Matching products">
+      @for (node of suggestions; track node.id) {
+        <button type="button" role="option" (pointerdown)="$event.preventDefault()" (click)="chooseSuggestion(node)">
+          <span>{{node.name}} @if (node.brand) { <small>· {{node.brand}}</small> }</span>
+          <small>{{node.kind === 'class' ? 'Any brand' : node.saleKind === 'fixed' ? node.packageAmount + ' ' + node.packageUnit : node.saleKind === 'variable' ? 'By weight' : 'Product'}}</small>
+        </button>
+      }
+    </div>
+  }
+  @if (detailsOpen) {
+    <div class="add-details">
+      <div class="detail-fields">
+        @if (selectedProduct?.saleKind === 'variable') {
+          <label>Amount ({{selectedProduct?.variableUnit}})
+            <input #bulkInput type="number" min="0.001" step="any" [(ngModel)]="bulkAmount" aria-label="Acquired amount">
+          </label>
+        } @else {
+          <label>Packages
+            <input type="number" min="1" step="1" [(ngModel)]="packages" aria-label="Number of packages">
+          </label>
+        }
+        <label>Expiry date
+          <input type="date" [(ngModel)]="expiryDate" aria-label="Expiry date">
+        </label>
+      </div>
+      @if (selectedProduct?.saleKind === 'fixed') {
+        <span class="hint">{{selectedProduct?.packageAmount}} {{selectedProduct?.packageUnit}} per package</span>
+      }
+    </div>
+  }
+  <div class="composer-row">
+    <button class="details-toggle" type="button" (click)="toggleDetails()"
+      [attr.aria-label]="detailsOpen ? 'Hide amount and expiry options' : 'Show amount and expiry options'" [attr.aria-expanded]="detailsOpen">
+      <ion-icon [name]="detailsOpen ? 'options' : 'options-outline'"></ion-icon>
+    </button>
+    <input #quickInput type="text" [ngModel]="quickName" (ngModelChange)="inputChanged($event)"
+      (keydown.enter)="addQuick()" placeholder="Add to fridge" aria-label="New fridge product" autocomplete="off">
+    <ion-button class="add-button" (click)="addQuick()" [disabled]="adding" aria-label="Add to fridge">
+      <ion-icon slot="icon-only" name="add"></ion-icon>
+    </ion-button>
+  </div>
+</ion-footer>

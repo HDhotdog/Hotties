@@ -1,0 +1,39 @@
+.catalog-tree { padding: 16px 12px 24px; display: grid; gap: 5px; }
+.node-group { min-width: 0; }
+.node-row { display: flex; align-items: stretch; min-height: 48px; background: #2a2a2a; color: #fff; border-radius: 5px; border-left: 6px solid var(--ion-color-primary); overflow: hidden; }
+.node-row.product { border-left-color: var(--ion-color-success); }
+.node-row button { border: 0; background: transparent; color: inherit; }
+.fold-button, .fold-spacer { flex: none; width: 44px; min-height: 44px; display: grid; place-items: center; }
+.fold-button ion-icon { font-size: 18px; opacity: .8; }
+.node-label { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; text-align: left; padding: 6px 4px; }
+.node-name { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+.node-name small { font-size: 13px; opacity: .65; }
+.node-meta { font-size: 12px; opacity: .62; }
+.node-add { flex: none; width: 44px; min-height: 44px; display: grid; place-items: center; }
+.node-add ion-icon { font-size: 21px; }
+.node-row button:focus-visible, .kind-switch button:focus-visible, .more-details:focus-visible { outline: 2px solid var(--ion-color-primary); outline-offset: -2px; }
+.empty-state { padding: 48px 20px; text-align: center; color: var(--ion-color-medium); }
+.editor-panel { margin: 4px 0 10px; padding: 16px; border-radius: 8px; background: #1f1f1f; color: #fff; display: grid; gap: 11px; }
+.editor-panel h2 { margin: 0 0 3px; font-size: 1.05rem; line-height: 1.35; }
+.editor-panel label { display: grid; gap: 5px; font-size: 13px; }
+.editor-panel input:not([type=radio]), .editor-panel select { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid #494949; border-radius: 8px; background: #2a2a2a; color: #fff; font-size: 16px; }
+.editor-panel input:focus, .editor-panel select:focus { outline: 2px solid var(--ion-color-primary); outline-offset: -2px; }
+.optional { font-size: 12px; opacity: .6; }
+.kind-switch { display: flex; gap: 7px; }
+.kind-switch button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 8px; background: #333; color: #fff; }
+.kind-switch button.active { background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
+.more-details { justify-self: start; min-height: 40px; border: 0; background: transparent; color: var(--ion-color-primary-tint); font-size: 14px; padding: 0 2px; }
+.product-fields { display: grid; gap: 10px; }
+.amount-fields { display: flex; gap: 9px; }
+.amount-fields label { flex: 1; min-width: 0; }
+.raw-package { margin: 0; font-size: 12px; opacity: .65; }
+.editor-actions, .delete-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.editor-actions ion-button, .delete-actions ion-button { margin: 0; }
+.error { margin: 0; color: var(--ion-color-danger-tint); font-size: 13px; }
+.delete-panel { padding: 14px; border: 1px solid var(--ion-color-danger); border-radius: 8px; background: #2a2a2a; }
+.delete-panel h3 { margin: 0 0 10px; font-size: 1rem; }
+.delete-panel p { margin: 12px 0; font-size: 13px; line-height: 1.45; color: #ddd; }
+.delete-option { display: flex !important; align-items: center; gap: 9px; min-height: 44px; font-size: 13px; }
+.delete-option input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--ion-color-danger); }
+.delete-actions { justify-content: flex-end; }
+@media (max-width: 390px) { .catalog-tree { padding-inline: 8px; } .editor-panel { padding: 12px; } }

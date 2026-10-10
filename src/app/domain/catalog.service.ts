@@ -6,6 +6,16 @@ import {CatalogNode, blankClass} from './catalog.model';
 import {BaseQuantity, BaseUnit, parsePackageQuantity} from './quantity';
 import {FoodProduct} from '../scanner/open-food-facts.service';
 
+export interface CatalogDeleteImpact {
+  nodeName: string;
+  descendantCount: number;
+  movedChildCount: number;
+  deletedNodeCount: number;
+  shoppingEntryCount: number;
+  recipeIngredientCount: number;
+  stockLotCount: number;
+}
+
 @Injectable({providedIn: 'root'})
 export class CatalogService {
   private readonly database = inject(DatabaseService);
@@ -97,6 +107,73 @@ export class CatalogService {
     }
     const db = await this.database.getDb();
     await db['catalog_nodes'].upsert({...node, name: node.name.trim(), barcodes});
+  }
+
+  /** Removing only a class moves its direct children to its parent. Recursive removal deletes the subtree. */
+  public async previewDelete(nodeId: string, includeDescendants: boolean): Promise<CatalogDeleteImpact> {
+    return (await this.deletionPlan(nodeId, includeDescendants)).impact;
+  }
+
+  public async delete(nodeId: string, includeDescendants: boolean): Promise<CatalogDeleteImpact> {
+    const plan = await this.deletionPlan(nodeId, includeDescendants);
+    const db = await this.database.getDb();
+
+    // Move surviving children before removing their old parent.
+    for (const child of plan.childrenToMove) await this.save({...child, parentId: plan.parentId});
+
+    // Allocations to removed shopping entries must not linger in surviving lots.
+    for (const lot of plan.lotsToUpdate) {
+      const data = lot.toJSON();
+      await db['stock_lots'].upsert({...data, allocations: data.allocations.filter(
+        (allocation: {shoppingEntryId: string}) => !plan.shoppingEntryIds.has(allocation.shoppingEntryId))});
+    }
+    for (const doc of plan.shoppingEntries) await doc.remove();
+    for (const doc of plan.recipeIngredients) await doc.remove();
+    for (const doc of plan.stockLots) await doc.remove();
+    for (const node of plan.nodesToDelete) {
+      const doc = await db['catalog_nodes'].findOne(node.id).exec();
+      if (doc) await doc.remove();
+    }
+    return plan.impact;
+  }
+
+  private async deletionPlan(nodeId: string, includeDescendants: boolean): Promise<{
+    impact: CatalogDeleteImpact; parentId: string | null; childrenToMove: CatalogNode[]; nodesToDelete: CatalogNode[];
+    shoppingEntries: any[]; shoppingEntryIds: Set<string>; recipeIngredients: any[]; stockLots: any[]; lotsToUpdate: any[];
+  }> {
+    const nodes = await this.all();
+    const node = nodes.find(candidate => candidate.id === nodeId);
+    if (!node) throw new Error('Catalog entry not found.');
+    if (node.id === 'root-food' || node.id === 'root-household') throw new Error('Built-in root categories cannot be deleted.');
+    const descendants = node.kind === 'class' ? this.descendantsOf(node.id, nodes) : [];
+    const childrenToMove = includeDescendants ? [] : nodes.filter(candidate => candidate.parentId === node.id);
+    if (!node.parentId && childrenToMove.some(child => child.kind === 'product')) {
+      throw new Error('Products cannot move to the top level. Move them to another category first, or delete the subtree.');
+    }
+    if (childrenToMove.some(child => child.kind === 'class' && nodes.some(sibling =>
+      sibling.id !== child.id && sibling.kind === 'class' && sibling.parentId === node.parentId &&
+      sibling.name.trim().toLocaleLowerCase() === child.name.trim().toLocaleLowerCase()))) {
+      throw new Error('A subcategory already exists under the parent. Rename or move it first, or delete the subtree.');
+    }
+    const nodesToDelete = (includeDescendants ? [...descendants, node] : [node])
+      .sort((a, b) => this.depth(b.id, nodes) - this.depth(a.id, nodes));
+    const ids = new Set(nodesToDelete.map(item => item.id));
+    const db = await this.database.getDb();
+    const [allShopping, allIngredients, allLots] = await Promise.all([
+      db['shopping_entries'].find().exec(), db['recipe_ingredients'].find().exec(), db['stock_lots'].find().exec(),
+    ]);
+    const shoppingEntries = allShopping.filter((doc: any) => ids.has(doc.targetNodeId));
+    const shoppingEntryIds = new Set<string>(shoppingEntries.map((doc: any) => doc.id as string));
+    const recipeIngredients = allIngredients.filter((doc: any) => ids.has(doc.targetNodeId));
+    const stockLots = allLots.filter((doc: any) => ids.has(doc.productId));
+    const stockLotIds = new Set<string>(stockLots.map((doc: any) => doc.id as string));
+    const lotsToUpdate = allLots.filter((doc: any) => !stockLotIds.has(doc.id) &&
+      doc.allocations.some((allocation: {shoppingEntryId: string}) => shoppingEntryIds.has(allocation.shoppingEntryId)));
+    return {parentId: node.parentId, childrenToMove, nodesToDelete, shoppingEntries, shoppingEntryIds,
+      recipeIngredients, stockLots, lotsToUpdate,
+      impact: {nodeName: node.name, descendantCount: descendants.length, movedChildCount: childrenToMove.length,
+        deletedNodeCount: nodesToDelete.length, shoppingEntryCount: shoppingEntries.length,
+        recipeIngredientCount: recipeIngredients.length, stockLotCount: stockLots.length}};
   }
 
   public async createClass(name: string, parentId: string | null = 'root-food'): Promise<CatalogNode> {

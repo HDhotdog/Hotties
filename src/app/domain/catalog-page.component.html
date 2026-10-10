@@ -1,0 +1,149 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="openMenu()" aria-label="Open menu"><ion-icon name="menu"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Catalog</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openAdd(null)" [attr.aria-label]="editorOpen && !editingId && addParentId === null ? 'Close new category form' : 'Add top-level category'"
+        [attr.aria-expanded]="editorOpen && !editingId && addParentId === null"><ion-icon name="add"></ion-icon></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <main class="catalog-tree">
+    @if (editorOpen && !editingId && addParentId === null) {
+      <ng-container *ngTemplateOutlet="editorTemplate"></ng-container>
+    }
+    @for (node of visibleNodes; track node.id) {
+      <div class="node-group" [style.margin-left.px]="indent(node)">
+        <div class="node-row" [class.product]="node.kind === 'product'">
+          @if (node.kind === 'class' && hasChildren(node)) {
+            <button class="fold-button" type="button" (click)="toggleExpanded(node)"
+              [attr.aria-label]="(isExpanded(node) ? 'Collapse ' : 'Expand ') + node.name"
+              [attr.aria-expanded]="isExpanded(node)">
+              <ion-icon [name]="isExpanded(node) ? 'chevron-down-outline' : 'chevron-forward-outline'"></ion-icon>
+            </button>
+          } @else { <span class="fold-spacer" aria-hidden="true"></span> }
+          <button class="node-label" type="button" (click)="edit(node)"
+            [attr.aria-label]="editorOpen && (editingId === node.id || (!editingId && addParentId === node.id)) ? 'Close form under ' + path(node) : 'Edit ' + path(node)"
+            [attr.aria-expanded]="editorOpen && editingId === node.id">
+            <span class="node-name">{{node.name}} @if (node.brand) { <small>· {{node.brand}}</small> }</span>
+            @if (node.kind === 'product') { <span class="node-meta">{{saleLabel(node)}}</span> }
+          </button>
+          @if (node.kind === 'class') {
+            <button class="node-add" type="button" (click)="openAdd(node)"
+              [attr.aria-label]="editorOpen && !editingId && addParentId === node.id ? 'Close add form under ' + path(node) : 'Add under ' + path(node)"
+              [attr.aria-expanded]="editorOpen && !editingId && addParentId === node.id">
+              <ion-icon name="add"></ion-icon>
+            </button>
+          }
+        </div>
+        @if (editorOpen && (editingId === node.id || (!editingId && addParentId === node.id))) {
+          <ng-container *ngTemplateOutlet="editorTemplate"></ng-container>
+        }
+      </div>
+    } @empty {
+      <div class="empty-state">No catalog entries yet. Add a top-level category to start.</div>
+    }
+  </main>
+</ion-content>
+
+<ng-template #editorTemplate>
+  <section class="editor-panel">
+    <h2>{{editingId ? 'Edit ' + (selectedNode?.name ?? 'entry') : addParentId ? 'Add under ' + parentLabel() : 'Add top-level category'}}</h2>
+    @if (error) { <p class="error" role="alert">{{error}}</p> }
+    @if (!editingId && addParentId !== null) {
+      <div class="kind-switch" role="group" aria-label="New catalog entry type">
+        <button type="button" [class.active]="kind === 'class'" (click)="kind = 'class'">Category</button>
+        <button type="button" [class.active]="kind === 'product'" (click)="kind = 'product'">Product</button>
+      </div>
+    }
+    <label>Name
+      <input #nameInput [(ngModel)]="name" (keydown.enter)="save()" [placeholder]="kind === 'class' ? 'Category name' : 'Product name'">
+    </label>
+    @if (editingId) {
+      <label>Parent category
+        <select [(ngModel)]="parentId">
+          @if (kind === 'class') { <option value="">Top level</option> }
+          @for (category of classes; track category.id) { <option [value]="category.id">{{path(category)}}</option> }
+        </select>
+      </label>
+    }
+    @if (kind === 'product') {
+      <label>Brand <span class="optional">optional</span>
+        <input [(ngModel)]="brand" placeholder="Brand">
+      </label>
+      <button class="more-details" type="button" (click)="productDetailsOpen = !productDetailsOpen" [attr.aria-expanded]="productDetailsOpen">
+        {{productDetailsOpen ? 'Hide package details' : 'Barcode and package details'}}
+      </button>
+      @if (productDetailsOpen) {
+        <div class="product-fields">
+          <label>Barcode <span class="optional">optional</span><input [(ngModel)]="barcode" inputmode="numeric"></label>
+          <label>How it is sold
+            <select [(ngModel)]="saleKind">
+              <option value="unknown">Package size unknown</option>
+              <option value="fixed">Fixed package</option>
+              <option value="variable">Variable quantity</option>
+            </select>
+          </label>
+          @if (saleKind === 'fixed') {
+            <div class="amount-fields">
+              <label>Content per package <input type="number" min="0.001" step="any" [(ngModel)]="packageAmount"></label>
+              <label>Unit
+                <select [(ngModel)]="packageUnit">
+                  @for (unit of units; track unit) { <option [value]="unit">{{unit}}</option> }
+                </select>
+              </label>
+            </div>
+          } @else if (saleKind === 'variable') {
+            <label>Sold by
+              <select [(ngModel)]="variableUnit">
+                @for (unit of units; track unit) { <option [value]="unit">{{unit}}</option> }
+              </select>
+            </label>
+          }
+          @if (rawPackage) { <p class="raw-package">Original package label: {{rawPackage}}</p> }
+        </div>
+      }
+    }
+    <div class="editor-actions">
+      <ion-button (click)="save()">Save</ion-button>
+      <ion-button fill="clear" (click)="reset()">Cancel</ion-button>
+      @if (editingId && canDelete(selectedNode)) {
+        <ion-button fill="clear" color="danger" (click)="beginDelete()">Delete</ion-button>
+      }
+    </div>
+    @if (deleteConfirmationOpen) {
+      <div class="delete-panel" role="group" [attr.aria-label]="'Delete ' + (selectedNode?.name ?? name)">
+        <h3>Delete {{selectedNode?.name}}?</h3>
+        @if (deleteDescendantCount > 0) {
+          <label class="delete-option">
+            <input type="radio" name="delete-scope" [checked]="!deleteDescendants" (change)="setDeleteDescendants(false)">
+            Keep sub-items and move them up one level
+          </label>
+          <label class="delete-option">
+            <input type="radio" name="delete-scope" [checked]="deleteDescendants" (change)="setDeleteDescendants(true)">
+            Delete all {{deleteDescendantCount}} sub-items too
+          </label>
+        }
+        @if (deleteImpact) {
+          <p>
+            This also removes {{deleteImpact.shoppingEntryCount}} shopping
+            {{deleteImpact.shoppingEntryCount === 1 ? 'entry' : 'entries'}},
+            {{deleteImpact.stockLotCount}} fridge {{deleteImpact.stockLotCount === 1 ? 'lot' : 'lots'}},
+            and {{deleteImpact.recipeIngredientCount}} recipe
+            {{deleteImpact.recipeIngredientCount === 1 ? 'ingredient' : 'ingredients'}}.
+          </p>
+        }
+        <div class="delete-actions">
+          <ion-button fill="clear" (click)="cancelDelete()">Keep</ion-button>
+          <ion-button color="danger" [disabled]="!deleteImpact || deleteBusy" (click)="confirmDelete()">
+            {{deleteBusy ? 'Deleting…' : 'Delete permanently'}}
+          </ion-button>
+        </div>
+      </div>
+    }
+  </section>
+</ng-template>

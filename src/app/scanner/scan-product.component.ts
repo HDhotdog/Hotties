@@ -1,7 +1,7 @@
 import {CommonModule} from '@angular/common';
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Capacitor} from '@capacitor/core';
 import {CapacitorBarcodeScanner, CapacitorBarcodeScannerCameraDirection, CapacitorBarcodeScannerTypeHintALLOption} from '@capacitor/barcode-scanner';
 import {IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonSpinner, IonTitle, IonToolbar} from '@ionic/angular';
@@ -21,6 +21,7 @@ type ScanState = 'idle' | 'scanning' | 'looking-up' | 'saving';
   imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonSpinner, IonTitle, IonToolbar]})
 export class ScanProductComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly lookup = inject(OpenFoodFactsService);
   private readonly catalog = inject(CatalogService);
@@ -39,6 +40,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   public saleKind: SaleKind = 'unknown';
   public packageAmount = 1;
   public packageUnit: BaseUnit = 'piece';
+  public detailsOpen = false;
   private activeScanId: string | null = null;
   private activeBarcode = '';
   public readonly units: BaseUnit[] = ['g', 'ml', 'piece', 'bunch'];
@@ -46,6 +48,10 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   public ngOnInit(): void { this.subscription = this.catalog.observe().subscribe(nodes => {this.nodes = nodes; this.cdr.markForCheck();}); }
   public ngOnDestroy(): void { this.subscription?.unsubscribe(); }
   public get classes(): CatalogNode[] { return this.nodes.filter(node => node.kind === 'class' && node.parentId !== null); }
+  public get categoryName(): string {
+    return this.classes.find(node => node.id === this.selectedClassId)?.name ??
+      (this.newClassName.trim() || this.pendingProduct?.name || '');
+  }
   public ionViewDidEnter(): void {
     if (this.nativeScanner && !this.savedName && !this.pendingProduct && this.state === 'idle') void this.scan();
   }
@@ -75,6 +81,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       if (existing) { await this.receive(existing); return; }
       const found = await this.lookup.getProduct(barcode);
       this.pendingProduct = found;
+      this.detailsOpen = false;
       this.selectedClassId = this.catalog.suggestedClass(found.name, this.nodes)?.id ?? '';
       const parsed = parsePackageQuantity(found.packageQuantity);
       this.saleKind = parsed ? 'fixed' : 'unknown';
@@ -89,15 +96,14 @@ export class ScanProductComponent implements OnInit, OnDestroy {
     if (!this.pendingProduct) return;
     this.errorMessage = null; this.setState('saving');
     try {
-      const classId = this.selectedClassId || (this.newClassName.trim()
-        ? (await this.catalog.findOrCreateClass(this.newClassName)).id : '');
-      if (!classId) throw new Error('Choose or create a product category.');
+      const classId = this.selectedClassId || (await this.catalog.findOrCreateClass(
+        this.newClassName.trim() || this.pendingProduct.name)).id;
       const content = this.saleKind === 'fixed' ? {amount: Number(this.packageAmount), unit: this.packageUnit} : null;
       const existing = await this.catalog.byBarcode(this.pendingProduct.barcode);
       const product = existing ?? this.catalog.productDraft(this.pendingProduct, classId, content);
       if (!existing) await this.catalog.save(product);
       await this.receive(product);
-      this.pendingProduct = null; this.newClassName = ''; this.selectedClassId = '';
+      this.pendingProduct = null; this.newClassName = ''; this.selectedClassId = ''; this.detailsOpen = false;
     } catch (error) { this.errorMessage = String(error instanceof Error ? error.message : error); }
     finally { this.setState('idle'); }
   }
@@ -109,7 +115,8 @@ export class ScanProductComponent implements OnInit, OnDestroy {
     this.savedName = product.name; this.barcodeInput = '';
     this.activeScanId = null; this.activeBarcode = '';
   }
-  public backToShopping(): void { void this.router.navigate(['/tabs/todo']); }
+  public get backLabel(): string { return this.route.snapshot.queryParamMap.get('from') === 'fridge' ? 'Back to fridge' : 'Back to shopping list'; }
+  public backToShopping(): void { void this.router.navigate([this.route.snapshot.queryParamMap.get('from') === 'fridge' ? '/tabs/fridge' : '/tabs/todo']); }
   public viewFridge(): void { void this.router.navigate(['/tabs/fridge']); }
   public addManually(): void { void this.router.navigate(['/tabs/items']); }
   private setState(state: ScanState): void { this.state = state; this.cdr.markForCheck(); }
