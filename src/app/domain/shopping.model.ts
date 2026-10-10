@@ -6,8 +6,8 @@ export interface ShoppingEntry {
   id: string;
   shoppingListId: string;
   kind: 'product' | 'task';
-  targetNodeId: string | null;
-  label: string;
+  targetNodeId?: string | null;
+  label?: string;
   needKind: NeedKind;
   needAmount: number | null;
   needUnit: BaseUnit | null;

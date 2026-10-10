@@ -31,6 +31,10 @@ export class CatalogService {
       map((docs: any[]) => docs.map(doc => doc.toJSON() as CatalogNode)));
   }
 
+  public async findById(id?: string): Promise<CatalogNode | undefined> {
+    return (await this.all()).find(item => item.id === id);
+  }
+
   public async byId(id: string): Promise<CatalogNode> {
     const node = (await this.all()).find(item => item.id === id);
     if (!node) throw new Error('Catalog item not found.');
@@ -199,6 +203,12 @@ export class CatalogService {
     const node = blankClass(uuidv4(), name.trim(), parentId);
     await this.save(node);
     return node;
+  }
+
+  public async findClass(name: string, parentId = 'root-food'): Promise<CatalogNode | undefined> {
+    const normalized = name.trim().toLocaleLowerCase();
+    return (await this.all()).find(node => node.kind === 'class' && node.parentId === parentId &&
+      node.name.toLocaleLowerCase() === normalized);
   }
 
   public async findOrCreateClass(name: string, parentId = 'root-food'): Promise<CatalogNode> {

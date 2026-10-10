@@ -13,6 +13,6 @@ export const SHOPPING_ENTRY_SCHEMA_LITERAL = {
       checked: {type: 'boolean'},
       createdAt: {type: 'number'},
     },
-    required: ['id', 'shoppingListId', 'kind', 'targetNodeId', 'label', 'needKind', 'needAmount', 'needUnit', 'checked', 'createdAt'],
-  }
+    required: ['id', 'shoppingListId', 'kind', 'needKind', 'needAmount', 'needUnit', 'checked', 'createdAt'],
+  },
 };

@@ -59,7 +59,7 @@ describe('Quick add pages', () => {
     page.nodes = [milkClass, carton];
     page.inputChanged('Milk');
     await page.add();
-    expect(shopping.addProduct).toHaveBeenCalledWith('list', milkClass.id, {kind: 'unspecified'});
+    expect(shopping.addProduct).toHaveBeenCalledWith('list', milkClass.id, {kind: 'unspecified'}, 'Milk');
     expect(page.newName).toBe('');
   });
 
@@ -70,7 +70,7 @@ describe('Quick add pages', () => {
     page.inputChanged('Milk');
     page.selectedNodeId = carton.id;
     await page.add();
-    expect(shopping.addProduct).toHaveBeenCalledWith('list', carton.id, {kind: 'packages', count: 1});
+    expect(shopping.addProduct).toHaveBeenCalledWith('list', carton.id, {kind: 'packages', count: 1}, 'Milk');
 
     page.detailsOpen = true;
     page.selectedNodeId = carton.id;
@@ -80,7 +80,7 @@ describe('Quick add pages', () => {
     page.needUnit = 'ml';
     await page.add();
     expect(shopping.addProduct).toHaveBeenLastCalledWith('list', carton.id,
-      {kind: 'quantity', quantity: {amount: 200, unit: 'ml'}});
+      {kind: 'quantity', quantity: {amount: 200, unit: 'ml'}}, "Milk");
   });
 
   it('adds a fixed product to stock with one package', async () => {

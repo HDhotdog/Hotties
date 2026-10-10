@@ -205,23 +205,33 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
 
   public async add(): Promise<void> {
     if (this.adding) return;
+    if (this.newName.trim().length === 0) return;
     this.error = '';
     this.adding = true;
     try {
-      if (!this.selectedListId) throw new Error('Create a shopping list first.');
-      if (this.kind === 'task') await this.shopping.addTask(this.selectedListId, this.newName);
-      else {
-        const typed = this.newName.trim().toLocaleLowerCase();
-        const exactClass = this.nodesForSelection.find(node => node.kind === 'class' && node.name.toLocaleLowerCase() === typed);
-        const exactProduct = this.nodesForSelection.find(node => node.kind === 'product' && node.name.toLocaleLowerCase() === typed);
+      if (!this.selectedListId) {
+        throw new Error('Create a shopping list first.');
+      }
+      if (this.kind === 'task') {
+        await this.shopping.addTask(this.selectedListId, this.newName);
+      } else {
+        const originalUserInput = this.newName.trim();
+        const userInput = originalUserInput.toLocaleLowerCase();
+        const exactClass = this.nodesForSelection.find(node => node.kind === 'class' && node.name.toLocaleLowerCase() === userInput);
+        const exactProduct = this.nodesForSelection.find(node => node.kind === 'product' && node.name.toLocaleLowerCase() === userInput);
         const targetNode = this.selectedNodeId ? this.nodes.find(node => node.id === this.selectedNodeId) : exactClass ?? exactProduct;
-        const target = targetNode?.id ?? (await this.catalog.findOrCreateClass(this.newName)).id;
+        const target = targetNode?.id ?? (await this.catalog.findClass(this.newName))?.id;
+        const optionalName = targetNode?.name ?? originalUserInput;
         const needKind = this.detailsOpen ? this.needKind : targetNode?.kind === 'product' ? 'packages' : 'unspecified';
-        if (needKind === 'quantity') await this.shopping.addProduct(this.selectedListId, target,
-          {kind: 'quantity', quantity: normalizeQuantity({amount: this.needAmount, unit: this.needUnit})});
-        else if (needKind === 'packages') await this.shopping.addProduct(this.selectedListId, target,
-          {kind: 'packages', count: this.needAmount});
-        else await this.shopping.addProduct(this.selectedListId, target, {kind: 'unspecified'});
+        if (needKind === 'quantity') {
+          await this.shopping.addProduct(this.selectedListId, target,
+            {kind: 'quantity', quantity: normalizeQuantity({amount: this.needAmount, unit: this.needUnit})}, optionalName);
+        } else if (needKind === 'packages') {
+          await this.shopping.addProduct(this.selectedListId, target,
+            {kind: 'packages', count: this.needAmount}, optionalName);
+        } else {
+          await this.shopping.addProduct(this.selectedListId, target, {kind: 'unspecified'}, optionalName);
+        }
       }
       this.newName = '';
       this.selectedNodeId = '';

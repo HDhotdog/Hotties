@@ -17,6 +17,7 @@
     "native:configure": "node scripts/configure-native-barcode.mjs",
     "native:assets": "capacitor-assets generate --android",
     "export": "npm run build && npm run native:configure && npm run native:assets && ionic cap copy && npx cap sync android && ionic cap open android",
+    "android:build": "npm run build && npm run native:configure && npm run native:assets && npx ionic cap copy && npx cap sync android",
     "android:install": "bash scripts/install-android.sh"
   },
   "private": true,

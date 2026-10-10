@@ -25,13 +25,13 @@ export class ShoppingService {
         .sort((a, b) => Number(a.checked) - Number(b.checked) || a.createdAt - b.createdAt)));
   }
 
-  public async addProduct(listId: string, targetNodeId: string, need: {
+  public async addProduct(listId: string, targetNodeId: string | undefined, need: {
     kind: NeedKind;
     quantity?: BaseQuantity | null;
     count?: number
-  }): Promise<ShoppingEntry> {
-    const node = await this.catalog.byId(targetNodeId);
-    if (need.kind === 'packages' && node.kind !== 'product') throw new Error('Package counts require an exact product.');
+  }, name?: string): Promise<ShoppingEntry> {
+    const node = await this.catalog.findById(targetNodeId);
+    if (need.kind === 'packages' && node?.kind !== 'product') throw new Error('Package counts require an exact product.');
     const amount = need.kind === 'quantity' ? need.quantity?.amount : need.kind === 'packages' ? need.count : null;
     const unit = need.kind === 'quantity' ? need.quantity?.unit : need.kind === 'packages' ? 'package' : null;
     if (need.kind !== 'unspecified' && (!(amount && Number.isFinite(amount) && amount > 0) || !unit)) {
@@ -39,7 +39,7 @@ export class ShoppingService {
     }
     const entry: ShoppingEntry = {
       id: uuidv4(), shoppingListId: listId, kind: 'product', targetNodeId,
-      label: node.name, needKind: need.kind, needAmount: amount ?? null, needUnit: unit ?? null,
+      label: node?.name ?? name, needKind: need.kind, needAmount: amount ?? null, needUnit: unit ?? null,
       checked: false, createdAt: Date.now()
     };
     await this.save(entry);
@@ -64,7 +64,7 @@ export class ShoppingService {
   }
 
   public async save(entry: ShoppingEntry): Promise<void> {
-    if (!entry.label.trim()) throw new Error('A shopping entry needs a name.');
+    if (!entry.label?.trim()) throw new Error('A shopping entry needs a name.');
     const db = await this.database.getDb();
     await db['shopping_entries'].upsert(entry);
   }
