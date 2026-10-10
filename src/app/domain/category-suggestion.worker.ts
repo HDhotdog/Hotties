@@ -1,48 +1,84 @@
-import {env, pipeline} from '@huggingface/transformers';
+import {pipeline} from '@huggingface/transformers';
 
-interface Candidate { id: string; labels: string[] }
-interface RankRequest { id: number; name: string; candidates: Candidate[] }
+let extractor: any = null;
+let cachedEmbeddings: Array<{ categoryId: string; embedding: number[] }> = [];
+let lastNodeCount = 0;
 
-const modelName = 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
-env.allowLocalModels = true;
-env.allowRemoteModels = false;
-env.localModelPath = `${self.location.origin}/assets/models/`;
-env.backends.onnx.wasm.wasmPaths = `${self.location.origin}/assets/wasm/`;
-env.backends.onnx.wasm.numThreads = 1;
-
-const embeddings = new Map<string, number[]>();
-let extractorPromise: ReturnType<typeof pipeline> | null = null;
-
-async function embed(text: string): Promise<number[]> {
-  const cached = embeddings.get(text);
-  if (cached) return cached;
-  extractorPromise ??= pipeline('feature-extraction', modelName, {dtype: 'q8', device: 'wasm'});
-  const extractor = await extractorPromise;
-  const output = await extractor(text, {pooling: 'mean', normalize: true});
-  const vector = Array.from(output.data as Float32Array);
-  embeddings.set(text, vector);
-  return vector;
+async function getExtractor() {
+  if (!extractor) {
+    extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+  }
+  return extractor;
 }
 
-function dot(a: number[], b: number[]): number {
-  return a.reduce((sum, value, index) => sum + value * b[index], 0);
+function cosineSimilarity(a: number[], b: number[]): number {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-self.onmessage = async (event: MessageEvent<RankRequest>) => {
-  const {id, name, candidates} = event.data;
+self.onmessage = async (event: MessageEvent) => {
+  const {id, name, nodes} = event.data;
+
   try {
-    const query = await embed(name);
-    const scores: {id: string; score: number}[] = [];
-    for (const candidate of candidates) {
-      let best = -1;
-      for (const label of candidate.labels) best = Math.max(best, dot(query, await embed(label)));
-      scores.push({id: candidate.id, score: best});
+    if (!nodes || !Array.isArray(nodes) || !name.trim()) {
+      self.postMessage({id, ids: []});
+      return;
     }
-    scores.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-    self.postMessage({id, ids: scores.slice(0, 3).map(item => item.id)});
-  } catch (error) {
-    // A failed model load is not retried until the next app session.
-    extractorPromise = null;
-    self.postMessage({id, error: String(error instanceof Error ? error.message : error)});
+
+    const model = await getExtractor();
+    // 1. Extract product nodes that have a parent category (parentId)
+    const productNodes = nodes.filter((n: any) => n.kind === 'product' && n.parentId);
+    console.log(productNodes)
+    // 2. Re-embed catalog nodes only if the catalog size/items changed
+    if (productNodes.length !== lastNodeCount || cachedEmbeddings.length === 0) {
+      cachedEmbeddings = [];
+      for (const node of productNodes) {
+        const output = await model(node.name, {pooling: 'mean', normalize: true});
+        cachedEmbeddings.push({
+          categoryId: node.parentId,
+          embedding: Array.from(output.data as Float32Array)
+        });
+      }
+      lastNodeCount = productNodes.length;
+    }
+
+    if (cachedEmbeddings.length === 0) {
+      self.postMessage({id, ids: []});
+      return;
+    }
+
+    // 3. Generate embedding for the new input product
+    const inputOutput = await model(name, {pooling: 'mean', normalize: true});
+    const inputEmbedding = Array.from(inputOutput.data as Float32Array);
+
+    // 4. Score against all catalog products using cosine similarity
+    const scores = cachedEmbeddings.map(item => {
+      const score = cosineSimilarity(inputEmbedding, item.embedding);
+      return {categoryId: item.categoryId, score};
+    });
+
+    scores.sort((a, b) => b.score - a.score);
+
+    // 5. Extract top 3 unique category IDs
+    const topCategoryIds: string[] = [];
+    for (const match of scores) {
+      if (match.categoryId && !topCategoryIds.includes(match.categoryId)) {
+        topCategoryIds.push(match.categoryId);
+      }
+      if (topCategoryIds.length >= 3) break;
+    }
+    console.log(topCategoryIds);
+
+    self.postMessage({id, ids: topCategoryIds});
+
+  } catch (error: any) {
+    self.postMessage({id, error: error?.message || 'Embedding ranking error'});
   }
 };

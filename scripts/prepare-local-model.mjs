@@ -4,8 +4,7 @@ import {copyFile, mkdir, rename, rm, stat} from 'node:fs/promises';
 import {pipeline} from 'node:stream/promises';
 import path from 'node:path';
 
-// Pin the exact model revision. Weights and tokenizer are validated before any
-// build can package them; subsequent offline builds use the verified cache.
+// Pin the exact model revision for the multilingual embedding model
 const revision = '2c4055b12046f11709e9df2c122e59ffbdc2f900';
 const model = 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
 const root = '.model-cache/models';

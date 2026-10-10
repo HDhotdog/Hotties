@@ -1,8 +1,11 @@
 import {Injectable} from '@angular/core';
 import {CatalogNode} from './catalog.model';
-import {foodCategoryCandidates} from './category-candidates';
 
-interface RankResult {id: number; ids?: string[]; error?: string}
+export interface RankResult {
+  id: number;
+  ids?: string[];
+  error?: string;
+}
 
 @Injectable({providedIn: 'root'})
 export class CategorySuggestionService {
@@ -11,13 +14,11 @@ export class CategorySuggestionService {
   private nextId = 0;
   private pending = new Map<number, {resolve: (value: string[]) => void; reject: (error: Error) => void}>();
 
-  public async rank(name: string, nodes: CatalogNode[]): Promise<string[]> {
-    const candidates = foodCategoryCandidates(nodes);
-    if (!candidates.length || !name.trim()) return [];
-    const normalized = name.trim().toLocaleLowerCase('de-DE');
-    const exact = candidates.find(candidate => candidate.labels[0].toLocaleLowerCase('de-DE') === normalized);
-    if (exact) return [exact.id];
+  public warmUp(): void {
+    void this.getOrInitWorker();
+  }
 
+  private getOrInitWorker(): Promise<Worker> {
     if (!this.workerPromise) {
       this.workerPromise = import('./category-suggestion.worker.factory').then(({createCategorySuggestionWorker}) => {
         const worker = createCategorySuggestionWorker();
@@ -42,11 +43,18 @@ export class CategorySuggestionService {
         throw error;
       });
     }
-    const worker = await this.workerPromise;
+    return this.workerPromise;
+  }
+
+  public async rank(name: string, nodes: CatalogNode[]): Promise<string[]> {
+    if (!name.trim() || !nodes.length) return [];
+
+    const worker = await this.getOrInitWorker();
     const id = ++this.nextId;
     return new Promise<string[]>((resolve, reject) => {
       this.pending.set(id, {resolve, reject});
-      worker.postMessage({id, name: name.trim(), candidates});
+      // Pass the raw nodes array directly; the worker handles filtering and embedding
+      worker.postMessage({id, name: name.trim(), nodes});
     });
   }
 }
