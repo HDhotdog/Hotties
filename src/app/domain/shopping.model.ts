@@ -1,6 +1,7 @@
 import {BaseUnit} from './quantity';
 
 export type NeedKind = 'quantity' | 'packages' | 'unspecified';
+
 export interface ShoppingEntry {
   id: string;
   shoppingListId: string;

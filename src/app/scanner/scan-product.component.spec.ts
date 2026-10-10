@@ -1,6 +1,6 @@
 import {provideIonicAngular} from '@ionic/angular';
 import {TestBed} from '@angular/core/testing';
-import {ActivatedRoute, Router, convertToParamMap} from '@angular/router';
+import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
 import {of} from 'rxjs';
 import {CatalogService} from '../domain/catalog.service';
 import {StockService} from '../domain/stock.service';
@@ -11,25 +11,50 @@ import {CatalogNode} from '../domain/catalog.model';
 
 describe('ScanProductComponent', () => {
   const found = {barcode: '1234567890123', name: 'Oat milk', brand: 'Brand', packageQuantity: '1 l'};
-  const product: CatalogNode = {id: 'product', parentId: 'milk', kind: 'product', name: found.name, brand: found.brand,
-    barcodes: [found.barcode], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'ml', variableUnit: null, rawPackage: found.packageQuantity};
+  const product: CatalogNode = {
+    id: 'product',
+    parentId: 'milk',
+    kind: 'product',
+    name: found.name,
+    brand: found.brand,
+    barcodes: [found.barcode],
+    saleKind: 'fixed',
+    packageAmount: 1000,
+    packageUnit: 'ml',
+    variableUnit: null,
+    rawPackage: found.packageQuantity
+  };
   let component: ScanProductComponent;
-  let lookup: {getProduct: jest.Mock};
-  let catalog: {observe: jest.Mock; byBarcode: jest.Mock; suggestedClass: jest.Mock; productDraft: jest.Mock; save: jest.Mock; findOrCreateClass: jest.Mock};
-  let stock: {receive: jest.Mock};
+  let lookup: { getProduct: jest.Mock };
+  let catalog: {
+    observe: jest.Mock;
+    byBarcode: jest.Mock;
+    suggestedClass: jest.Mock;
+    productDraft: jest.Mock;
+    save: jest.Mock;
+    findOrCreateClass: jest.Mock
+  };
+  let stock: { receive: jest.Mock };
 
   beforeEach(async () => {
     lookup = {getProduct: jest.fn().mockResolvedValue(found)};
-    catalog = {observe: jest.fn().mockReturnValue(of([])), byBarcode: jest.fn().mockResolvedValue(null),
+    catalog = {
+      observe: jest.fn().mockReturnValue(of([])), byBarcode: jest.fn().mockResolvedValue(null),
       suggestedClass: jest.fn().mockReturnValue(null), productDraft: jest.fn().mockReturnValue(product),
-      save: jest.fn().mockResolvedValue(undefined), findOrCreateClass: jest.fn().mockResolvedValue({id: 'milk'})};
+      save: jest.fn().mockResolvedValue(undefined), findOrCreateClass: jest.fn().mockResolvedValue({id: 'milk'})
+    };
     stock = {receive: jest.fn().mockResolvedValue({id: 'lot'})};
-    await TestBed.configureTestingModule({imports: [ScanProductComponent], providers: [
-      provideIonicAngular(), {provide: Router, useValue: {navigate: jest.fn()}},
-      {provide: ActivatedRoute, useValue: {snapshot: {queryParamMap: convertToParamMap({})}}},
-      {provide: OpenFoodFactsService, useValue: lookup}, {provide: CatalogService, useValue: catalog},
-      {provide: StockService, useValue: stock}, {provide: CategoryService, useValue: {getSelectedCategoryId: () => of('list')}},
-    ]}).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [ScanProductComponent], providers: [
+        provideIonicAngular(), {provide: Router, useValue: {navigate: jest.fn()}},
+        {provide: ActivatedRoute, useValue: {snapshot: {queryParamMap: convertToParamMap({})}}},
+        {provide: OpenFoodFactsService, useValue: lookup}, {provide: CatalogService, useValue: catalog},
+        {provide: StockService, useValue: stock}, {
+          provide: CategoryService,
+          useValue: {getSelectedCategoryId: () => of('list')}
+        },
+      ]
+    }).compileComponents();
     component = TestBed.createComponent(ScanProductComponent).componentInstance;
   });
 
@@ -40,7 +65,10 @@ describe('ScanProductComponent', () => {
     component.selectedClassId = 'milk';
     await component.confirmProduct();
     expect(catalog.save).toHaveBeenCalledWith(product);
-    expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({shoppingListId: 'list', scanId: expect.any(String)}));
+    expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({
+      shoppingListId: 'list',
+      scanId: expect.any(String)
+    }));
     expect(component.savedName).toBe(found.name);
   });
 
@@ -55,7 +83,10 @@ describe('ScanProductComponent', () => {
     catalog.byBarcode.mockResolvedValue(product);
     await component.addBarcode(found.barcode);
     expect(lookup.getProduct).not.toHaveBeenCalled();
-    expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({shoppingListId: 'list', scanId: expect.any(String)}));
+    expect(stock.receive).toHaveBeenCalledWith(product.id, expect.objectContaining({
+      shoppingListId: 'list',
+      scanId: expect.any(String)
+    }));
   });
 
   it('does not create stock when lookup fails', async () => {

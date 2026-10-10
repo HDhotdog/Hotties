@@ -10,13 +10,14 @@ import {
   IonToast,
   IonToolbar,
 } from '@ionic/angular';
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
-import { CategoryService } from '../../category/category.service';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {Router} from '@angular/router';
+import {CategoryService} from '../../category/category.service';
 
-import { v4 as uuidv4 } from 'uuid';
-import { switchMap } from 'rxjs';
-import { Category } from '../../category/category.dto';
+import {v4 as uuidv4} from 'uuid';
+import {switchMap} from 'rxjs';
+import {Category} from '../../category/category.dto';
+
 @Component({
   selector: 'app-cache-setting',
   templateUrl: './cache-setting.component.html',

@@ -1,41 +1,289 @@
-ion-toolbar { --background: var(--ion-background-color); }
-.lots { padding: 20px; display: flex; flex-direction: column; gap: 8px; }
-.lot { position: relative; display: flex; align-items: stretch; min-height: 56px; background: #2a2a2a; border-radius: 5px; overflow: hidden; color: #fff; }
-.lot::before { content: ''; width: 6px; background: var(--ion-color-success); flex: none; }
-.lot.soon::before { background: var(--ion-color-warning); }
-.lot.expired::before { background: var(--ion-color-danger); }
-.lot-main { display: flex; flex: 1; align-items: center; gap: 12px; text-align: left; min-width: 0; border: 0; background: transparent; color: inherit; padding: 7px 6px 7px 16px; }
-.lot-quantity { display: flex; align-items: baseline; gap: 3px; min-width: 74px; max-width: 104px; white-space: nowrap; }
-.lot-quantity strong { font-size: 1.8rem; font-weight: 600; line-height: 1; overflow: hidden; text-overflow: ellipsis; }
-.lot-quantity small { font-size: 12px; opacity: .65; }
-.lot-info { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
-.lot-name { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lot-info small { font-size: 12px; opacity: .63; }
-.remove-button { flex: none; width: 44px; min-height: 44px; border: 0; background: transparent; color: #fff; opacity: .65; display: grid; place-items: center; }
-.remove-button ion-icon { font-size: 19px; }
-.edit-panel { margin-top: -8px; padding: 13px 14px 10px 24px; background: #222; border-radius: 0 0 5px 5px; }
-.edit-fields { display: flex; flex-wrap: wrap; gap: 8px; }
-.edit-fields label, .detail-fields label { flex: 1 1 120px; font-size: 12px; color: var(--ion-color-medium); }
-.edit-fields input, .detail-fields input { display: block; width: 100%; height: 40px; border: 1px solid #454545; background: #2a2a2a; color: #fff; border-radius: 8px; padding: 7px 9px; }
-.edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 9px; }
-.edit-actions button { min-height: 38px; padding: 0 16px; border: 0; border-radius: 8px; background: #333; color: #fff; }
-.edit-actions .primary-action { background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
-.empty-state { text-align: center; margin: 18vh auto 0; opacity: .62; }
-.empty-state ion-icon { font-size: 48px; }
-.empty-state p { margin: 12px 0 3px; font-weight: 600; }
-.empty-state span { font-size: 14px; }
-.quick-add { background: var(--ion-background-color); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -3px 16px #0002; }
-.composer-row { display: flex; align-items: center; gap: 7px; }
-.composer-row input { min-width: 0; flex: 1; height: 44px; background: #1f1f1f; border: 1px solid #383838; border-radius: 10px; color: var(--ion-text-color); font-size: 16px; padding: 0 12px; outline: none; }
-.composer-row input:focus { border-color: var(--ion-color-primary); }
-.details-toggle { width: 44px; height: 44px; border: 0; border-radius: 10px; background: #2a2a2a; color: var(--ion-text-color); display: grid; place-items: center; }
-.details-toggle ion-icon { font-size: 21px; }
-.add-button { --padding-start: 8px; --padding-end: 8px; width: 44px; height: 44px; margin: 0; }
-.add-button ion-icon { font-size: 25px; }
-.suggestions { position: absolute; bottom: 100%; left: 12px; right: 12px; z-index: 3; background: #2a2a2a; border-radius: 10px 10px 0 0; box-shadow: 0 -5px 18px #0005; overflow: hidden; max-height: 50vh; overflow-y: auto; }
-.suggestions button { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; min-height: 46px; padding: 8px 14px; border: 0; border-bottom: 1px solid #3a3a3a; background: transparent; color: #fff; text-align: left; }
-.suggestions button > small, .suggestions button span small { opacity: .58; }
-.add-details { padding: 8px 4px 12px; }
-.detail-fields { display: flex; flex-wrap: wrap; gap: 8px; }
-.hint { display: block; font-size: 12px; margin-top: 5px; color: var(--ion-color-medium); }
-.error { margin: 0 0 8px; color: var(--ion-color-danger); font-size: 13px; }
+ion-toolbar {
+  --background: var(--ion-background-color);
+}
+
+.lots {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lot {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 56px;
+  background: #2a2a2a;
+  border-radius: 5px;
+  overflow: hidden;
+  color: #fff;
+}
+
+.lot::before {
+  content: '';
+  width: 6px;
+  background: var(--ion-color-success);
+  flex: none;
+}
+
+.lot.soon::before {
+  background: var(--ion-color-warning);
+}
+
+.lot.expired::before {
+  background: var(--ion-color-danger);
+}
+
+.lot-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 7px 6px 7px 16px;
+}
+
+.lot-quantity {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 74px;
+  max-width: 104px;
+  white-space: nowrap;
+}
+
+.lot-quantity strong {
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lot-quantity small {
+  font-size: 12px;
+  opacity: .65;
+}
+
+.lot-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.lot-name {
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lot-info small {
+  font-size: 12px;
+  opacity: .63;
+}
+
+.remove-button {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  opacity: .65;
+  display: grid;
+  place-items: center;
+}
+
+.remove-button ion-icon {
+  font-size: 19px;
+}
+
+.edit-panel {
+  margin-top: -8px;
+  padding: 13px 14px 10px 24px;
+  background: #222;
+  border-radius: 0 0 5px 5px;
+}
+
+.edit-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.edit-fields label, .detail-fields label {
+  flex: 1 1 120px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.edit-fields input, .detail-fields input {
+  display: block;
+  width: 100%;
+  height: 40px;
+  border: 1px solid #454545;
+  background: #2a2a2a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 7px 9px;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.edit-actions button {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+}
+
+.edit-actions .primary-action {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}
+
+.empty-state {
+  text-align: center;
+  margin: 18vh auto 0;
+  opacity: .62;
+}
+
+.empty-state ion-icon {
+  font-size: 48px;
+}
+
+.empty-state p {
+  margin: 12px 0 3px;
+  font-weight: 600;
+}
+
+.empty-state span {
+  font-size: 14px;
+}
+
+.quick-add {
+  background: var(--ion-background-color);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  box-shadow: 0 -3px 16px #0002;
+}
+
+.composer-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.composer-row input {
+  min-width: 0;
+  flex: 1;
+  height: 44px;
+  background: #1f1f1f;
+  border: 1px solid #383838;
+  border-radius: 10px;
+  color: var(--ion-text-color);
+  font-size: 16px;
+  padding: 0 12px;
+  outline: none;
+}
+
+.composer-row input:focus {
+  border-color: var(--ion-color-primary);
+}
+
+.details-toggle {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: #2a2a2a;
+  color: var(--ion-text-color);
+  display: grid;
+  place-items: center;
+}
+
+.details-toggle ion-icon {
+  font-size: 21px;
+}
+
+.add-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+}
+
+.add-button ion-icon {
+  font-size: 25px;
+}
+
+.suggestions {
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  right: 12px;
+  z-index: 3;
+  background: #2a2a2a;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 -5px 18px #0005;
+  overflow: hidden;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.suggestions button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 1px solid #3a3a3a;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+}
+
+.suggestions button > small, .suggestions button span small {
+  opacity: .58;
+}
+
+.add-details {
+  padding: 8px 4px 12px;
+}
+
+.detail-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hint {
+  display: block;
+  font-size: 12px;
+  margin-top: 5px;
+  color: var(--ion-color-medium);
+}
+
+.error {
+  margin: 0 0 8px;
+  color: var(--ion-color-danger);
+  font-size: 13px;
+}

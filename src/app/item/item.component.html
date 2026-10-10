@@ -27,7 +27,15 @@
         <div class="item-row">
           <div class="item-info" (click)="editItem(item)">
             <span class="item-name">{{ item.name }}</span>
-            <span class="item-package">{{ item.amount }} {{ item.unit }}@if (item.packageQuantity) { &middot; {{ item.packageQuantity }} }@if (item.brand) { &middot; {{ item.brand }} }@if (item.price !== null) { &middot; {{ item.price | currency:'EUR' }} }</span>
+            <span class="item-package">{{ item.amount }} {{ item.unit }}@if (item.packageQuantity) {
+              &middot; {{ item.packageQuantity }}
+            }
+              @if (item.brand) {
+                &middot; {{ item.brand }}
+              }
+              @if (item.price !== null) {
+                &middot; {{ item.price | currency:'EUR' }}
+              }</span>
           </div>
           <div class="item-actions">
             <ion-button fill="clear" class="delete-button" [disabled]="!item.deletable" (click)="deleteItem(item)">

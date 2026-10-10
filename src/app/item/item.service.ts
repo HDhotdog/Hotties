@@ -1,15 +1,15 @@
-import { Injectable, inject } from '@angular/core';
-import { ItemRepository } from './item.repository';
-import { forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
-import { Item } from './models/item.dto';
-import { toItem, toRxItem } from './models/item.mapper';
-import { IngredientRepository } from '../ingredients/ingredient.repository';
-import { TodoRepository } from '../todo/todo.repository';
-import { FridgeItemRepository } from '../fridge/fridge-item.repository';
-import { AmountUnit } from '../shared/amount-unit.enum';
-import { ItemType } from '../todo/item-type.enum';
-import { v4 as uuidv4 } from 'uuid';
-import { FoodProduct } from '../scanner/open-food-facts.service';
+import {inject, Injectable} from '@angular/core';
+import {ItemRepository} from './item.repository';
+import {forkJoin, map, Observable, of, switchMap, throwError} from 'rxjs';
+import {Item} from './models/item.dto';
+import {toItem, toRxItem} from './models/item.mapper';
+import {IngredientRepository} from '../ingredients/ingredient.repository';
+import {TodoRepository} from '../todo/todo.repository';
+import {FridgeItemRepository} from '../fridge/fridge-item.repository';
+import {AmountUnit} from '../shared/amount-unit.enum';
+import {ItemType} from '../todo/item-type.enum';
+import {v4 as uuidv4} from 'uuid';
+import {FoodProduct} from '../scanner/open-food-facts.service';
 
 @Injectable({
   providedIn: 'root',
@@ -74,7 +74,14 @@ export class ItemService {
         if (match) {
           return of(match);
         }
-        return this.save({ id: uuidv4(), name: name.trim(), price: null, unit: defaultUnit, amount: 1, type: ItemType.FOOD });
+        return this.save({
+          id: uuidv4(),
+          name: name.trim(),
+          price: null,
+          unit: defaultUnit,
+          amount: 1,
+          type: ItemType.FOOD
+        });
       })
     );
   }

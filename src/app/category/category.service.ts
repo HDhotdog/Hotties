@@ -1,12 +1,12 @@
-import { Injectable, inject } from '@angular/core';
-import { Ingredient } from '../ingredients/ingredient.dto';
-import { CategoryRepository } from './category.repository';
-import { from, map, Observable } from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {Ingredient} from '../ingredients/ingredient.dto';
+import {CategoryRepository} from './category.repository';
+import {from, map, Observable} from 'rxjs';
 import {ShoppingService} from '../domain/shopping.service';
 import {normalizeQuantity, QuantityUnit} from '../domain/quantity';
-import { SettingsService } from '../database/settings/settings.service';
-import { Category } from './category.dto';
-import { toCategory, toRxCategory } from './category.mapper';
+import {SettingsService} from '../database/settings/settings.service';
+import {Category} from './category.dto';
+import {toCategory, toRxCategory} from './category.mapper';
 
 @Injectable({
   providedIn: 'root',
@@ -67,8 +67,10 @@ export class CategoryService {
   ): Observable<unknown> {
     return from(Promise.all(ingredients.map(ingredient => {
       if (!ingredient.targetNodeId) return Promise.reject(new Error('Ingredient has no catalog target.'));
-      return this.shopping.addProduct(categoryId, ingredient.targetNodeId, {kind: 'quantity',
-        quantity: normalizeQuantity({amount: ingredient.amount, unit: ingredient.unit as QuantityUnit})});
+      return this.shopping.addProduct(categoryId, ingredient.targetNodeId, {
+        kind: 'quantity',
+        quantity: normalizeQuantity({amount: ingredient.amount, unit: ingredient.unit as QuantityUnit})
+      });
     })));
   }
 }

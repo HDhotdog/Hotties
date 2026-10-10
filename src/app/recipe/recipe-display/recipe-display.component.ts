@@ -10,25 +10,18 @@ import {
   IonToolbar,
   ToastController,
 } from '@ionic/angular';
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit,} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 
-import { RecipeService } from '../recipe.service';
-import { Recipe } from '../models/recipe.dto';
-import { CategoryService } from '../../category/category.service';
-import { FormsModule } from '@angular/forms';
-import { combineLatest } from 'rxjs';
-import { Category } from '../../category/category.dto';
-import { Ingredient } from '../../ingredients/ingredient.dto';
-import { Label } from '../../label/models/label.dto';
-import { LabelService } from '../../label/label-service.service';
+import {RecipeService} from '../recipe.service';
+import {Recipe} from '../models/recipe.dto';
+import {CategoryService} from '../../category/category.service';
+import {FormsModule} from '@angular/forms';
+import {combineLatest} from 'rxjs';
+import {Category} from '../../category/category.dto';
+import {Ingredient} from '../../ingredients/ingredient.dto';
+import {Label} from '../../label/models/label.dto';
+import {LabelService} from '../../label/label-service.service';
 
 @Component({
   selector: 'app-recipe-display',
@@ -169,7 +162,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
 
   public deleteRecipe(): void {
     this.recipeService.deleteById(this._recipe.id).subscribe(() => {
-      void this.router.navigate(['../../'], { relativeTo: this.route });
+      void this.router.navigate(['../../'], {relativeTo: this.route});
     });
   }
 

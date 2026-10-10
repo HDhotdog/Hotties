@@ -1,7 +1,7 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { TodoRoutingModule } from './todo-routing.module';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {TodoRoutingModule} from './todo-routing.module';
 
 
 @NgModule({
@@ -11,4 +11,5 @@ import { TodoRoutingModule } from './todo-routing.module';
     TodoRoutingModule
   ],
 })
-export class TodoModule { }
+export class TodoModule {
+}

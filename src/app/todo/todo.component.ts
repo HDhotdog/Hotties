@@ -11,31 +11,25 @@ import {
   IonToolbar,
   MenuController,
 } from '@ionic/angular';
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { CategoryService } from '../category/category.service';
-import { Suggestion } from './suggestion/suggestion.dto';
-import { Todo } from './todo.dto';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ItemType } from './item-type.enum';
-import { ITEM_TYPE_COLORS } from './item-type-colors';
-import { Category } from '../category/category.dto';
-import { v4 as UUIDv4 } from 'uuid';
-import { TodoService } from './todo.service';
-import { SuggestionService } from './suggestion/suggestion.service';
-import { SuggestionFactory } from './suggestion/suggestion-factory';
-import { FridgeService } from '../fridge/fridge.service';
-import { ItemService } from '../item/item.service';
-import { AmountUnit } from '../shared/amount-unit.enum';
-import { combineLatest } from 'rxjs';
-import { ItemAutocompleteComponent } from '../item/item-autocomplete/item-autocomplete.component';
-import { Router } from '@angular/router';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit,} from '@angular/core';
+import {CategoryService} from '../category/category.service';
+import {Suggestion} from './suggestion/suggestion.dto';
+import {Todo} from './todo.dto';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {ItemType} from './item-type.enum';
+import {ITEM_TYPE_COLORS} from './item-type-colors';
+import {Category} from '../category/category.dto';
+import {v4 as UUIDv4} from 'uuid';
+import {TodoService} from './todo.service';
+import {SuggestionService} from './suggestion/suggestion.service';
+import {SuggestionFactory} from './suggestion/suggestion-factory';
+import {FridgeService} from '../fridge/fridge.service';
+import {ItemService} from '../item/item.service';
+import {AmountUnit} from '../shared/amount-unit.enum';
+import {combineLatest} from 'rxjs';
+import {ItemAutocompleteComponent} from '../item/item-autocomplete/item-autocomplete.component';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-todo',
@@ -171,7 +165,7 @@ export class TodoComponent implements OnInit {
       const existing = this._tasks.find((t) => t.itemId === item.id);
 
       if (existing) {
-        this.todoService.save({ ...existing, quantity: existing.quantity + 1 }).subscribe(() => this.refreshTodos());
+        this.todoService.save({...existing, quantity: existing.quantity + 1}).subscribe(() => this.refreshTodos());
       } else {
         const newTodo: Todo = {
           id: UUIDv4(),
@@ -238,7 +232,7 @@ export class TodoComponent implements OnInit {
       const suffix =
         this.suggestion_suffixes[
           Math.floor(Math.random() * this.suggestion_suffixes.length)
-        ];
+          ];
       this._currentSuggestion = {
         id: suggestion.id,
         categoryId: suggestion.categoryId,

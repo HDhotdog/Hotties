@@ -33,9 +33,9 @@ export const ITEM_SCHEMA_LITERAL = {
         type: 'string',
         default: ItemType.FOOD
       },
-      barcode: { type: ['string', 'null'], default: null },
-      brand: { type: ['string', 'null'], default: null },
-      packageQuantity: { type: ['string', 'null'], default: null },
+      barcode: {type: ['string', 'null'], default: null},
+      brand: {type: ['string', 'null'], default: null},
+      packageQuantity: {type: ['string', 'null'], default: null},
     },
     required: ['id', 'name', 'unit', 'amount', 'type'],
   },

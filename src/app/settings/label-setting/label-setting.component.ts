@@ -14,21 +14,15 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit,} from '@angular/core';
 
-import { Label, LabelGroup } from '../../label/models/label.dto';
-import { LabelService } from '../../label/label-service.service';
-import { FormsModule } from '@angular/forms';
-import { v4 as uuidv4 } from 'uuid';
-import { combineLatest } from 'rxjs';
-import { Router } from '@angular/router';
-import { labelsForGroup as getLabelsForGroup } from '../../recipe/recipe-filter';
+import {Label, LabelGroup} from '../../label/models/label.dto';
+import {LabelService} from '../../label/label-service.service';
+import {FormsModule} from '@angular/forms';
+import {v4 as uuidv4} from 'uuid';
+import {combineLatest} from 'rxjs';
+import {Router} from '@angular/router';
+import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
 
 @Component({
   selector: 'app-label-setting-component',
@@ -110,7 +104,7 @@ export class LabelSettingComponent implements OnInit {
   }
 
   startEditingLabel(group: LabelGroup, label: Label) {
-    this._editingLabel = { group, label };
+    this._editingLabel = {group, label};
     this._editName = label.name;
   }
 

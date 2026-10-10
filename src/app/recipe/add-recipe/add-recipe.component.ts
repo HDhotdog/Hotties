@@ -20,27 +20,20 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { Ingredient } from '../../ingredients/ingredient.dto';
-import { Label } from '../../label/models/label.dto';
-import { Recipe } from '../models/recipe.dto';
-import { RecipeService } from '../recipe.service';
-import { v4 as uuidv4 } from 'uuid';
-import { LabelService } from '../../label/label-service.service';
-import { NgxImageCompressService } from 'ngx-image-compress';
-import { combineLatest, forkJoin, of } from 'rxjs';
-import { take } from 'rxjs/operators';
-import { cropImageToSquare, dataUrlToBlob } from '../../database/attachment-utils';
+import {CommonModule} from '@angular/common';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit,} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {Ingredient} from '../../ingredients/ingredient.dto';
+import {Label} from '../../label/models/label.dto';
+import {Recipe} from '../models/recipe.dto';
+import {RecipeService} from '../recipe.service';
+import {v4 as uuidv4} from 'uuid';
+import {LabelService} from '../../label/label-service.service';
+import {NgxImageCompressService} from 'ngx-image-compress';
+import {combineLatest, forkJoin, of} from 'rxjs';
+import {take} from 'rxjs/operators';
+import {cropImageToSquare, dataUrlToBlob} from '../../database/attachment-utils';
 import {CatalogNode} from '../../domain/catalog.model';
 import {CatalogService} from '../../domain/catalog.service';
 import {QuantityUnit} from '../../domain/quantity';
@@ -97,10 +90,10 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   public readonly hourOptions: number[] = Array.from(
-    { length: HOURS_MAX + 1 },
+    {length: HOURS_MAX + 1},
     (_, i) => i
   );
-  public readonly minuteOptions: number[] = Array.from({ length: 60 }, (_, i) => i);
+  public readonly minuteOptions: number[] = Array.from({length: 60}, (_, i) => i);
   public readonly amountUnits: QuantityUnit[] = ['g', 'kg', 'ml', 'l', 'piece', 'bunch', 'pinch'];
 
   private _name: string = '';

@@ -15,7 +15,7 @@
   <ion-list>
     @for (suggestion of this.suggestions; track suggestion; let i = $index) {
       <ion-item>
-        <ion-label>{{suggestion}}</ion-label>
+        <ion-label>{{ suggestion }}</ion-label>
         <ion-icon (click)="removeSuggestion(i)" aria-hidden="true" name="trash" slot="end"></ion-icon>
       </ion-item>
     }

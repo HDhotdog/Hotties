@@ -13,8 +13,8 @@ import {
   MenuController,
 } from '@ionic/angular';
 
-import { RouterModule } from '@angular/router';
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import {RouterModule} from '@angular/router';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 
 @Component({
   selector: 'app-tabs',

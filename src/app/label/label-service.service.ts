@@ -1,14 +1,9 @@
-import { Injectable, inject } from '@angular/core';
-import { map, Observable, switchMap } from 'rxjs';
-import { LabelRepository } from './label.repository';
-import { LabelGroupRepository } from './label-group.repository';
-import { Label, LabelGroup } from './models/label.dto';
-import {
-  toLabel,
-  toLabelGroup,
-  toRxLabel,
-  toRxLabelGroup,
-} from './models/label.mapper';
+import {inject, Injectable} from '@angular/core';
+import {map, Observable, switchMap} from 'rxjs';
+import {LabelRepository} from './label.repository';
+import {LabelGroupRepository} from './label-group.repository';
+import {Label, LabelGroup} from './models/label.dto';
+import {toLabel, toLabelGroup, toRxLabel, toRxLabelGroup,} from './models/label.mapper';
 
 @Injectable({
   providedIn: 'root',

@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
-import { SettingsRepository } from './settings.repository';
+import {inject, Injectable} from '@angular/core';
+import {map, Observable} from 'rxjs';
+import {SettingsRepository} from './settings.repository';
 
 const SELECTED_CATEGORY_ID_KEY = 'selectedCategoryId';
 

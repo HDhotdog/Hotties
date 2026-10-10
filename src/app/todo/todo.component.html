@@ -34,7 +34,7 @@
   <div class="container-elements">
     @if (!this.isLoading) {
       <div class="content-container">
-        @for (todo of this.categoryTasks ; track todo) {
+        @for (todo of this.categoryTasks; track todo) {
           <div class="todo-wrapper">
             <div class="todo" [ngStyle]="getTodoBackgroundColor(todo.type)">
               <span class="todo-quantity">{{ todo.quantity }}</span>

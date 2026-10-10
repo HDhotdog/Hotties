@@ -10,23 +10,16 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { Item } from '../models/item.dto';
-import { ItemService } from '../item.service';
-import { AmountUnit } from '../../shared/amount-unit.enum';
-import { ItemType } from '../../todo/item-type.enum';
-import { ITEM_TYPE_COLORS } from '../../todo/item-type-colors';
-import { v4 as uuidv4 } from 'uuid';
+import {CommonModule} from '@angular/common';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit,} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {Item} from '../models/item.dto';
+import {ItemService} from '../item.service';
+import {AmountUnit} from '../../shared/amount-unit.enum';
+import {ItemType} from '../../todo/item-type.enum';
+import {ITEM_TYPE_COLORS} from '../../todo/item-type-colors';
+import {v4 as uuidv4} from 'uuid';
 
 const AUTO_SAVE_DELAY_MS = 500;
 const SAVE_PULSE_DURATION_MS = 300;
@@ -117,7 +110,7 @@ export class AddItemComponent implements OnInit, OnDestroy {
   }
 
   public getTypeColor(type: ItemType): { [key: string]: string } {
-    return { 'background-color': ITEM_TYPE_COLORS[type] };
+    return {'background-color': ITEM_TYPE_COLORS[type]};
   }
 
   private scheduleAutoSave(): void {

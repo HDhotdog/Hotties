@@ -6,5 +6,10 @@ export function toSuggestion(doc: RxSuggestion): Suggestion {
 }
 
 export function toRxSuggestion(suggestion: Suggestion): RxSuggestion {
-  return {id: suggestion.id, categoryId: suggestion.categoryId, suggestion: suggestion.suggestion, suffix: suggestion.suffix};
+  return {
+    id: suggestion.id,
+    categoryId: suggestion.categoryId,
+    suggestion: suggestion.suggestion,
+    suffix: suggestion.suffix
+  };
 }

@@ -3,7 +3,7 @@ import {ChangeDetectorRef} from '@angular/core';
 import {Router} from '@angular/router';
 import {MenuController} from '@ionic/angular';
 import {CatalogService} from './catalog.service';
-import {CatalogNode, blankClass} from './catalog.model';
+import {blankClass, CatalogNode} from './catalog.model';
 import {ShoppingService} from './shopping.service';
 import {StockService} from './stock.service';
 import {CategoryService} from '../category/category.service';
@@ -12,30 +12,38 @@ import {StockPageComponent} from './stock-page.component';
 
 describe('Quick add pages', () => {
   const milkClass = blankClass('milk', 'Milk', 'root-food');
-  const carton: CatalogNode = {id: 'carton', parentId: milkClass.id, kind: 'product', name: 'Milk',
+  const carton: CatalogNode = {
+    id: 'carton', parentId: milkClass.id, kind: 'product', name: 'Milk',
     brand: 'Dairy', barcodes: [], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'ml',
-    variableUnit: null, rawPackage: null};
-  const loose: CatalogNode = {id: 'apples', parentId: 'fruit', kind: 'product', name: 'Apples',
+    variableUnit: null, rawPackage: null
+  };
+  const loose: CatalogNode = {
+    id: 'apples', parentId: 'fruit', kind: 'product', name: 'Apples',
     brand: null, barcodes: [], saleKind: 'variable', packageAmount: null, packageUnit: null,
-    variableUnit: 'g', rawPackage: null};
-  let catalog: {findOrCreateClass: jest.Mock; save: jest.Mock; all: jest.Mock};
-  let shopping: {addProduct: jest.Mock; addTask: jest.Mock};
-  let stock: {receive: jest.Mock; suggestedPackages: jest.Mock};
+    variableUnit: 'g', rawPackage: null
+  };
+  let catalog: { findOrCreateClass: jest.Mock; save: jest.Mock; all: jest.Mock };
+  let shopping: { addProduct: jest.Mock; addTask: jest.Mock };
+  let stock: { receive: jest.Mock; suggestedPackages: jest.Mock };
 
   beforeEach(() => {
-    catalog = {findOrCreateClass: jest.fn().mockResolvedValue(milkClass),
-      save: jest.fn().mockResolvedValue(undefined), all: jest.fn().mockResolvedValue([milkClass, carton, loose])};
+    catalog = {
+      findOrCreateClass: jest.fn().mockResolvedValue(milkClass),
+      save: jest.fn().mockResolvedValue(undefined), all: jest.fn().mockResolvedValue([milkClass, carton, loose])
+    };
     shopping = {addProduct: jest.fn().mockResolvedValue({}), addTask: jest.fn().mockResolvedValue({})};
     stock = {receive: jest.fn().mockResolvedValue({}), suggestedPackages: jest.fn().mockReturnValue(1)};
-    TestBed.configureTestingModule({providers: [
-      {provide: Router, useValue: {navigate: jest.fn()}},
-      {provide: MenuController, useValue: {open: jest.fn()}},
-      {provide: ChangeDetectorRef, useValue: {detectChanges: jest.fn()}},
-      {provide: CategoryService, useValue: {}},
-      {provide: CatalogService, useValue: catalog},
-      {provide: ShoppingService, useValue: shopping},
-      {provide: StockService, useValue: stock},
-    ]});
+    TestBed.configureTestingModule({
+      providers: [
+        {provide: Router, useValue: {navigate: jest.fn()}},
+        {provide: MenuController, useValue: {open: jest.fn()}},
+        {provide: ChangeDetectorRef, useValue: {detectChanges: jest.fn()}},
+        {provide: CategoryService, useValue: {}},
+        {provide: CatalogService, useValue: catalog},
+        {provide: ShoppingService, useValue: shopping},
+        {provide: StockService, useValue: stock},
+      ]
+    });
   });
 
   it('adds a typed class to shopping in one step', async () => {
@@ -60,7 +68,9 @@ describe('Quick add pages', () => {
     page.detailsOpen = true;
     page.selectedNodeId = carton.id;
     page.newName = 'Milk';
-    page.needKind = 'quantity'; page.needAmount = 200; page.needUnit = 'ml';
+    page.needKind = 'quantity';
+    page.needAmount = 200;
+    page.needUnit = 'ml';
     await page.add();
     expect(shopping.addProduct).toHaveBeenLastCalledWith('list', carton.id,
       {kind: 'quantity', quantity: {amount: 200, unit: 'ml'}});

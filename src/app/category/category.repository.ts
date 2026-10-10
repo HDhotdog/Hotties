@@ -1,7 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { RxCategory } from './category';
-import { DatabaseService } from '../database/database';
-import { AbstractRepository } from '../database/abstract-repository';
+import {inject, Injectable} from '@angular/core';
+import {RxCategory} from './category';
+import {DatabaseService} from '../database/database';
+import {AbstractRepository} from '../database/abstract-repository';
 
 @Injectable({
   providedIn: 'root',

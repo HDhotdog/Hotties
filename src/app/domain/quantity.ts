@@ -1,7 +1,15 @@
 export type QuantityUnit = 'g' | 'kg' | 'ml' | 'l' | 'piece' | 'package' | 'bunch' | 'pinch';
 export type BaseUnit = 'g' | 'ml' | 'piece' | 'package' | 'bunch' | 'pinch';
-export interface Quantity { amount: number; unit: QuantityUnit; }
-export interface BaseQuantity { amount: number; unit: BaseUnit; }
+
+export interface Quantity {
+  amount: number;
+  unit: QuantityUnit;
+}
+
+export interface BaseQuantity {
+  amount: number;
+  unit: BaseUnit;
+}
 
 export function normalizeQuantity(quantity: Quantity): BaseQuantity {
   if (!Number.isFinite(quantity.amount) || quantity.amount <= 0) {

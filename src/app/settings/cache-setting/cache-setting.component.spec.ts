@@ -1,9 +1,9 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Location } from '@angular/common';
-import { CategoryService } from '../../category/category.service';
+import {provideIonicAngular} from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {Location} from '@angular/common';
+import {CategoryService} from '../../category/category.service';
 
-import { CacheSettingComponent } from './cache-setting.component';
+import {CacheSettingComponent} from './cache-setting.component';
 
 describe('InfoComponent', () => {
   let component: CacheSettingComponent;
@@ -14,7 +14,12 @@ describe('InfoComponent', () => {
       imports: [CacheSettingComponent],
       providers: [
         provideIonicAngular(),
-        {provide: Location, useValue: {back: () => {}}},
+        {
+          provide: Location, useValue: {
+            back: () => {
+            }
+          }
+        },
         {provide: CategoryService, useValue: {}}
       ]
     }).compileComponents();

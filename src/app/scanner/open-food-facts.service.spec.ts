@@ -1,5 +1,5 @@
-import { Capacitor, CapacitorHttp } from '@capacitor/core';
-import { OpenFoodFactsService, ProductLookupError } from './open-food-facts.service';
+import {Capacitor, CapacitorHttp} from '@capacitor/core';
+import {OpenFoodFactsService, ProductLookupError} from './open-food-facts.service';
 
 jest.mock('@capacitor/core', () => {
   const actual = jest.requireActual('@capacitor/core');
@@ -20,7 +20,7 @@ describe('OpenFoodFactsService', () => {
     get = CapacitorHttp.get as jest.Mock;
     get.mockResolvedValue({
       status: 200,
-      data: { product: { product_name: 'Oat milk', brands: 'Oatly', quantity: '1 l' } },
+      data: {product: {product_name: 'Oat milk', brands: 'Oatly', quantity: '1 l'}},
       headers: {}, url: '',
     });
     service = new OpenFoodFactsService();

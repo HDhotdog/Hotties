@@ -34,15 +34,21 @@ describe('createHottiesDatabase() seeding', () => {
     const storage = getRxStorageMemory();
     const name = `test-db-${uuidv4()}`;
     db = await createHottiesDatabase(storage, name, false);
-    await db['catalog_nodes'].upsert({id: 'milk', parentId: 'root-food', kind: 'class', name: 'Milk',
+    await db['catalog_nodes'].upsert({
+      id: 'milk', parentId: 'root-food', kind: 'class', name: 'Milk',
       brand: null, barcodes: [], saleKind: 'unknown', packageAmount: null, packageUnit: null,
-      variableUnit: null, rawPackage: null});
-    await db['catalog_nodes'].upsert({id: 'carton', parentId: 'milk', kind: 'product', name: 'Milk carton',
+      variableUnit: null, rawPackage: null
+    });
+    await db['catalog_nodes'].upsert({
+      id: 'carton', parentId: 'milk', kind: 'product', name: 'Milk carton',
       brand: null, barcodes: ['1234567890123'], saleKind: 'fixed', packageAmount: 1000,
-      packageUnit: 'ml', variableUnit: null, rawPackage: '1 l'});
-    await db['stock_lots'].upsert({id: 'lot', productId: 'carton', acquiredPackages: 1,
+      packageUnit: 'ml', variableUnit: null, rawPackage: '1 l'
+    });
+    await db['stock_lots'].upsert({
+      id: 'lot', productId: 'carton', acquiredPackages: 1,
       acquiredAmount: 1000, acquiredUnit: 'ml', remainingAmount: 550, expiryDate: null,
-      allocations: [], createdAt: 1});
+      allocations: [], createdAt: 1
+    });
     await db.close();
     db = await createHottiesDatabase(storage, name, false);
     expect((await db['catalog_nodes'].findOne('carton').exec())?.toJSON()).toMatchObject({parentId: 'milk'});

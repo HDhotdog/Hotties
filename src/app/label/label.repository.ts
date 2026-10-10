@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { RxLabel } from './models/label';
-import { from, map, Observable, switchMap } from 'rxjs';
-import { AbstractRepository } from '../database/abstract-repository';
-import { DatabaseService } from '../database/database';
+import {inject, Injectable} from '@angular/core';
+import {RxLabel} from './models/label';
+import {from, map, Observable, switchMap} from 'rxjs';
+import {AbstractRepository} from '../database/abstract-repository';
+import {DatabaseService} from '../database/database';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,7 @@ export class LabelRepository extends AbstractRepository<RxLabel> {
       switchMap(
         (col) =>
           col.find({
-            selector: { recipeId },
+            selector: {recipeId},
           }).$
       )
     );
@@ -55,14 +55,14 @@ export class LabelRepository extends AbstractRepository<RxLabel> {
 
   public deleteByLabelGroupId(groupId: string): Observable<number> {
     return this.getCollection().pipe(
-      switchMap((col) => from(col.find({ selector: { groupId } }).remove())),
+      switchMap((col) => from(col.find({selector: {groupId}}).remove())),
       map((deletedDocs) => deletedDocs.length) // return number of deleted docs
     );
   }
 
   public deleteByRecipeId(recipeId: string): Observable<number> {
     return this.getCollection().pipe(
-      switchMap((col) => from(col.find({ selector: { recipeId } }).remove())),
+      switchMap((col) => from(col.find({selector: {recipeId}}).remove())),
       map((deletedDocs) => deletedDocs.length)
     );
   }

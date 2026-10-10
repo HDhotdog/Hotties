@@ -13,20 +13,14 @@ import {
   IonToolbar,
   ToastController,
 } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { CategoryService } from '../../../category/category.service';
-import { v4 as uuidv4 } from 'uuid';
-import { combineLatest } from 'rxjs';
-import { Category } from '../../../category/category.dto';
+import {CommonModule} from '@angular/common';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit,} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {CategoryService} from '../../../category/category.service';
+import {v4 as uuidv4} from 'uuid';
+import {combineLatest} from 'rxjs';
+import {Category} from '../../../category/category.dto';
 
 @Component({
   selector: 'app-add-category-setting',

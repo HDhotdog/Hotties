@@ -11,12 +11,11 @@ import {
   IonReorderGroup,
   IonTitle,
   IonToolbar,
-  ItemReorderEventDetail,
 } from '@ionic/angular';
-import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { CategoryService } from '../../category/category.service';
-import { Category } from '../../category/category.dto';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {CategoryService} from '../../category/category.service';
+import {Category} from '../../category/category.dto';
 
 @Component({
   selector: 'app-category-setting',
@@ -56,11 +55,11 @@ export class CategorySettingComponent {
   }
 
   public addNewCategory() {
-    this.router.navigate(['new'], { relativeTo: this.route });
+    this.router.navigate(['new'], {relativeTo: this.route});
   }
 
   public editCategory(id: string) {
-    this.router.navigate(['new', id], { relativeTo: this.route });
+    this.router.navigate(['new', id], {relativeTo: this.route});
   }
 
   public navigateBack() {

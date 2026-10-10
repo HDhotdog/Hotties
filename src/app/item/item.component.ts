@@ -8,19 +8,13 @@ import {
   IonToolbar,
   MenuController,
 } from '@ionic/angular';
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { forkJoin, map, of, switchMap } from 'rxjs';
-import { Item } from './models/item.dto';
-import { ItemService } from './item.service';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit,} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {forkJoin, map, of, switchMap} from 'rxjs';
+import {Item} from './models/item.dto';
+import {ItemService} from './item.service';
 
 export interface ItemRow extends Item {
   /** False if a todo, fridge item, or recipe ingredient still references this item. */
@@ -76,10 +70,10 @@ export class ItemComponent implements OnInit {
           items.length === 0
             ? of([])
             : forkJoin(
-                items.map((item) =>
-                  this.itemService.isDeletable(item.id).pipe(map((deletable) => ({ ...item, deletable })))
-                )
+              items.map((item) =>
+                this.itemService.isDeletable(item.id).pipe(map((deletable) => ({...item, deletable})))
               )
+            )
         )
       )
       .subscribe((rows) => {
@@ -94,11 +88,11 @@ export class ItemComponent implements OnInit {
   }
 
   public newItem(): void {
-    this.router.navigate(['new'], { relativeTo: this.route });
+    this.router.navigate(['new'], {relativeTo: this.route});
   }
 
   public editItem(item: Item): void {
-    this.router.navigate(['edit', item.id], { relativeTo: this.route });
+    this.router.navigate(['edit', item.id], {relativeTo: this.route});
   }
 
   public deleteItem(item: ItemRow): void {

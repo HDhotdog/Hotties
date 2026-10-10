@@ -8,23 +8,17 @@ import {
   IonToolbar,
   MenuController,
 } from '@ionic/angular';
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { v4 as uuidv4 } from 'uuid';
-import { FridgeItem } from './models/fridge-item.dto';
-import { FridgeService } from './fridge.service';
-import { TodoService } from '../todo/todo.service';
-import { ItemType } from '../todo/item-type.enum';
-import { CategoryService } from '../category/category.service';
-import { combineLatest } from 'rxjs';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit,} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {v4 as uuidv4} from 'uuid';
+import {FridgeItem} from './models/fridge-item.dto';
+import {FridgeService} from './fridge.service';
+import {TodoService} from '../todo/todo.service';
+import {ItemType} from '../todo/item-type.enum';
+import {CategoryService} from '../category/category.service';
+import {combineLatest} from 'rxjs';
 
 const EXPIRY_WARNING_DAYS = 3;
 
@@ -126,11 +120,11 @@ export class FridgeComponent implements OnInit {
   }
 
   public newItem(): void {
-    this.router.navigate(['new'], { relativeTo: this.route });
+    this.router.navigate(['new'], {relativeTo: this.route});
   }
 
   public editItem(item: FridgeItem): void {
-    this.router.navigate(['edit', item.id], { relativeTo: this.route });
+    this.router.navigate(['edit', item.id], {relativeTo: this.route});
   }
 
   public deleteItem(item: FridgeItem): void {
@@ -197,7 +191,7 @@ export class FridgeComponent implements OnInit {
   }
 
   public getIndicatorColor(item: FridgeItem) {
-    return { '--indicator-color': this._statusColors[this.expiryStatus(item)] };
+    return {'--indicator-color': this._statusColors[this.expiryStatus(item)]};
   }
 
   get items(): FridgeItem[] {

@@ -1,10 +1,10 @@
-import { Injectable, inject } from '@angular/core';
-import { RecipeRepository } from './recipe.repository';
-import { map, Observable, of, switchMap } from 'rxjs';
-import { IngredientService } from '../ingredients/ingredient.service';
-import { Ingredient } from '../ingredients/ingredient.dto';
-import { Recipe } from './models/recipe.dto';
-import { toRecipe, toRxRecipe } from './models/recipe.mapper';
+import {inject, Injectable} from '@angular/core';
+import {RecipeRepository} from './recipe.repository';
+import {map, Observable, of, switchMap} from 'rxjs';
+import {IngredientService} from '../ingredients/ingredient.service';
+import {Ingredient} from '../ingredients/ingredient.dto';
+import {Recipe} from './models/recipe.dto';
+import {toRecipe, toRxRecipe} from './models/recipe.mapper';
 
 @Injectable({
   providedIn: 'root',

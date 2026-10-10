@@ -1,23 +1,18 @@
+import {IonInput, IonItem, IonLabel, IonList,} from '@ionic/angular';
 import {
-  IonInput,
-  IonItem,
-  IonLabel,
-  IonList,
-} from '@ionic/angular';
-import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnInit,
   Output,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Item } from '../models/item.dto';
-import { ItemService } from '../item.service';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {Item} from '../models/item.dto';
+import {ItemService} from '../item.service';
 
 const MAX_SUGGESTIONS = 5;
 const BLUR_HIDE_DELAY_MS = 150;

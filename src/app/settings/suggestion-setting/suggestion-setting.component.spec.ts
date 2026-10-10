@@ -1,10 +1,10 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Location } from '@angular/common';
-import { of } from 'rxjs';
-import { SuggestionService } from '../../todo/suggestion/suggestion.service';
+import {provideIonicAngular} from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {Location} from '@angular/common';
+import {of} from 'rxjs';
+import {SuggestionService} from '../../todo/suggestion/suggestion.service';
 
-import { SuggestionSettingComponent } from './suggestion-setting.component';
+import {SuggestionSettingComponent} from './suggestion-setting.component';
 
 describe('SuggestionSettingComponent', () => {
   let component: SuggestionSettingComponent;
@@ -16,7 +16,12 @@ describe('SuggestionSettingComponent', () => {
       providers: [
         provideIonicAngular(),
         {provide: SuggestionService, useValue: {findAll: () => of([])}},
-        {provide: Location, useValue: {back: () => {}}}
+        {
+          provide: Location, useValue: {
+            back: () => {
+            }
+          }
+        }
       ]
     }).compileComponents();
 

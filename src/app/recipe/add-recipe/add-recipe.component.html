@@ -9,7 +9,7 @@
     <ion-buttons slot="end">
       @if (this.isNew) {
         <ion-button (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
-          [disabled]="!this.inputChanged()">
+                    [disabled]="!this.inputChanged()">
           <ion-icon name="save"></ion-icon>
         </ion-button>
       } @else {
@@ -74,7 +74,7 @@
     </div>
 
     <ion-modal #prepTimeModal trigger="prep-time-trigger" [keepContentsMounted]="true" class="datetime-modal"
-      (willPresent)="initPrepTimePicker()">
+               (willPresent)="initPrepTimePicker()">
       <ng-template>
         <div class="picker-header">
           <ion-button fill="clear" (click)="prepTimeModal.dismiss()">Cancel</ion-button>
@@ -105,8 +105,9 @@
       @if (this.ingredients.length) {
         @for (ingredient of this.ingredients; track ingredient) {
           <div class="ingredient">
-            <span class="ingredient-amount">{{ ingredient.amount }} <span class="ingredient-unit">{{ ingredient.unit }}</span></span>
-            <ion-label>{{ingredient.name}}</ion-label>
+            <span class="ingredient-amount">{{ ingredient.amount }} <span
+              class="ingredient-unit">{{ ingredient.unit }}</span></span>
+            <ion-label>{{ ingredient.name }}</ion-label>
             <ion-button fill="clear" class="ingredient-remove-button" (click)="removeIngredient(ingredient)">
               <ion-icon slot="icon-only" name="close-circle"></ion-icon>
             </ion-button>
@@ -117,8 +118,9 @@
       }
     </div>
 
-    <ion-modal #addIngredientModal trigger="add-ingredient-trigger" [keepContentsMounted]="true" class="ingredient-modal"
-      (willPresent)="initAddIngredientModal()">
+    <ion-modal #addIngredientModal trigger="add-ingredient-trigger" [keepContentsMounted]="true"
+               class="ingredient-modal"
+               (willPresent)="initAddIngredientModal()">
       <ng-template>
         <div class="ingredient-modal-content">
           <div class="picker-header">
@@ -126,7 +128,7 @@
               <ion-icon slot="icon-only" name="close"></ion-icon>
             </ion-button>
             <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmIngredient()"
-              (click)="confirmAddIngredient(); addIngredientModal.dismiss()">
+                        (click)="confirmAddIngredient(); addIngredientModal.dismiss()">
               <ion-icon slot="icon-only" name="save"></ion-icon>
             </ion-button>
           </div>
@@ -142,27 +144,33 @@
 
           <div class="ingredient-modal-body">
             @if (this.ingredientModalMode === 'existing') {
-              <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery" placeholder="Search food categories or products"></ion-input>
+              <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery"
+                         placeholder="Search food categories or products"></ion-input>
               <div class="item-suggestion-list">
                 @for (item of this.filteredItems; track item.id) {
-                  <button type="button" class="item-suggestion" [class.selected]="this.selectedExistingItem?.id === item.id"
-                    (click)="selectExistingItem(item)">
-                    <span>{{item.name}}</span>
-                    <span class="item-suggestion-unit">{{item.kind === 'class' ? 'Any product in category' : 'Exact product'}}</span>
+                  <button type="button" class="item-suggestion"
+                          [class.selected]="this.selectedExistingItem?.id === item.id"
+                          (click)="selectExistingItem(item)">
+                    <span>{{ item.name }}</span>
+                    <span
+                      class="item-suggestion-unit">{{ item.kind === 'class' ? 'Any product in category' : 'Exact product' }}</span>
                   </button>
                 } @empty {
                   <p class="no-items-hint">No matching catalog nodes. Create a new food category.</p>
                 }
               </div>
             } @else {
-              <ion-input class="item-search-input" [(ngModel)]="newItemName" placeholder="New food category"></ion-input>
+              <ion-input class="item-search-input" [(ngModel)]="newItemName"
+                         placeholder="New food category"></ion-input>
             }
 
             <div class="ingredient-amount-row">
               <span class="subtle-label">Amount</span>
               <ion-input type="number" min="0" [(ngModel)]="ingredientAmount"></ion-input>
               <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" placeholder="Unit">
-                @for (unit of this.amountUnits; track unit) { <ion-select-option [value]="unit">{{unit}}</ion-select-option> }
+                @for (unit of this.amountUnits; track unit) {
+                  <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
+                }
               </ion-select>
             </div>
           </div>
@@ -172,9 +180,10 @@
 
     <div class="card label-card">
       <span class="subtle-label">Labels</span>
-      <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector" placeholder="Choose labels" [multiple]="true">
+      <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector"
+                  placeholder="Choose labels" [multiple]="true">
         @for (label of this.availableLabels; track label) {
-          <ion-select-option value="{{label.id}}">{{label.name}}</ion-select-option>
+          <ion-select-option value="{{label.id}}">{{ label.name }}</ion-select-option>
         }
       </ion-select>
     </div>

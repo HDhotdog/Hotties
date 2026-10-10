@@ -1,8 +1,4 @@
-import {
-  IonApp,
-  IonRouterOutlet,
-  Platform,
-} from '@ionic/angular';
+import {IonApp, IonRouterOutlet, Platform,} from '@ionic/angular';
 import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 
 import {RouterModule} from '@angular/router';

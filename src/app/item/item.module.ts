@@ -1,7 +1,7 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ItemRoutingModule } from './item-routing.module';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {ItemRoutingModule} from './item-routing.module';
 
 @NgModule({
   imports: [
@@ -11,4 +11,5 @@ import { ItemRoutingModule } from './item-routing.module';
   ],
   declarations: []
 })
-export class ItemModule {}
+export class ItemModule {
+}

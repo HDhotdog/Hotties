@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { RxItem } from './rxItem';
-import { DatabaseService } from '../database/database';
-import { AbstractRepository } from '../database/abstract-repository';
-import { from, Observable, switchMap } from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {RxItem} from './rxItem';
+import {DatabaseService} from '../database/database';
+import {AbstractRepository} from '../database/abstract-repository';
+import {from, Observable, switchMap} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',

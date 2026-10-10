@@ -1,11 +1,11 @@
-import { Injectable, inject } from '@angular/core';
-import { TodoRepository } from './todo.repository';
-import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
-import { Todo } from './todo.dto';
-import { toTodo, toRxToDo } from './todo.mapper';
-import { ItemService } from '../item/item.service';
-import { Item } from '../item/models/item.dto';
-import { AmountUnit } from '../shared/amount-unit.enum';
+import {inject, Injectable} from '@angular/core';
+import {TodoRepository} from './todo.repository';
+import {forkJoin, map, Observable, of, switchMap} from 'rxjs';
+import {Todo} from './todo.dto';
+import {toRxToDo, toTodo} from './todo.mapper';
+import {ItemService} from '../item/item.service';
+import {Item} from '../item/models/item.dto';
+import {AmountUnit} from '../shared/amount-unit.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -65,6 +65,6 @@ export class TodoService {
 
   /** type/amount always mirror the linked item - they're no longer chosen per-todo. */
   private linkToItem(todo: Todo, item: Item): Todo {
-    return { ...todo, itemId: item.id, type: item.type, amount: item.unit };
+    return {...todo, itemId: item.id, type: item.type, amount: item.unit};
   }
 }

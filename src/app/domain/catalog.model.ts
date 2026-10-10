@@ -19,6 +19,8 @@ export interface CatalogNode {
 }
 
 export function blankClass(id: string, name: string, parentId: string | null): CatalogNode {
-  return {id, parentId, kind: 'class', name, brand: null, barcodes: [], saleKind: 'unknown',
-    packageAmount: null, packageUnit: null, variableUnit: null, rawPackage: null};
+  return {
+    id, parentId, kind: 'class', name, brand: null, barcodes: [], saleKind: 'unknown',
+    packageAmount: null, packageUnit: null, variableUnit: null, rawPackage: null
+  };
 }

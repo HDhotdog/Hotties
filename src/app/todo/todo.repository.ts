@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { RxToDo } from './rxToDo';
-import { DatabaseService } from '../database/database';
-import { AbstractRepository } from '../database/abstract-repository';
-import { from, map, Observable, switchMap } from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {RxToDo} from './rxToDo';
+import {DatabaseService} from '../database/database';
+import {AbstractRepository} from '../database/abstract-repository';
+import {from, map, Observable, switchMap} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,7 @@ export class TodoRepository extends AbstractRepository<RxToDo> {
       switchMap(
         (col) =>
           col.find({
-            selector: { categoryId },
+            selector: {categoryId},
           }).$
       ),
       map((docs) =>
@@ -38,13 +38,13 @@ export class TodoRepository extends AbstractRepository<RxToDo> {
    * can be deleted; a live query here would leak a subscription on every check. */
   public findByItemId(itemId: string): Observable<RxToDo[]> {
     return this.getCollection().pipe(
-      switchMap((col) => from(col.find({ selector: { itemId } }).exec()))
+      switchMap((col) => from(col.find({selector: {itemId}}).exec()))
     );
   }
 
   public deleteByCategoryId(categoryId: string): Observable<number> {
     return this.getCollection().pipe(
-      switchMap((col) => from(col.find({ selector: { categoryId } }).remove())),
+      switchMap((col) => from(col.find({selector: {categoryId}}).remove())),
       map((deletedDocs) => deletedDocs.length)
     );
   }

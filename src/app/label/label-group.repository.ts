@@ -1,7 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { RxLabelGroup } from './models/label';
-import { AbstractRepository } from '../database/abstract-repository';
-import { DatabaseService } from '../database/database';
+import {inject, Injectable} from '@angular/core';
+import {RxLabelGroup} from './models/label';
+import {AbstractRepository} from '../database/abstract-repository';
+import {DatabaseService} from '../database/database';
 
 @Injectable({
   providedIn: 'root',

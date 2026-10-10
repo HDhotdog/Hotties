@@ -1,14 +1,14 @@
-import {Injectable, inject} from '@angular/core';
-import {from, Observable, switchMap, map} from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {from, map, Observable, switchMap} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {DatabaseService} from '../database/database';
 import {CatalogService} from './catalog.service';
 import {ShoppingService} from './shopping.service';
 import {CatalogNode} from './catalog.model';
-import {ShoppingEntry, StockLot, ScanAllocation} from './shopping.model';
+import {ScanAllocation, ShoppingEntry, StockLot} from './shopping.model';
 import {BaseQuantity, BaseUnit} from './quantity';
 
-export type Availability = {status: 'enough' | 'insufficient' | 'unknown'; available: number; unit: BaseUnit};
+export type Availability = { status: 'enough' | 'insufficient' | 'unknown'; available: number; unit: BaseUnit };
 
 @Injectable({providedIn: 'root'})
 export class StockService {
@@ -92,16 +92,18 @@ export class StockService {
     const entries = options.shoppingListId ? await this.shopping.all(options.shoppingListId) : [];
     const lots = await this.all();
     const allocations = await this.allocate(product, acquired, product.saleKind === 'variable' ? 0 : packages, entries, lots, nodes);
-    const lot: StockLot = {id, productId, acquiredPackages: product.saleKind === 'variable' ? 0 : packages,
+    const lot: StockLot = {
+      id, productId, acquiredPackages: product.saleKind === 'variable' ? 0 : packages,
       acquiredAmount: acquired.amount, acquiredUnit: acquired.unit, remainingAmount: acquired.amount,
-      expiryDate: options.expiryDate ?? null, allocations, createdAt: Date.now()};
+      expiryDate: options.expiryDate ?? null, allocations, createdAt: Date.now()
+    };
     await this.save(lot);
     await this.shopping.reconcileCompleted([...lots, lot]);
     return lot;
   }
 
   private async allocate(product: CatalogNode, acquired: BaseQuantity, packages: number,
-    entries: ShoppingEntry[], lots: StockLot[], nodes: CatalogNode[]): Promise<ScanAllocation[]> {
+                         entries: ShoppingEntry[], lots: StockLot[], nodes: CatalogNode[]): Promise<ScanAllocation[]> {
     const eligible = entries.filter(entry => entry.kind === 'product' && entry.targetNodeId &&
       this.catalog.matches(entry.targetNodeId, product.id, nodes));
     eligible.sort((a, b) => {
@@ -148,9 +150,11 @@ export class StockService {
       this.catalog.matches(targetNodeId, lot.productId, nodes));
     const available = matching.filter(lot => lot.acquiredUnit === required.unit)
       .reduce((sum, lot) => sum + lot.remainingAmount, 0);
-    return {status: available >= required.amount ? 'enough' :
-      matching.some(lot => lot.acquiredUnit !== required.unit) ? 'unknown' : 'insufficient',
-      available, unit: required.unit};
+    return {
+      status: available >= required.amount ? 'enough' :
+        matching.some(lot => lot.acquiredUnit !== required.unit) ? 'unknown' : 'insufficient',
+      available, unit: required.unit
+    };
   }
 
   public suggestedPackages(product: CatalogNode, needed: BaseQuantity): number | null {

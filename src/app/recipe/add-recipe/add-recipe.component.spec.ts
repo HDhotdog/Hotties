@@ -1,15 +1,15 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
-import { NgxImageCompressService } from 'ngx-image-compress';
-import { RecipeService } from '../recipe.service';
-import { LabelService } from '../../label/label-service.service';
+import {provideIonicAngular} from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {Location} from '@angular/common';
+import {ActivatedRoute} from '@angular/router';
+import {of} from 'rxjs';
+import {NgxImageCompressService} from 'ngx-image-compress';
+import {RecipeService} from '../recipe.service';
+import {LabelService} from '../../label/label-service.service';
 import {CatalogService} from '../../domain/catalog.service';
 import {CatalogNode} from '../../domain/catalog.model';
 
-import { AddRecipeComponent } from './add-recipe.component';
+import {AddRecipeComponent} from './add-recipe.component';
 
 describe('AddRecipeComponent', () => {
   let component: AddRecipeComponent;
@@ -20,8 +20,16 @@ describe('AddRecipeComponent', () => {
       imports: [AddRecipeComponent],
       providers: [
         provideIonicAngular(),
-        {provide: Location, useValue: {back: () => {}}},
-        {provide: RecipeService, useValue: {findById: () => of(undefined), getIngredients: () => of([]), getImageUrl: () => of(null)}},
+        {
+          provide: Location, useValue: {
+            back: () => {
+            }
+          }
+        },
+        {
+          provide: RecipeService,
+          useValue: {findById: () => of(undefined), getIngredients: () => of([]), getImageUrl: () => of(null)}
+        },
         {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {get: () => null}}}},
         {provide: LabelService, useValue: {getTemplateLabels: () => of([]), getLabelsForRecipe: () => of([])}},
         {provide: NgxImageCompressService, useValue: {}},
@@ -39,9 +47,11 @@ describe('AddRecipeComponent', () => {
   });
 
   it('keeps the recipe quantity independent of a selected product package', () => {
-    const product: CatalogNode = {id: 'carton', parentId: 'milk', kind: 'product', name: 'Brand milk',
+    const product: CatalogNode = {
+      id: 'carton', parentId: 'milk', kind: 'product', name: 'Brand milk',
       brand: 'Brand', barcodes: [], saleKind: 'fixed', packageAmount: 1000, packageUnit: 'ml',
-      variableUnit: null, rawPackage: '1 l'};
+      variableUnit: null, rawPackage: '1 l'
+    };
     component.ingredientModalMode = 'existing';
     component.selectExistingItem(product);
     component.ingredientAmount = 200;

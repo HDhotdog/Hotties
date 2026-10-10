@@ -1,4 +1,4 @@
-import {Injectable, inject} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {from, map, Observable, switchMap} from 'rxjs';
 import {DatabaseService} from '../database/database';
 import {CatalogService} from '../domain/catalog.service';
@@ -46,7 +46,14 @@ export class IngredientService {
       const unit = this.legacyUnit(ingredient.unit);
       const scalar = ingredient.unit === AmountUnit.HUNDRED_GRAM || ingredient.unit === AmountUnit.HUNDRED_MILLILITER ? 100 : 1;
       const amount = normalizeQuantity({amount: Number(ingredient.amount) * scalar, unit});
-      return {id: ingredient.id, recipeId, targetNodeId, name: ingredient.name, amount: amount.amount, unit: amount.unit};
+      return {
+        id: ingredient.id,
+        recipeId,
+        targetNodeId,
+        name: ingredient.name,
+        amount: amount.amount,
+        unit: amount.unit
+      };
     });
     const db = await this.database.getDb();
     const old = await db['recipe_ingredients'].find({selector: {recipeId}}).exec();
@@ -57,13 +64,20 @@ export class IngredientService {
 
   private legacyUnit(unit: Ingredient['unit']): QuantityUnit {
     switch (unit) {
-      case AmountUnit.PIECE: return 'piece';
-      case AmountUnit.PACKAGE: return 'package';
-      case AmountUnit.BUNCH: return 'bunch';
-      case AmountUnit.PINCH: return 'pinch';
-      case AmountUnit.HUNDRED_GRAM: return 'g';
-      case AmountUnit.HUNDRED_MILLILITER: return 'ml';
-      default: return unit as QuantityUnit;
+      case AmountUnit.PIECE:
+        return 'piece';
+      case AmountUnit.PACKAGE:
+        return 'package';
+      case AmountUnit.BUNCH:
+        return 'bunch';
+      case AmountUnit.PINCH:
+        return 'pinch';
+      case AmountUnit.HUNDRED_GRAM:
+        return 'g';
+      case AmountUnit.HUNDRED_MILLILITER:
+        return 'ml';
+      default:
+        return unit as QuantityUnit;
     }
   }
 }

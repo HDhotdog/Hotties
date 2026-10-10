@@ -1,11 +1,11 @@
-import { ToastController, provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
-import { CategoryService } from '../../../category/category.service';
+import {provideIonicAngular, ToastController} from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {Location} from '@angular/common';
+import {ActivatedRoute} from '@angular/router';
+import {of} from 'rxjs';
+import {CategoryService} from '../../../category/category.service';
 
-import { AddCategorySettingComponent } from './add-category-setting.component';
+import {AddCategorySettingComponent} from './add-category-setting.component';
 
 describe('AddCategorySettingComponent', () => {
   let component: AddCategorySettingComponent;
@@ -16,7 +16,12 @@ describe('AddCategorySettingComponent', () => {
       imports: [AddCategorySettingComponent],
       providers: [
         provideIonicAngular(),
-        {provide: Location, useValue: {back: () => {}}},
+        {
+          provide: Location, useValue: {
+            back: () => {
+            }
+          }
+        },
         {
           provide: CategoryService,
           useValue: {getCategoryById: () => of(null), getCategories: () => of([])}

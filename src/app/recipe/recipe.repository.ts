@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, from, of, switchMap } from 'rxjs';
-import { RxRecipe } from './models/recipe';
-import { AbstractRepository } from '../database/abstract-repository';
-import { DatabaseService } from '../database/database';
+import {inject, Injectable} from '@angular/core';
+import {from, Observable, of, switchMap} from 'rxjs';
+import {RxRecipe} from './models/recipe';
+import {AbstractRepository} from '../database/abstract-repository';
+import {DatabaseService} from '../database/database';
 
 const IMAGE_ATTACHMENT_ID = 'image';
 

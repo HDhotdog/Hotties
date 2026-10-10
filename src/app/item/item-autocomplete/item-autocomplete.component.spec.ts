@@ -1,11 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideIonicAngular } from '@ionic/angular';
-import { Subject } from 'rxjs';
-import { AmountUnit } from '../../shared/amount-unit.enum';
-import { ItemType } from '../../todo/item-type.enum';
-import { Item } from '../models/item.dto';
-import { ItemService } from '../item.service';
-import { ItemAutocompleteComponent } from './item-autocomplete.component';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {provideIonicAngular} from '@ionic/angular';
+import {Subject} from 'rxjs';
+import {AmountUnit} from '../../shared/amount-unit.enum';
+import {ItemType} from '../../todo/item-type.enum';
+import {Item} from '../models/item.dto';
+import {ItemService} from '../item.service';
+import {ItemAutocompleteComponent} from './item-autocomplete.component';
 
 describe('ItemAutocompleteComponent with OnPush', () => {
   let fixture: ComponentFixture<ItemAutocompleteComponent>;
@@ -17,7 +17,7 @@ describe('ItemAutocompleteComponent with OnPush', () => {
       imports: [ItemAutocompleteComponent],
       providers: [
         provideIonicAngular(),
-        { provide: ItemService, useValue: { findAll: () => items.asObservable() } },
+        {provide: ItemService, useValue: {findAll: () => items.asObservable()}},
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(ItemAutocompleteComponent);

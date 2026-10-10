@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { Capacitor, CapacitorHttp } from '@capacitor/core';
-import { VERSION } from '../../environments/version';
+import {Injectable} from '@angular/core';
+import {Capacitor, CapacitorHttp} from '@capacitor/core';
+import {VERSION} from '../../environments/version';
 
 export interface FoodProduct {
   barcode: string;
@@ -9,7 +9,13 @@ export interface FoodProduct {
   packageQuantity: string | null;
 }
 
-export type ProductLookupErrorCode = 'invalid-barcode' | 'native-only' | 'rate-limited' | 'not-found' | 'network' | 'invalid-response';
+export type ProductLookupErrorCode =
+  'invalid-barcode'
+  | 'native-only'
+  | 'rate-limited'
+  | 'not-found'
+  | 'network'
+  | 'invalid-response';
 
 export class ProductLookupError extends Error {
   constructor(public readonly code: ProductLookupErrorCode, message: string) {
@@ -24,7 +30,7 @@ const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 14;
 const USER_AGENT = `Hotties/${VERSION} (https://github.com/HDhotdog/Hotties)`;
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class OpenFoodFactsService {
   private fallbackHistory: number[] = [];
   private fallbackCooldown = 0;
@@ -43,8 +49,8 @@ export class OpenFoodFactsService {
     try {
       response = await CapacitorHttp.get({
         url: `https://world.openfoodfacts.org/api/v3/product/${barcode}`,
-        params: { fields: 'code,product_name,generic_name,brands,quantity' },
-        headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+        params: {fields: 'code,product_name,generic_name,brands,quantity'},
+        headers: {'User-Agent': USER_AGENT, Accept: 'application/json'},
         connectTimeout: 10_000,
         readTimeout: 10_000,
       });
@@ -115,11 +121,18 @@ export class OpenFoodFactsService {
   }
 
   private writeStorage(key: string, value: string): void {
-    try { localStorage.setItem(key, value); } catch { /* In-memory limit still applies in this session. */ }
+    try {
+      localStorage.setItem(key, value);
+    } catch { /* In-memory limit still applies in this session. */
+    }
   }
 
   private parseJson(value: string): unknown {
-    try { return JSON.parse(value); } catch { return null; }
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
   }
 
   private optionalText(value: unknown): string | null {

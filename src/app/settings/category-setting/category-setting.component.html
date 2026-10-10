@@ -21,16 +21,16 @@
     </ion-item>
 
     <ion-reorder-group [disabled]="false">
-    <!--                       (ionItemReorder)="handleReorder($any($event))-->
-    @for (category of this.categories; track category) {
-<ion-item>
-      <ion-reorder slot="start"></ion-reorder>
-      <ion-label>{{ category.name }}</ion-label>
-      <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button"
-                (click)="editCategory(category.id)"></ion-icon>
+      <!--                       (ionItemReorder)="handleReorder($any($event))-->
+      @for (category of this.categories; track category) {
+        <ion-item>
+          <ion-reorder slot="start"></ion-reorder>
+          <ion-label>{{ category.name }}</ion-label>
+          <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button"
+                    (click)="editCategory(category.id)"></ion-icon>
           @if (this.categories.length > 1) {
             <ion-icon aria-hidden="true" name="trash" slot="end"
-            (click)="deleteCategory(category.id)" class="delete-button"></ion-icon>
+                      (click)="deleteCategory(category.id)" class="delete-button"></ion-icon>
           }
         </ion-item>
       }

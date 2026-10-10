@@ -1,9 +1,18 @@
 import {CommonModule} from '@angular/common';
-import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import {IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonToolbar, MenuController} from '@ionic/angular';
-import {Subscription, firstValueFrom, take} from 'rxjs';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonToolbar,
+  MenuController
+} from '@ionic/angular';
+import {firstValueFrom, Subscription, take} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {CategoryService} from '../category/category.service';
 import {Category} from '../category/category.dto';
@@ -11,7 +20,7 @@ import {CatalogService} from './catalog.service';
 import {CatalogNode} from './catalog.model';
 import {ShoppingService} from './shopping.service';
 import {StockService} from './stock.service';
-import {ShoppingEntry, StockLot, NeedKind} from './shopping.model';
+import {NeedKind, ShoppingEntry, StockLot} from './shopping.model';
 import {normalizeQuantity, QuantityUnit} from './quantity';
 
 @Component({
@@ -51,11 +60,21 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   public adding = false;
 
   public async ngOnInit(): Promise<void> {
-    this.subscriptions.add(this.catalog.observe().subscribe(nodes => { this.nodes = nodes; this.cdr.detectChanges(); }));
-    this.subscriptions.add(this.stock.observe().subscribe(lots => { this.lots = lots; this.cdr.detectChanges(); }));
+    this.subscriptions.add(this.catalog.observe().subscribe(nodes => {
+      this.nodes = nodes;
+      this.cdr.detectChanges();
+    }));
+    this.subscriptions.add(this.stock.observe().subscribe(lots => {
+      this.lots = lots;
+      this.cdr.detectChanges();
+    }));
     this.lists = await firstValueFrom(this.categories.getCategories().pipe(take(1)));
     if (!this.lists.length) {
-      const created = await firstValueFrom(this.categories.save({id: uuidv4(), name: 'Shopping', saveSuggestions: true}));
+      const created = await firstValueFrom(this.categories.save({
+        id: uuidv4(),
+        name: 'Shopping',
+        saveSuggestions: true
+      }));
       this.lists = [created];
     }
     const previousId = await firstValueFrom(this.categories.getSelectedCategoryId());
@@ -65,19 +84,33 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  public ngOnDestroy(): void { this.entriesSubscription?.unsubscribe(); this.subscriptions.unsubscribe(); }
-  public openMenu(): void { void this.menu.open('main-menu'); }
-  public openScanner(): void { void this.router.navigate(['/tabs/todo/scan']); }
+  public ngOnDestroy(): void {
+    this.entriesSubscription?.unsubscribe();
+    this.subscriptions.unsubscribe();
+  }
+
+  public openMenu(): void {
+    void this.menu.open('main-menu');
+  }
+
+  public openScanner(): void {
+    void this.router.navigate(['/tabs/todo/scan']);
+  }
+
   public selectList(): void {
     this.entriesSubscription?.unsubscribe();
     if (this.selectedListId) this.entriesSubscription = this.shopping.observe(this.selectedListId).subscribe(entries => {
-      this.entries = entries; this.cdr.detectChanges();
+      this.entries = entries;
+      this.cdr.detectChanges();
     });
     const selected = this.lists.find(list => list.id === this.selectedListId);
     if (selected) void firstValueFrom(this.categories.saveCurrentCategory(selected));
   }
 
-  public get nodesForSelection(): CatalogNode[] { return this.nodes.filter(node => node.parentId !== null); }
+  public get nodesForSelection(): CatalogNode[] {
+    return this.nodes.filter(node => node.parentId !== null);
+  }
+
   public get suggestions(): CatalogNode[] {
     const query = this.newName.trim().toLocaleLowerCase();
     if (!query || this.kind === 'task' || !this.suggestionsOpen) return [];
@@ -87,42 +120,60 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
         Number(a.kind === 'product') - Number(b.kind === 'product') || a.name.localeCompare(b.name))
       .slice(0, 5);
   }
+
   public get selectedProduct(): CatalogNode | null {
     const node = this.nodes.find(item => item.id === this.selectedNodeId);
     return node?.kind === 'product' ? node : null;
   }
+
   public get suggestedPackages(): number | null {
     if (!this.selectedProduct || this.needKind !== 'quantity') return null;
-    try { return this.stock.suggestedPackages(this.selectedProduct, normalizeQuantity({amount: this.needAmount, unit: this.needUnit})); }
-    catch { return null; }
+    try {
+      return this.stock.suggestedPackages(this.selectedProduct, normalizeQuantity({
+        amount: this.needAmount,
+        unit: this.needUnit
+      }));
+    } catch {
+      return null;
+    }
   }
+
   public nodeLabel(node: CatalogNode): string {
     return `${node.kind === 'class' ? 'Any' : 'Product'} · ${node.name}${node.brand ? ' · ' + node.brand : ''}`;
   }
+
   public entryTitle(entry: ShoppingEntry): string {
     const node = this.nodes.find(item => item.id === entry.targetNodeId);
     return `${entry.label}${node?.brand ? ' · ' + node.brand : ''}`;
   }
+
   public needLabel(entry: ShoppingEntry): string {
     if (entry.needKind === 'unspecified') return 'Any brand';
     if (entry.needKind === 'packages') return `${entry.needAmount} pkg`;
     return `${entry.needAmount} ${entry.needUnit}`;
   }
+
   public progress(entry: ShoppingEntry): number {
     return this.lots.flatMap(lot => lot.allocations).filter(a => a.shoppingEntryId === entry.id &&
       a.unit === (entry.needUnit ?? 'package')).reduce((sum, a) => sum + a.amount, 0);
   }
+
   public remainingLabel(entry: ShoppingEntry): string {
     return `${Math.max(0, (entry.needAmount ?? 1) - this.progress(entry))} ${entry.needUnit ?? 'package'}`;
   }
+
   public matchingProducts(entry: ShoppingEntry): CatalogNode[] {
     return this.nodes.filter(node => node.kind === 'product' && !!entry.targetNodeId &&
       this.catalog.matches(entry.targetNodeId, node.id, this.nodes));
   }
+
   public suggestedPackagesForEntry(entry: ShoppingEntry): number | null {
     const product = this.nodes.find(node => node.id === this.suggestionProductIds[entry.id]);
     if (!product || !entry.needUnit) return null;
-    return this.stock.suggestedPackages(product, {amount: Math.max(0, (entry.needAmount ?? 0) - this.progress(entry)), unit: entry.needUnit});
+    return this.stock.suggestedPackages(product, {
+      amount: Math.max(0, (entry.needAmount ?? 0) - this.progress(entry)),
+      unit: entry.needUnit
+    });
   }
 
   public inputChanged(value: string): void {
@@ -172,12 +223,26 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
           {kind: 'packages', count: this.needAmount});
         else await this.shopping.addProduct(this.selectedListId, target, {kind: 'unspecified'});
       }
-      this.newName = ''; this.selectedNodeId = ''; this.needKind = 'unspecified'; this.needAmount = 1;
-      this.kind = 'product'; this.suggestionsOpen = false;
+      this.newName = '';
+      this.selectedNodeId = '';
+      this.needKind = 'unspecified';
+      this.needAmount = 1;
+      this.kind = 'product';
+      this.suggestionsOpen = false;
       this.quickInput?.nativeElement.focus();
-    } catch (error) { this.error = String(error instanceof Error ? error.message : error); }
-    finally { this.adding = false; this.cdr.detectChanges(); }
+    } catch (error) {
+      this.error = String(error instanceof Error ? error.message : error);
+    } finally {
+      this.adding = false;
+      this.cdr.detectChanges();
+    }
   }
-  public async toggle(entry: ShoppingEntry): Promise<void> { await this.shopping.toggleChecked(entry); }
-  public async remove(entry: ShoppingEntry): Promise<void> { await this.shopping.remove(entry.id); }
+
+  public async toggle(entry: ShoppingEntry): Promise<void> {
+    await this.shopping.toggleChecked(entry);
+  }
+
+  public async remove(entry: ShoppingEntry): Promise<void> {
+    await this.shopping.remove(entry.id);
+  }
 }

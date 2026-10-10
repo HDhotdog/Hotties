@@ -1,11 +1,11 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
-import { AddFridgeItemComponent } from './add-fridge-item.component';
-import { FridgeService } from '../fridge.service';
-import { ItemService } from '../../item/item.service';
-import { AmountUnit } from '../../shared/amount-unit.enum';
+import {provideIonicAngular} from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {ActivatedRoute} from '@angular/router';
+import {of} from 'rxjs';
+import {AddFridgeItemComponent} from './add-fridge-item.component';
+import {FridgeService} from '../fridge.service';
+import {ItemService} from '../../item/item.service';
+import {AmountUnit} from '../../shared/amount-unit.enum';
 
 describe('AddFridgeItemComponent', () => {
   let component: AddFridgeItemComponent;
@@ -19,9 +19,9 @@ describe('AddFridgeItemComponent', () => {
       imports: [AddFridgeItemComponent],
       providers: [
         provideIonicAngular(),
-        { provide: FridgeService, useValue: { findById: () => of(undefined), save: saveSpy } },
-        { provide: ItemService, useValue: { findAll: () => of([]) } },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } },
+        {provide: FridgeService, useValue: {findById: () => of(undefined), save: saveSpy}},
+        {provide: ItemService, useValue: {findAll: () => of([])}},
+        {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {get: () => null}}}},
       ],
     }).compileComponents();
 
@@ -115,7 +115,7 @@ describe('AddFridgeItemComponent', () => {
 
       component.navigateBack();
 
-      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({name: 'Butter'}));
     });
 
     it('navigateBack() does not save an untouched new item', () => {
@@ -151,9 +151,9 @@ describe('AddFridgeItemComponent', () => {
         imports: [AddFridgeItemComponent],
         providers: [
           provideIonicAngular(),
-          { provide: FridgeService, useValue: { findById: () => of(existingItem), save: editSaveSpy } },
-          { provide: ItemService, useValue: { findAll: () => of([]) } },
-          { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'f1' } } } },
+          {provide: FridgeService, useValue: {findById: () => of(existingItem), save: editSaveSpy}},
+          {provide: ItemService, useValue: {findAll: () => of([])}},
+          {provide: ActivatedRoute, useValue: {snapshot: {paramMap: {get: () => 'f1'}}}},
         ],
       }).compileComponents();
 
@@ -174,7 +174,7 @@ describe('AddFridgeItemComponent', () => {
       editComponent.name = 'Butter';
       jest.advanceTimersByTime(500);
 
-      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({name: 'Butter'}));
       expect(editComponent.saveStatus).toBe('saved');
     });
 
@@ -196,14 +196,14 @@ describe('AddFridgeItemComponent', () => {
       jest.advanceTimersByTime(200);
 
       expect(editSaveSpy).toHaveBeenCalledTimes(1);
-      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({name: 'Butter'}));
     });
 
     it('quantity changes trigger the same autosave debounce', () => {
       editComponent.incrementQuantity();
       jest.advanceTimersByTime(500);
 
-      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ quantity: 2 }));
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({quantity: 2}));
     });
 
     it('navigateBack() flushes a pending save immediately instead of waiting', () => {
@@ -211,7 +211,7 @@ describe('AddFridgeItemComponent', () => {
 
       editComponent.navigateBack();
 
-      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Butter' }));
+      expect(editSaveSpy).toHaveBeenCalledWith(expect.objectContaining({name: 'Butter'}));
     });
 
     it('does not call save again on navigateBack() if nothing is pending', () => {

@@ -27,9 +27,9 @@
           @if (recipe.emoji) {
             <span class="emoji-display">{{ recipe.emoji }}</span>
           }
-          <h2>{{recipe.name}}</h2>
+          <h2>{{ recipe.name }}</h2>
         </div>
-        <h3>{{this.parseDate(recipe)}}</h3>
+        <h3>{{ this.parseDate(recipe) }}</h3>
       </div>
       @if (imageUrl) {
         <ion-img [src]="imageUrl"></ion-img>
@@ -44,8 +44,9 @@
         <div class="ingredients-items">
           @for (item of this.ingredients; track item) {
             <div class="ingredient-row">
-              <span class="ingredient-amount">{{item.amount}} <span class="ingredient-unit">{{item.unit}}</span></span>
-              <span class="ingredient-name">{{item.name}}</span>
+              <span class="ingredient-amount">{{ item.amount }} <span
+                class="ingredient-unit">{{ item.unit }}</span></span>
+              <span class="ingredient-name">{{ item.name }}</span>
             </div>
           }
         </div>
@@ -53,16 +54,17 @@
       <div class="recipe-description">
         <p class="recipe-descirption-title">Instructions</p>
         @if (recipe.description) {
-          <p class="recipe-description-content">{{recipe.description}}</p>
+          <p class="recipe-description-content">{{ recipe.description }}</p>
         } @else {
-          <p class="recipe-description-empty">This recipe doesn't have instructions yet. Edit the recipe to add some.</p>
+          <p class="recipe-description-empty">This recipe doesn't have instructions yet. Edit the recipe to add
+            some.</p>
         }
       </div>
       @if (this.labels.length) {
         <div class="recipe-labels">
           @for (recipeLabel of this.labels; track recipeLabel) {
             <p class="recipe-label">
-              {{recipeLabel.name}}
+              {{ recipeLabel.name }}
             </p>
           }
         </div>
@@ -78,7 +80,7 @@
       that, so the trigger silently never binds and the modal never opens.
     -->
     <ion-modal #exportModal trigger="export-trigger" [keepContentsMounted]="true" class="export-modal"
-      (willPresent)="initExportModal()">
+               (willPresent)="initExportModal()">
       <ng-template>
         <div class="export-modal-content">
           <div class="picker-header">
@@ -87,7 +89,7 @@
             </ion-button>
             <span class="export-modal-title">Add to shopping list</span>
             <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmExport()"
-              (click)="confirmExport(); exportModal.dismiss()">
+                        (click)="confirmExport(); exportModal.dismiss()">
               <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
             </ion-button>
           </div>
@@ -95,8 +97,8 @@
           <div class="category-list">
             @for (category of categories; track category) {
               <button type="button" class="category-option" [class.selected]="this.selectedCategoryId === category.id"
-                (click)="selectCategory(category)">
-                {{category.name}}
+                      (click)="selectCategory(category)">
+                {{ category.name }}
               </button>
             } @empty {
               <p class="no-categories-hint">No shopping list categories yet.</p>

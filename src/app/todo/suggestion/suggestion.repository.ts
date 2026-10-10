@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { AbstractRepository } from '../../database/abstract-repository';
-import { DatabaseService } from '../../database/database';
-import { RxSuggestion } from './rxSuggestion';
-import { Observable, switchMap } from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {AbstractRepository} from '../../database/abstract-repository';
+import {DatabaseService} from '../../database/database';
+import {RxSuggestion} from './rxSuggestion';
+import {Observable, switchMap} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,7 @@ export class SuggestionRepository extends AbstractRepository<RxSuggestion> {
       switchMap(
         (col) =>
           col.find({
-            selector: { categoryId },
+            selector: {categoryId},
           }).$
       )
     );

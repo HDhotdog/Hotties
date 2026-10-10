@@ -1,8 +1,8 @@
-import {Injectable, inject} from '@angular/core';
-import {from, Observable, switchMap, map} from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {from, map, Observable, switchMap} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {DatabaseService} from '../database/database';
-import {CatalogNode, blankClass} from './catalog.model';
+import {blankClass, CatalogNode} from './catalog.model';
 import {BaseQuantity, BaseUnit, parsePackageQuantity} from './quantity';
 import {FoodProduct} from '../scanner/open-food-facts.service';
 
@@ -124,8 +124,10 @@ export class CatalogService {
     // Allocations to removed shopping entries must not linger in surviving lots.
     for (const lot of plan.lotsToUpdate) {
       const data = lot.toJSON();
-      await db['stock_lots'].upsert({...data, allocations: data.allocations.filter(
-        (allocation: {shoppingEntryId: string}) => !plan.shoppingEntryIds.has(allocation.shoppingEntryId))});
+      await db['stock_lots'].upsert({
+        ...data, allocations: data.allocations.filter(
+          (allocation: { shoppingEntryId: string }) => !plan.shoppingEntryIds.has(allocation.shoppingEntryId))
+      });
     }
     for (const doc of plan.shoppingEntries) await doc.remove();
     for (const doc of plan.recipeIngredients) await doc.remove();
@@ -138,8 +140,15 @@ export class CatalogService {
   }
 
   private async deletionPlan(nodeId: string, includeDescendants: boolean): Promise<{
-    impact: CatalogDeleteImpact; parentId: string | null; childrenToMove: CatalogNode[]; nodesToDelete: CatalogNode[];
-    shoppingEntries: any[]; shoppingEntryIds: Set<string>; recipeIngredients: any[]; stockLots: any[]; lotsToUpdate: any[];
+    impact: CatalogDeleteImpact;
+    parentId: string | null;
+    childrenToMove: CatalogNode[];
+    nodesToDelete: CatalogNode[];
+    shoppingEntries: any[];
+    shoppingEntryIds: Set<string>;
+    recipeIngredients: any[];
+    stockLots: any[];
+    lotsToUpdate: any[];
   }> {
     const nodes = await this.all();
     const node = nodes.find(candidate => candidate.id === nodeId);
@@ -168,12 +177,18 @@ export class CatalogService {
     const stockLots = allLots.filter((doc: any) => ids.has(doc.productId));
     const stockLotIds = new Set<string>(stockLots.map((doc: any) => doc.id as string));
     const lotsToUpdate = allLots.filter((doc: any) => !stockLotIds.has(doc.id) &&
-      doc.allocations.some((allocation: {shoppingEntryId: string}) => shoppingEntryIds.has(allocation.shoppingEntryId)));
-    return {parentId: node.parentId, childrenToMove, nodesToDelete, shoppingEntries, shoppingEntryIds,
+      doc.allocations.some((allocation: {
+        shoppingEntryId: string
+      }) => shoppingEntryIds.has(allocation.shoppingEntryId)));
+    return {
+      parentId: node.parentId, childrenToMove, nodesToDelete, shoppingEntries, shoppingEntryIds,
       recipeIngredients, stockLots, lotsToUpdate,
-      impact: {nodeName: node.name, descendantCount: descendants.length, movedChildCount: childrenToMove.length,
+      impact: {
+        nodeName: node.name, descendantCount: descendants.length, movedChildCount: childrenToMove.length,
         deletedNodeCount: nodesToDelete.length, shoppingEntryCount: shoppingEntries.length,
-        recipeIngredientCount: recipeIngredients.length, stockLotCount: stockLots.length}};
+        recipeIngredientCount: recipeIngredients.length, stockLotCount: stockLots.length
+      }
+    };
   }
 
   public async createClass(name: string, parentId: string | null = 'root-food'): Promise<CatalogNode> {
@@ -196,14 +211,18 @@ export class CatalogService {
   }
 
   public productDraft(food: FoodProduct, parentId: string, packageContent: BaseQuantity | null = parsePackageQuantity(food.packageQuantity)): CatalogNode {
-    return {id: uuidv4(), parentId, kind: 'product', name: food.name, brand: food.brand,
+    return {
+      id: uuidv4(), parentId, kind: 'product', name: food.name, brand: food.brand,
       barcodes: [food.barcode], saleKind: packageContent ? 'fixed' : 'unknown',
       packageAmount: packageContent?.amount ?? null, packageUnit: packageContent?.unit ?? null,
-      variableUnit: null, rawPackage: food.packageQuantity};
+      variableUnit: null, rawPackage: food.packageQuantity
+    };
   }
 
   public createLooseDraft(name: string, parentId: string, unit: BaseUnit): CatalogNode {
-    return {id: uuidv4(), parentId, kind: 'product', name, brand: null, barcodes: [], saleKind: 'variable',
-      packageAmount: null, packageUnit: null, variableUnit: unit, rawPackage: null};
+    return {
+      id: uuidv4(), parentId, kind: 'product', name, brand: null, barcodes: [], saleKind: 'variable',
+      packageAmount: null, packageUnit: null, variableUnit: unit, rawPackage: null
+    };
   }
 }

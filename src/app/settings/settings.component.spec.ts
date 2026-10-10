@@ -1,8 +1,8 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import {provideIonicAngular} from '@ionic/angular';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {ActivatedRoute, Router} from '@angular/router';
 
-import { SettingsComponent } from './settings.component';
+import {SettingsComponent} from './settings.component';
 
 describe('SettingsComponent', () => {
   let component: SettingsComponent;

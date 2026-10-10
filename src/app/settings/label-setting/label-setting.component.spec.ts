@@ -1,10 +1,10 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Location } from '@angular/common';
-import { of } from 'rxjs';
-import { LabelService } from '../../label/label-service.service';
+import {provideIonicAngular} from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {Location} from '@angular/common';
+import {of} from 'rxjs';
+import {LabelService} from '../../label/label-service.service';
 
-import { LabelSettingComponent } from './label-setting.component';
+import {LabelSettingComponent} from './label-setting.component';
 
 describe('LabelComponentComponent', () => {
   let component: LabelSettingComponent;
@@ -15,7 +15,12 @@ describe('LabelComponentComponent', () => {
       imports: [LabelSettingComponent],
       providers: [
         provideIonicAngular(),
-        {provide: Location, useValue: {back: () => {}}},
+        {
+          provide: Location, useValue: {
+            back: () => {
+            }
+          }
+        },
         {
           provide: LabelService,
           useValue: {

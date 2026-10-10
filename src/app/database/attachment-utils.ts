@@ -60,7 +60,7 @@ export function cropImageToSquare(dataUrl: string, maxSize: number): Promise<str
   });
 }
 
-export function dataUrlToBytes(dataUrl: string): {bytes: Uint8Array; mime: string} {
+export function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; mime: string } {
   const match = /^data:(.*?);base64,(.*)$/.exec(dataUrl);
   const mime = match?.[1] || 'application/octet-stream';
   const base64 = match ? match[2] : dataUrl;

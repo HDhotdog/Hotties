@@ -1,9 +1,9 @@
-import {Injectable, inject} from '@angular/core';
-import {from, Observable, switchMap, map} from 'rxjs';
+import {inject, Injectable} from '@angular/core';
+import {from, map, Observable, switchMap} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {DatabaseService} from '../database/database';
 import {CatalogService} from './catalog.service';
-import {ShoppingEntry, StockLot, NeedKind} from './shopping.model';
+import {NeedKind, ShoppingEntry, StockLot} from './shopping.model';
 import {BaseQuantity} from './quantity';
 
 @Injectable({providedIn: 'root'})
@@ -25,7 +25,11 @@ export class ShoppingService {
         .sort((a, b) => Number(a.checked) - Number(b.checked) || a.createdAt - b.createdAt)));
   }
 
-  public async addProduct(listId: string, targetNodeId: string, need: {kind: NeedKind; quantity?: BaseQuantity | null; count?: number}): Promise<ShoppingEntry> {
+  public async addProduct(listId: string, targetNodeId: string, need: {
+    kind: NeedKind;
+    quantity?: BaseQuantity | null;
+    count?: number
+  }): Promise<ShoppingEntry> {
     const node = await this.catalog.byId(targetNodeId);
     if (need.kind === 'packages' && node.kind !== 'product') throw new Error('Package counts require an exact product.');
     const amount = need.kind === 'quantity' ? need.quantity?.amount : need.kind === 'packages' ? need.count : null;
@@ -33,16 +37,28 @@ export class ShoppingService {
     if (need.kind !== 'unspecified' && (!(amount && Number.isFinite(amount) && amount > 0) || !unit)) {
       throw new Error('Enter a valid shopping quantity.');
     }
-    const entry: ShoppingEntry = {id: uuidv4(), shoppingListId: listId, kind: 'product', targetNodeId,
+    const entry: ShoppingEntry = {
+      id: uuidv4(), shoppingListId: listId, kind: 'product', targetNodeId,
       label: node.name, needKind: need.kind, needAmount: amount ?? null, needUnit: unit ?? null,
-      checked: false, createdAt: Date.now()};
+      checked: false, createdAt: Date.now()
+    };
     await this.save(entry);
     return entry;
   }
 
   public async addTask(listId: string, label: string): Promise<ShoppingEntry> {
-    const entry: ShoppingEntry = {id: uuidv4(), shoppingListId: listId, kind: 'task', targetNodeId: null,
-      label: label.trim(), needKind: 'unspecified', needAmount: null, needUnit: null, checked: false, createdAt: Date.now()};
+    const entry: ShoppingEntry = {
+      id: uuidv4(),
+      shoppingListId: listId,
+      kind: 'task',
+      targetNodeId: null,
+      label: label.trim(),
+      needKind: 'unspecified',
+      needAmount: null,
+      needUnit: null,
+      checked: false,
+      createdAt: Date.now()
+    };
     await this.save(entry);
     return entry;
   }

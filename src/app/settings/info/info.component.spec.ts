@@ -1,9 +1,9 @@
-import { provideIonicAngular } from '@ionic/angular';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Location } from '@angular/common';
-import { CategoryService } from '../../category/category.service';
+import {provideIonicAngular} from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {Location} from '@angular/common';
+import {CategoryService} from '../../category/category.service';
 
-import { InfoComponent } from './info.component';
+import {InfoComponent} from './info.component';
 
 describe('InfoComponent', () => {
   let component: InfoComponent;
@@ -14,7 +14,12 @@ describe('InfoComponent', () => {
       imports: [InfoComponent],
       providers: [
         provideIonicAngular(),
-        {provide: Location, useValue: {back: () => {}}},
+        {
+          provide: Location, useValue: {
+            back: () => {
+            }
+          }
+        },
         {provide: CategoryService, useValue: {}}
       ]
     }).compileComponents();

@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { SuggestionRepository } from './suggestion.repository';
-import { map, Observable } from 'rxjs';
-import { Suggestion } from './suggestion.dto';
-import { toSuggestion, toRxSuggestion } from './suggestion.mapper';
+import {inject, Injectable} from '@angular/core';
+import {SuggestionRepository} from './suggestion.repository';
+import {map, Observable} from 'rxjs';
+import {Suggestion} from './suggestion.dto';
+import {toRxSuggestion, toSuggestion} from './suggestion.mapper';
 
 @Injectable({
   providedIn: 'root',

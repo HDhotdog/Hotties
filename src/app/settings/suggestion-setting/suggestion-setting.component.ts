@@ -10,18 +10,12 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { Router } from '@angular/router';
-import { SuggestionService } from '../../todo/suggestion/suggestion.service';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit,} from '@angular/core';
+import {Router} from '@angular/router';
+import {SuggestionService} from '../../todo/suggestion/suggestion.service';
 
-import { FormsModule } from '@angular/forms';
-import { Suggestion } from '../../todo/suggestion/suggestion.dto';
+import {FormsModule} from '@angular/forms';
+import {Suggestion} from '../../todo/suggestion/suggestion.dto';
 
 @Component({
   selector: 'app-suggestion-setting',

@@ -14,25 +14,18 @@ import {
   IonToolbar,
   MenuController,
 } from '@ionic/angular';
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { RecipeService } from './recipe.service';
-import { Recipe } from './models/recipe.dto';
-import { Label, LabelGroup } from '../label/models/label.dto';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { LabelService } from '../label/label-service.service';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit,} from '@angular/core';
+import {RecipeService} from './recipe.service';
+import {Recipe} from './models/recipe.dto';
+import {Label, LabelGroup} from '../label/models/label.dto';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {LabelService} from '../label/label-service.service';
 import {StockService} from '../domain/stock.service';
 import {BaseUnit} from '../domain/quantity';
 
-import { FormsModule } from '@angular/forms';
-import { combineLatest, forkJoin, map, Observable, firstValueFrom } from 'rxjs';
-import { take } from 'rxjs/operators';
+import {FormsModule} from '@angular/forms';
+import {combineLatest, firstValueFrom, forkJoin, map, Observable} from 'rxjs';
+import {take} from 'rxjs/operators';
 import {
   filterRecipes,
   labelsForGroup as getLabelsForGroup,
@@ -134,12 +127,12 @@ export class RecipeComponent implements OnInit, OnDestroy {
       recipes.map((recipe) =>
         this.recipeService
           .getImageUrl(recipe.id)
-          .pipe(map((url) => ({ id: recipe.id, url })))
+          .pipe(map((url) => ({id: recipe.id, url})))
       )
     ).subscribe((results) => {
       this.revokeImageUrls();
       const newImageUrls = new Map<string, string>();
-      results.forEach(({ id, url }) => {
+      results.forEach(({id, url}) => {
         if (url) {
           newImageUrls.set(id, url);
         }
@@ -171,15 +164,20 @@ export class RecipeComponent implements OnInit, OnDestroy {
     const results = await Promise.all(recipes.map(async recipe => {
       const ingredients = await firstValueFrom(this.recipeService.getIngredients(recipe.id).pipe(take(1)));
       const statuses = await Promise.all(ingredients.map(ingredient => ingredient.targetNodeId
-        ? this.stock.availability(ingredient.targetNodeId, {amount: ingredient.amount, unit: ingredient.unit as BaseUnit})
+        ? this.stock.availability(ingredient.targetNodeId, {
+          amount: ingredient.amount,
+          unit: ingredient.unit as BaseUnit
+        })
         : Promise.resolve({status: 'unknown' as const})));
-      return {id: recipe.id, total: ingredients.length,
+      return {
+        id: recipe.id, total: ingredients.length,
         available: statuses.filter(status => status.status === 'enough').length,
-        unknown: statuses.filter(status => status.status === 'unknown').length};
+        unknown: statuses.filter(status => status.status === 'unknown').length
+      };
     }));
     {
       const availability = new Map<string, IngredientAvailability>();
-      results.forEach(({ id, total, available, unknown }) => availability.set(id, { total, available, unknown }));
+      results.forEach(({id, total, available, unknown}) => availability.set(id, {total, available, unknown}));
       this.ingredientAvailability = availability;
       this.cdr.markForCheck();
     }
@@ -222,11 +220,11 @@ export class RecipeComponent implements OnInit, OnDestroy {
   }
 
   public openRecipe(recipe: Recipe): void {
-    this.router.navigate(['display', recipe.id], { relativeTo: this.route });
+    this.router.navigate(['display', recipe.id], {relativeTo: this.route});
   }
 
   public newRecipe() {
-    this.router.navigate(['new'], { relativeTo: this.route });
+    this.router.navigate(['new'], {relativeTo: this.route});
   }
 
   async openFilterMenu() {

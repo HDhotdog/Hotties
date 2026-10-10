@@ -1,4 +1,4 @@
-import { provideIonicAngular } from '@ionic/angular';
+import {provideIonicAngular} from '@ionic/angular';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
 import {TodoComponent} from './todo.component';
@@ -23,7 +23,16 @@ describe('TodoComponent', () => {
 
   const category: Category = {id: 'cat-1', name: 'Edeka', saveSuggestions: true};
   const tasks: Todo[] = [
-    {id: 't1', categoryId: 'cat-1', name: 'Task 1', done: false, type: ItemType.FOOD, amount: AmountUnit.PIECE, itemId: 'item-task-1', quantity: 1}
+    {
+      id: 't1',
+      categoryId: 'cat-1',
+      name: 'Task 1',
+      done: false,
+      type: ItemType.FOOD,
+      amount: AmountUnit.PIECE,
+      itemId: 'item-task-1',
+      quantity: 1
+    }
   ];
 
   beforeEach(async () => {
@@ -63,7 +72,13 @@ describe('TodoComponent', () => {
       findById: jest.fn(),
       deleteById: jest.fn()
     } as unknown as jest.Mocked<FridgeService>;
-    fridgeService.save.mockReturnValue(of({id: 'f1', name: 'Milk', amount: AmountUnit.PIECE, quantity: 1, expiryDate: null}));
+    fridgeService.save.mockReturnValue(of({
+      id: 'f1',
+      name: 'Milk',
+      amount: AmountUnit.PIECE,
+      quantity: 1,
+      expiryDate: null
+    }));
 
     itemService = {
       findAll: jest.fn(),

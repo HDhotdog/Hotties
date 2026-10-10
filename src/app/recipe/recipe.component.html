@@ -7,7 +7,7 @@
   <ion-content>
     <div class="filter-container">
       <div class="time-filter">
-        <ion-label>Preparation time: {{'<' + selectedTime ? selectedTime + ' min' : 'No limit' }}</ion-label>
+        <ion-label>Preparation time: {{ '<' + selectedTime ? selectedTime + ' min' : 'No limit' }}</ion-label>
         <ion-range
           [min]="0"
           [max]="120"
@@ -23,7 +23,8 @@
         <div class="label-group">
           <div class="group-name">{{ group.name }}</div>
           @for (label of this.labelsForGroup(group.id); track label) {
-            <ion-checkbox labelPlacement="start" (ionChange)="changeFilter($event, label)">{{label.name}}</ion-checkbox>
+            <ion-checkbox labelPlacement="start" (ionChange)="changeFilter($event, label)">{{ label.name }}
+            </ion-checkbox>
           }
         </div>
       }
@@ -75,25 +76,28 @@
                 @if (recipe.emoji) {
                   <span class="emoji-display">{{ recipe.emoji }}</span>
                 }
-                <p>{{recipe.name}}</p>
+                <p>{{ recipe.name }}</p>
               </div>
-              <p class="recipe-preview-time">{{this.parseDate(recipe)}}</p>
+              <p class="recipe-preview-time">{{ this.parseDate(recipe) }}</p>
             </div>
             @if (this.ingredientAvailabilityFor(recipe.id); as availability) {
               <div class="recipe-preview-meta">
                 <span class="recipe-preview-ingredient-count">
-                  {{availability.total}} ingredient{{availability.total === 1 ? '' : 's'}}
+                  {{ availability.total }} ingredient{{ availability.total === 1 ? '' : 's' }}
                 </span>
                 @if (availability.total > 0) {
-                  <span class="recipe-preview-availability" [class.fully-available]="availability.available === availability.total && availability.unknown === 0">
-                    {{availability.available}}/{{availability.total}} available@if (availability.unknown > 0) { · {{availability.unknown}} unknown }
+                  <span class="recipe-preview-availability"
+                        [class.fully-available]="availability.available === availability.total && availability.unknown === 0">
+                    {{ availability.available }}/{{ availability.total }} available@if (availability.unknown > 0) {
+                    · {{ availability.unknown }} unknown
+                  }
                   </span>
                 }
               </div>
             }
             <div class="recipe-preview-labels">
               @for (label of this.labelsForRecipe(recipe.id); track label) {
-                <div class="recipe-preview-label">{{label.name}}</div>
+                <div class="recipe-preview-label">{{ label.name }}</div>
               }
             </div>
           </div>

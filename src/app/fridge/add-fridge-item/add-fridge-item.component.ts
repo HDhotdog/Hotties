@@ -14,22 +14,15 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-} from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { FridgeItem } from '../models/fridge-item.dto';
-import { FridgeService } from '../fridge.service';
-import { AmountUnit } from '../../shared/amount-unit.enum';
-import { v4 as uuidv4 } from 'uuid';
-import { ItemAutocompleteComponent } from '../../item/item-autocomplete/item-autocomplete.component';
+import {CommonModule} from '@angular/common';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit,} from '@angular/core';
+import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {FridgeItem} from '../models/fridge-item.dto';
+import {FridgeService} from '../fridge.service';
+import {AmountUnit} from '../../shared/amount-unit.enum';
+import {v4 as uuidv4} from 'uuid';
+import {ItemAutocompleteComponent} from '../../item/item-autocomplete/item-autocomplete.component';
 
 const MIN_QUANTITY = 0;
 const MAX_QUANTITY = 999;
@@ -111,7 +104,7 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
     const today = new Date();
     const currentYear = today.getFullYear();
     this.yearOptions = Array.from(
-      { length: YEARS_BEFORE_TODAY + YEARS_AFTER_TODAY + 1 },
+      {length: YEARS_BEFORE_TODAY + YEARS_AFTER_TODAY + 1},
       (_, i) => currentYear - YEARS_BEFORE_TODAY + i
     );
     this._pickerDay = today.getDate();
@@ -211,7 +204,7 @@ export class AddFridgeItemComponent implements OnInit, OnDestroy {
 
   private refreshDayOptions(): void {
     const daysInMonth = new Date(this._pickerYear, this._pickerMonth, 0).getDate();
-    this._dayOptions = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    this._dayOptions = Array.from({length: daysInMonth}, (_, i) => i + 1);
     if (this._pickerDay > daysInMonth) {
       this._pickerDay = daysInMonth;
     }

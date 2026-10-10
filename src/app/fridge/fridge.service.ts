@@ -1,9 +1,9 @@
-import { Injectable, inject } from '@angular/core';
-import { FridgeItemRepository } from './fridge-item.repository';
-import { map, Observable, of, switchMap } from 'rxjs';
-import { FridgeItem } from './models/fridge-item.dto';
-import { toFridgeItem, toRxFridgeItem } from './models/fridge-item.mapper';
-import { ItemService } from '../item/item.service';
+import {inject, Injectable} from '@angular/core';
+import {FridgeItemRepository} from './fridge-item.repository';
+import {map, Observable, of, switchMap} from 'rxjs';
+import {FridgeItem} from './models/fridge-item.dto';
+import {toFridgeItem, toRxFridgeItem} from './models/fridge-item.mapper';
+import {ItemService} from '../item/item.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,7 @@ export class FridgeService {
 
   public save(item: FridgeItem): Observable<FridgeItem> {
     return this.resolveItemId(item).pipe(
-      switchMap((itemId) => this.fridgeItemRepository.save(toRxFridgeItem({ ...item, itemId })).pipe(map(toFridgeItem)))
+      switchMap((itemId) => this.fridgeItemRepository.save(toRxFridgeItem({...item, itemId})).pipe(map(toFridgeItem)))
     );
   }
 
