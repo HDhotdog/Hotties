@@ -15,7 +15,17 @@ import {
 import {Subscription} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {CatalogDeleteImpact, CatalogService} from './catalog.service';
-import {ApproximateUnit, blankClass, CatalogKind, CatalogNode, SaleKind, UnitConversions} from './catalog.model';
+import {
+  ApproximateUnit,
+  blankClass,
+  CatalogKind,
+  CatalogNode,
+  catalogPath,
+  compareCatalogCategories,
+  SaleKind,
+  sortCatalogCategoriesByPath,
+  UnitConversions
+} from './catalog.model';
 import {BaseUnit} from './quantity';
 import {effectiveConversions} from './unit-conversion';
 
@@ -88,14 +98,15 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
 
   public get classes(): CatalogNode[] {
     const excluded = new Set(this.editingId ? [this.editingId, ...this.catalog.descendantsOf(this.editingId, this.nodes).map(node => node.id)] : []);
-    return this.nodes.filter(node => node.kind === 'class' && !excluded.has(node.id));
+    return sortCatalogCategoriesByPath(
+      this.nodes.filter(node => node.kind === 'class' && !excluded.has(node.id)), this.nodes);
   }
 
   public get visibleNodes(): CatalogNode[] {
     const result: CatalogNode[] = [];
     const visited = new Set<string>();
     const visit = (parentId: string | null): void => {
-      for (const node of this.nodes.filter(item => item.parentId === parentId).sort((a, b) => a.name.localeCompare(b.name))) {
+      for (const node of this.nodes.filter(item => item.parentId === parentId).sort(compareCatalogCategories)) {
         if (visited.has(node.id)) continue;
         visited.add(node.id);
         result.push(node);
@@ -128,7 +139,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     this.nameInput?.nativeElement.focus();
   }
 
-  public inheritedConversion(unit: ApproximateUnit): {amount: number; unit: 'g' | 'ml'} | undefined {
+  public inheritedConversion(unit: ApproximateUnit): { amount: number; unit: 'g' | 'ml' } | undefined {
     const parent = this.nodes.find(node => node.id === this.parentId);
     return parent ? effectiveConversions(parent, this.nodes)[unit] : undefined;
   }
@@ -157,17 +168,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
   }
 
   public path(node: CatalogNode): string {
-    const names = [node.name];
-    let current = node;
-    const visited = new Set<string>();
-    while (current.parentId && !visited.has(current.id)) {
-      visited.add(current.id);
-      const parent = this.nodes.find(item => item.id === current.parentId);
-      if (!parent) break;
-      names.unshift(parent.name);
-      current = parent;
-    }
-    return names.join(' / ');
+    return catalogPath(node, this.nodes);
   }
 
   public saleLabel(node: CatalogNode): string {
@@ -250,8 +251,10 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     try {
       const id = this.editingId || uuidv4();
       const parentId = this.parentId || null;
-      const node: CatalogNode = this.kind === 'class' ? {...blankClass(id, this.name, parentId),
-        unitConversions: this.unitConversions} :
+      const node: CatalogNode = this.kind === 'class' ? {
+          ...blankClass(id, this.name, parentId),
+          unitConversions: this.unitConversions
+        } :
         {
           id, parentId, kind: 'product', name: this.name, brand: this.brand.trim() || null,
           barcodes: this.barcode.trim() ? [this.barcode.trim()] : [], saleKind: this.saleKind,

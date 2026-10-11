@@ -31,7 +31,8 @@
     }
     @if (retryAvailable) {
       <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'"
-                  (click)="addBarcode(barcodeInput, true)">Retry Open Food Facts</ion-button>
+                  (click)="addBarcode(barcodeInput, true)">Retry Open Food Facts
+      </ion-button>
     }
     @if (savedName) {
       <p class="message success" role="status">{{ savedName }} added to fridge.</p>
@@ -70,7 +71,7 @@
                 <select [(ngModel)]="internalClassId">
                   <option value="">Create category from product name</option>
                   @for (node of classes; track node.id) {
-                    <option [value]="node.id">{{ node.name }}</option>
+                    <option [value]="node.id">{{ categoryPath(node) }}</option>
                   }
                 </select>
               </label>
@@ -84,7 +85,8 @@
               Add {{ pendingInternal.grams }} g
             </ion-button>
             <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'"
-                        (click)="changeInternalProduct()">Change product</ion-button>
+                        (click)="changeInternalProduct()">Change product
+            </ion-button>
           }
           <button class="details-toggle" type="button" (click)="selectedStoreId = ''; mappedProduct = null">
             Change store
@@ -96,7 +98,8 @@
       <section class="product-card">
         <h2>Product details changed</h2>
         <p>Saved: {{ pendingRefresh.saved.name }} · {{ pendingRefresh.saved.rawPackage || 'size unknown' }}</p>
-        <p>Open Food Facts: {{ pendingRefresh.fresh.name }} · {{ pendingRefresh.fresh.packageQuantity || 'size unknown' }}</p>
+        <p>Open Food Facts: {{ pendingRefresh.fresh.name }}
+          · {{ pendingRefresh.fresh.packageQuantity || 'size unknown' }}</p>
         <p>Brand: {{ pendingRefresh.saved.brand || 'none' }} → {{ pendingRefresh.fresh.brand || 'none' }}</p>
         <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmRefresh(true)">
           Use new details and add
@@ -115,7 +118,8 @@
         <p>{{ saleKind === 'fixed' ? packageAmount + ' ' + packageUnit : 'Package size unknown' }}
           · {{ categoryName }}</p>
         <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmProduct()">Add to fridge</ion-button>
-        <ion-button expand="block" fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel</ion-button>
+        <ion-button expand="block" fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel
+        </ion-button>
         <button class="details-toggle" type="button" (click)="detailsOpen = !detailsOpen"
                 [attr.aria-expanded]="detailsOpen">
           {{ detailsOpen ? 'Hide details' : 'Edit category or package size' }}
@@ -126,7 +130,7 @@
               <select [(ngModel)]="selectedClassId">
                 <option value="">Create a new category</option>
                 @for (node of classes; track node.id) {
-                  <option [value]="node.id">{{ node.name }}</option>
+                  <option [value]="node.id">{{ categoryPath(node) }}</option>
                 }
               </select>
             </label>

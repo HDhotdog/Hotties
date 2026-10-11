@@ -44,7 +44,8 @@ describe('ScanProductComponent', () => {
   let scanner: jest.SpyInstance;
 
   const scanResult = (barcode: string) => ({ScanResult: barcode, format: CapacitorBarcodeScannerTypeHintALLOption.ALL});
-  const holdNextScan = () => scanner.mockImplementation(() => new Promise(() => {}));
+  const holdNextScan = () => scanner.mockImplementation(() => new Promise(() => {
+  }));
 
   beforeEach(async () => {
     lookup = {
@@ -79,6 +80,19 @@ describe('ScanProductComponent', () => {
 
   afterEach(() => scanner.mockRestore());
 
+  it('orders category choices by their full path', () => {
+    const food = {...product, id: 'root-food', kind: 'class' as const, name: 'Food', parentId: null};
+    const pasta = {...food, id: 'pasta', name: 'Teigwaren', parentId: food.id};
+    component.nodes = [
+      {...food, id: 'vegetables', name: 'Gemüse', parentId: food.id},
+      {...food, id: 'bakery', name: 'Backwaren', parentId: pasta.id},
+      pasta, food
+    ];
+    expect(component.classes.map(category => component.categoryPath(category))).toEqual([
+      'Food / Gemüse', 'Food / Teigwaren', 'Food / Teigwaren / Backwaren'
+    ]);
+  });
+
   it('reopens the camera after adding an existing catalog product', async () => {
     catalog.byBarcode.mockResolvedValue(product);
     scanner.mockResolvedValueOnce(scanResult(found.barcode));
@@ -109,8 +123,10 @@ describe('ScanProductComponent', () => {
   it('reopens the camera after reviewing changed product details', async () => {
     catalog.byBarcode.mockResolvedValue(product);
     lookup.getEntry.mockResolvedValueOnce({status: 'found', fetchedAt: 1, product: found})
-      .mockResolvedValueOnce({status: 'found', fetchedAt: Date.now(), reviewedAt: null,
-        product: {...found, packageQuantity: '750 ml'}});
+      .mockResolvedValueOnce({
+        status: 'found', fetchedAt: Date.now(), reviewedAt: null,
+        product: {...found, packageQuantity: '750 ml'}
+      });
     lookup.isFresh.mockReturnValueOnce(false).mockReturnValueOnce(true);
     scanner.mockResolvedValueOnce(scanResult(found.barcode));
     holdNextScan();
@@ -234,7 +250,9 @@ describe('ScanProductComponent', () => {
 
   it('ignores a late camera result after leaving the page', async () => {
     let finishScan!: (result: ReturnType<typeof scanResult>) => void;
-    scanner.mockImplementation(() => new Promise(resolve => { finishScan = resolve; }));
+    scanner.mockImplementation(() => new Promise(resolve => {
+      finishScan = resolve;
+    }));
 
     const scan = component.scan();
     component.ionViewWillLeave();
@@ -248,12 +266,16 @@ describe('ScanProductComponent', () => {
   it('does not reopen after leaving while a product is being saved', async () => {
     catalog.byBarcode.mockResolvedValue(product);
     scanner.mockResolvedValue(scanResult(found.barcode));
-    let finishSave!: (value: {id: string}) => void;
+    let finishSave!: (value: { id: string }) => void;
     let saveStarted!: () => void;
-    const started = new Promise<void>(resolve => { saveStarted = resolve; });
+    const started = new Promise<void>(resolve => {
+      saveStarted = resolve;
+    });
     stock.receive.mockImplementation(() => {
       saveStarted();
-      return new Promise(resolve => { finishSave = resolve; });
+      return new Promise(resolve => {
+        finishSave = resolve;
+      });
     });
 
     const scan = component.scan();
@@ -312,8 +334,10 @@ describe('ScanProductComponent', () => {
   });
 
   it('maps an unknown weighed product and receives its exact grams', async () => {
-    const zucchini: CatalogNode = {...product, id: 'zucchini', name: 'Zucchini', barcodes: [],
-      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'};
+    const zucchini: CatalogNode = {
+      ...product, id: 'zucchini', name: 'Zucchini', barcodes: [],
+      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'
+    };
     catalog.byId.mockResolvedValue(zucchini);
     component.nodes = [zucchini];
     await component.addBarcode('2914374003049');
@@ -329,8 +353,10 @@ describe('ScanProductComponent', () => {
   });
 
   it('creates a new weighed product before saving its store mapping', async () => {
-    const zucchini: CatalogNode = {...product, id: 'zucchini', name: 'Zucchini', barcodes: [],
-      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'};
+    const zucchini: CatalogNode = {
+      ...product, id: 'zucchini', name: 'Zucchini', barcodes: [],
+      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'
+    };
     catalog.createLooseDraft.mockReturnValue(zucchini);
     await component.addBarcode('2914374003049');
     component.internalName = 'Zucchini';
@@ -345,8 +371,10 @@ describe('ScanProductComponent', () => {
   });
 
   it('reuses a store mapping for a different weight without an OFF request', async () => {
-    const tomatoes: CatalogNode = {...product, id: 'tomatoes', name: 'Tomatoes', barcodes: [],
-      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'};
+    const tomatoes: CatalogNode = {
+      ...product, id: 'tomatoes', name: 'Tomatoes', barcodes: [],
+      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'
+    };
     internalMap.get.mockResolvedValue(tomatoes);
     await component.addBarcode('2917369006841');
     expect(internalMap.get).toHaveBeenCalledWith('list', '17369');
@@ -369,8 +397,10 @@ describe('ScanProductComponent', () => {
   });
 
   it('allows correcting a known store mapping before adding stock', async () => {
-    const zucchini: CatalogNode = {...product, id: 'zucchini', name: 'Zucchini', barcodes: [],
-      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'};
+    const zucchini: CatalogNode = {
+      ...product, id: 'zucchini', name: 'Zucchini', barcodes: [],
+      saleKind: 'variable', packageAmount: null, packageUnit: null, variableUnit: 'g'
+    };
     const tomatoes = {...zucchini, id: 'tomatoes', name: 'Tomatoes'};
     internalMap.get.mockResolvedValue(zucchini);
     catalog.byId.mockResolvedValue(tomatoes);
@@ -387,8 +417,10 @@ describe('ScanProductComponent', () => {
   it('reviews changed OFF details when a saved product cache expires', async () => {
     catalog.byBarcode.mockResolvedValue(product);
     lookup.getEntry.mockResolvedValueOnce({status: 'found', fetchedAt: 1, product: found})
-      .mockResolvedValueOnce({status: 'found', fetchedAt: Date.now(), reviewedAt: null,
-        product: {...found, packageQuantity: '750 ml'}});
+      .mockResolvedValueOnce({
+        status: 'found', fetchedAt: Date.now(), reviewedAt: null,
+        product: {...found, packageQuantity: '750 ml'}
+      });
     lookup.isFresh.mockReturnValueOnce(false).mockReturnValueOnce(true);
     await component.addBarcode(found.barcode);
     expect(component.pendingRefresh?.fresh.packageQuantity).toBe('750 ml');

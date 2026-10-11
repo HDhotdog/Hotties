@@ -76,15 +76,18 @@
     <section class="review" aria-label="Review fridge addition">
       <div class="review-heading">
         <strong>Review product</strong>
-        <button type="button" (click)="cancelReview()" [disabled]="adding" aria-label="Cancel fridge addition">Cancel</button>
+        <button type="button" (click)="cancelReview()" [disabled]="adding" aria-label="Cancel fridge addition">Cancel
+        </button>
       </div>
       <div class="review-fields">
         <label>Product name
           <input type="text" [ngModel]="review.name" (ngModelChange)="reviewNameChanged($event)"
                  aria-label="Reviewed product name">
         </label>
-        <label>{{ reviewProduct?.saleKind === 'variable' ? 'Count mentioned' :
-          reviewProduct && (reviewProduct.packageAmount !== 1 || reviewProduct.packageUnit !== 'piece') ? 'Packages' : 'Pieces' }}
+        <label>{{
+            reviewProduct?.saleKind === 'variable' ? 'Count mentioned' :
+              reviewProduct && (reviewProduct.packageAmount !== 1 || reviewProduct.packageUnit !== 'piece') ? 'Packages' : 'Pieces'
+          }}
           <input type="number" min="1" max="999" step="1" [(ngModel)]="review.count"
                  aria-label="Reviewed quantity">
         </label>
@@ -97,12 +100,16 @@
       </div>
       @if (reviewProduct) {
         <p class="review-hint">Existing product: {{ reviewProduct.name }}
-          @if (reviewProduct.saleKind === 'variable') { · Enter its measured amount before adding. }
+          @if (reviewProduct.saleKind === 'variable') {
+            · Enter its measured amount before adding.
+          }
         </p>
       } @else {
         <div class="review-categories">
           <strong>Category</strong>
-          @if (review.ranking) { <span role="status">Finding local suggestions…</span> }
+          @if (review.ranking) {
+            <span role="status">Finding local suggestions…</span>
+          }
           @if (review.categoryError) {
             <span>Suggestions are unavailable. Choose a category below.</span>
           }
@@ -120,7 +127,7 @@
             <select [(ngModel)]="review.categoryId" (ngModelChange)="review.newCategoryName = ''">
               <option value="">Choose category</option>
               @for (category of foodClasses; track category.id) {
-                <option [value]="category.id">{{ category.name }}</option>
+                <option [value]="category.id">{{ categoryPath(category) }}</option>
               }
             </select>
           </label>
@@ -170,28 +177,31 @@
     </div>
   }
   @if (!review) {
-  <div class="composer-row">
-    <button class="details-toggle" type="button" (click)="toggleDetails()"
-            [attr.aria-label]="detailsOpen ? 'Hide amount and expiry options' : 'Show amount and expiry options'"
-            [attr.aria-expanded]="detailsOpen">
-      <ion-icon [name]="detailsOpen ? 'options' : 'options-outline'"></ion-icon>
-    </button>
-    <input #quickInput type="text" [ngModel]="quickName" (ngModelChange)="inputChanged($event)"
-           (keydown.enter)="prepareReview(quickName)" placeholder="Add to fridge" aria-label="New fridge product" autocomplete="off">
-    <button class="voice-button" type="button" (click)="startVoice()"
-            [disabled]="!voiceSupported || listening" [attr.aria-label]="listening ? 'Listening' : voiceSupported ? 'Speak product in German' : 'On-device speech unavailable; type product'">
-      @if (listening) {
-        <span aria-hidden="true">…</span>
-      } @else {
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <rect x="9" y="2" width="6" height="12" rx="3"></rect>
-          <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"></path>
-        </svg>
-      }
-    </button>
-    <ion-button class="add-button" (click)="prepareReview(quickName)" [disabled]="adding" aria-label="Review fridge addition">
-      <ion-icon slot="icon-only" name="add"></ion-icon>
-    </ion-button>
-  </div>
+    <div class="composer-row">
+      <button class="details-toggle" type="button" (click)="toggleDetails()"
+              [attr.aria-label]="detailsOpen ? 'Hide amount and expiry options' : 'Show amount and expiry options'"
+              [attr.aria-expanded]="detailsOpen">
+        <ion-icon [name]="detailsOpen ? 'options' : 'options-outline'"></ion-icon>
+      </button>
+      <input #quickInput type="text" [ngModel]="quickName" (ngModelChange)="inputChanged($event)"
+             (keydown.enter)="prepareReview(quickName)" placeholder="Add to fridge" aria-label="New fridge product"
+             autocomplete="off">
+      <button class="voice-button" type="button" (click)="startVoice()"
+              [disabled]="!voiceSupported || listening"
+              [attr.aria-label]="listening ? 'Listening' : voiceSupported ? 'Speak product in German' : 'On-device speech unavailable; type product'">
+        @if (listening) {
+          <span aria-hidden="true">…</span>
+        } @else {
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+            <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"></path>
+          </svg>
+        }
+      </button>
+      <ion-button class="add-button" (click)="prepareReview(quickName)" [disabled]="adding"
+                  aria-label="Review fridge addition">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </div>
   }
 </ion-footer>

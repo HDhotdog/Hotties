@@ -21,7 +21,7 @@ import {
 } from '@ionic/angular';
 import {firstValueFrom, Subscription, take} from 'rxjs';
 import {CatalogService} from '../domain/catalog.service';
-import {CatalogNode, SaleKind} from '../domain/catalog.model';
+import {CatalogNode, catalogPath, SaleKind, sortCatalogCategoriesByPath} from '../domain/catalog.model';
 import {StockService} from '../domain/stock.service';
 import {BaseQuantity, BaseUnit, parsePackageQuantity} from '../domain/quantity';
 import {CategoryService} from '../category/category.service';
@@ -57,7 +57,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   public savedName: string | null = null;
   public readonly nativeScanner = Capacitor.isNativePlatform();
   public pendingProduct: FoodProduct | null = null;
-  public pendingRefresh: {saved: CatalogNode; fresh: FoodProduct} | null = null;
+  public pendingRefresh: { saved: CatalogNode; fresh: FoodProduct } | null = null;
   public pendingInternal: WeightedBarcode | null = null;
   public stores: Category[] = [];
   public selectedStoreId = '';
@@ -94,7 +94,12 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public get classes(): CatalogNode[] {
-    return this.nodes.filter(node => node.kind === 'class' && node.parentId !== null);
+    return sortCatalogCategoriesByPath(
+      this.nodes.filter(node => node.kind === 'class' && node.parentId !== null), this.nodes);
+  }
+
+  public categoryPath(category: CatalogNode): string {
+    return catalogPath(category, this.nodes);
   }
 
   public get gramProducts(): CatalogNode[] {
@@ -187,7 +192,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
         }
         const latest = await this.lookup.getEntry(barcode);
         if (latest?.status === 'found' && latest.product && this.lookup.isFresh(latest) &&
-            latest.reviewedAt !== latest.fetchedAt && this.detailsDiffer(existing, latest.product)) {
+          latest.reviewedAt !== latest.fetchedAt && this.detailsDiffer(existing, latest.product)) {
           this.pendingRefresh = {saved: existing, fresh: latest.product};
           return 'pending';
         }
@@ -228,9 +233,11 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       let product = saved;
       if (useFresh) {
         const parsed = parsePackageQuantity(fresh.packageQuantity);
-        product = {...saved, name: fresh.name, brand: fresh.brand, rawPackage: fresh.packageQuantity,
+        product = {
+          ...saved, name: fresh.name, brand: fresh.brand, rawPackage: fresh.packageQuantity,
           saleKind: parsed ? 'fixed' : 'unknown', packageAmount: parsed?.amount ?? null,
-          packageUnit: parsed?.unit ?? null, variableUnit: null};
+          packageUnit: parsed?.unit ?? null, variableUnit: null
+        };
         await this.catalog.save(product);
       } else {
         await this.lookup.markReviewed(fresh.barcode);
@@ -392,7 +399,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   private queueNextScan(sessionId: number): void {
     queueMicrotask(() => {
       if (this.viewActive && this.cameraSession && sessionId === this.cameraSessionId &&
-          this.state === 'idle' && !this.pendingProduct && !this.pendingInternal && !this.pendingRefresh) {
+        this.state === 'idle' && !this.pendingProduct && !this.pendingInternal && !this.pendingRefresh) {
         void this.scan();
       }
     });

@@ -16,7 +16,7 @@ import {
 import {Subscription} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
 import {CatalogService} from './catalog.service';
-import {CatalogNode} from './catalog.model';
+import {CatalogNode, catalogPath, sortCatalogCategoriesByPath} from './catalog.model';
 import {StockService} from './stock.service';
 import {StockLot} from './shopping.model';
 import {BaseUnit, formatQuantity} from './quantity';
@@ -77,7 +77,9 @@ export class StockPageComponent implements OnInit, OnDestroy {
     void OfflineSpeech.available().then(available => {
       this.voiceSupported = available;
       this.cdr.markForCheck();
-    }).catch(() => { this.voiceSupported = false; });
+    }).catch(() => {
+      this.voiceSupported = false;
+    });
     this.subscriptions.add(this.catalog.observe().subscribe(nodes => {
       this.nodes = nodes;
       this.cdr.detectChanges();
@@ -96,8 +98,12 @@ export class StockPageComponent implements OnInit, OnDestroy {
   }
 
   public get foodClasses(): CatalogNode[] {
-    return this.nodes.filter(node => node.kind === 'class' && node.parentId !== null &&
-      this.catalog.matches('root-food', node.id, this.nodes));
+    return sortCatalogCategoriesByPath(this.nodes.filter(node => node.kind === 'class' && node.parentId !== null &&
+      this.catalog.matches('root-food', node.id, this.nodes)), this.nodes);
+  }
+
+  public categoryPath(category: CatalogNode): string {
+    return catalogPath(category, this.nodes);
   }
 
   public get reviewProduct(): CatalogNode | null {

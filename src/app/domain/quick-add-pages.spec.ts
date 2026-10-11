@@ -92,6 +92,20 @@ describe('Quick add pages', () => {
     expect(page.quickName).toBe('');
   });
 
+  it('orders food categories by their full path in stock review', () => {
+    const page = TestBed.runInInjectionContext(() => new StockPageComponent());
+    const pasta = blankClass('pasta', 'Teigwaren', 'root-food');
+    page.nodes = [blankClass('root-food', 'Food', null), milkClass,
+      blankClass('apples', 'Äpfel', 'root-food'), blankClass('vegetables', 'Gemüse', 'root-food'),
+      blankClass('bakery', 'Backwaren', pasta.id), pasta];
+    catalog.matches.mockImplementation((_root: string, id: string, nodes: CatalogNode[]) =>
+      id === 'bakery' || nodes.find(node => node.id === id)?.parentId === 'root-food');
+    expect(page.foodClasses.map(category => page.categoryPath(category))).toEqual([
+      'Food / Äpfel', 'Food / Gemüse', 'Food / Milk', 'Food / Teigwaren',
+      'Food / Teigwaren / Backwaren'
+    ]);
+  });
+
   it('asks for the amount of a variable product before adding stock', async () => {
     const page = TestBed.runInInjectionContext(() => new StockPageComponent());
     page.nodes = [loose];
@@ -135,11 +149,15 @@ describe('Quick add pages', () => {
   });
 
   it('reuses an existing product and prevents a double confirm', async () => {
-    const bread: CatalogNode = {...carton, id: 'bread', name: 'Brot', parentId: milkClass.id,
-      packageAmount: 1, packageUnit: 'piece'};
+    const bread: CatalogNode = {
+      ...carton, id: 'bread', name: 'Brot', parentId: milkClass.id,
+      packageAmount: 1, packageUnit: 'piece'
+    };
     catalog.byId.mockResolvedValue(bread);
     let release!: () => void;
-    stock.receive.mockReturnValue(new Promise(resolve => { release = () => resolve({}); }));
+    stock.receive.mockReturnValue(new Promise(resolve => {
+      release = () => resolve({});
+    }));
     const page = TestBed.runInInjectionContext(() => new StockPageComponent());
     page.nodes = [milkClass, bread];
     await page.prepareReview('2 Brot');
@@ -156,7 +174,9 @@ describe('Quick add pages', () => {
   it('keeps the stock request ID when a save is retried', async () => {
     const bakery = blankClass('bakery', 'Backwaren', 'root-food');
     let created: CatalogNode | null = null;
-    catalog.save.mockImplementation(async (node: CatalogNode) => { created = node; });
+    catalog.save.mockImplementation(async (node: CatalogNode) => {
+      created = node;
+    });
     catalog.byId.mockImplementation(async () => created);
     stock.receive.mockRejectedValueOnce(new Error('Interrupted after write')).mockResolvedValueOnce({});
     const page = TestBed.runInInjectionContext(() => new StockPageComponent());

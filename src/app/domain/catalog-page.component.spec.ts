@@ -1,5 +1,5 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {provideIonicAngular, MenuController} from '@ionic/angular';
+import {MenuController, provideIonicAngular} from '@ionic/angular';
 import {of} from 'rxjs';
 import {CatalogPageComponent} from './catalog-page.component';
 import {CatalogService} from './catalog.service';
@@ -21,20 +21,24 @@ describe('CatalogPageComponent', () => {
   };
 
   beforeEach(async () => {
-    addIcons({add, 'chevron-down-outline': chevronDownOutline,
-      'chevron-forward-outline': chevronForwardOutline, close, menu, pencil});
+    addIcons({
+      add, 'chevron-down-outline': chevronDownOutline,
+      'chevron-forward-outline': chevronForwardOutline, close, menu, pencil
+    });
     save = jest.fn().mockResolvedValue(undefined);
     await TestBed.configureTestingModule({
       imports: [CatalogPageComponent],
       providers: [
         provideIonicAngular(),
         {provide: MenuController, useValue: {open: jest.fn()}},
-        {provide: CatalogService, useValue: {
-          observe: () => of([food, vegetables, onion, empty]), save,
-          descendantsOf: (id: string, nodes: CatalogNode[]) => nodes.filter(node => node.parentId === id),
-          depth: (id: string, nodes: CatalogNode[]) => id === food.id ? 0 :
-            nodes.find(node => node.id === id)?.parentId === food.id ? 1 : 2
-        }}
+        {
+          provide: CatalogService, useValue: {
+            observe: () => of([food, vegetables, onion, empty]), save,
+            descendantsOf: (id: string, nodes: CatalogNode[]) => nodes.filter(node => node.parentId === id),
+            depth: (id: string, nodes: CatalogNode[]) => id === food.id ? 0 :
+              nodes.find(node => node.id === id)?.parentId === food.id ? 1 : 2
+          }
+        }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(CatalogPageComponent);
@@ -101,5 +105,22 @@ describe('CatalogPageComponent', () => {
       id: onion.id, unitConversions: {piece: {amount: 80, unit: 'g'}}
     }));
     expect(page.editorOpen).toBe(false);
+  });
+
+  it('sorts parent categories by their full path and saves the selected parent', async () => {
+    const pasta = blankClass('pasta', 'Teigwaren', food.id);
+    const bakery = blankClass('bakery', 'Backwaren', pasta.id);
+    const drinks = blankClass('drinks', 'Drinks', food.id);
+    const gemuese = blankClass('gemuese', 'Gemüse', food.id);
+    page.nodes = [vegetables, food, drinks, empty, bakery, onion, pasta, gemuese];
+    page.edit(onion);
+
+    expect(page.classes.map(category => page.path(category))).toEqual([
+      'Food', 'Food / Drinks', 'Food / Empty', 'Food / Gemüse', 'Food / Teigwaren',
+      'Food / Teigwaren / Backwaren', 'Food / Vegetables'
+    ]);
+    page.parentId = bakery.id;
+    await page.save();
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({id: onion.id, parentId: bakery.id}));
   });
 });
