@@ -19,42 +19,61 @@
 
 <ion-content>
   <div class="lots">
-    @for (lot of lots; track lot.id) {
-      <div class="lot" [class.expired]="expiryStatus(lot) === 'expired'" [class.soon]="expiryStatus(lot) === 'soon'">
-        <button class="lot-main" type="button" (click)="editing?.id === lot.id ? cancelEdit() : edit(lot)"
-                [attr.aria-label]="'Edit ' + productName(lot.productId)" [attr.aria-expanded]="editing?.id === lot.id">
-          <span class="lot-quantity"><strong>{{ lotAmount(lot) }}</strong><small>{{ lotUnit(lot) }}</small></span>
-          <span class="lot-info">
-            <span class="lot-name">{{ productName(lot.productId) }}</span>
-            @if (productSubtitle(lot.productId)) {
-              <small>{{ productSubtitle(lot.productId) }}</small>
+    @for (category of stockCategories; track category.id) {
+      <section class="category-section">
+        <h2 class="category-heading">
+          <button class="category-toggle" type="button" (click)="toggleCategory(category.id)"
+                  [attr.aria-expanded]="isCategoryExpanded(category.id)"
+                  [attr.aria-label]="(isCategoryExpanded(category.id) ? 'Collapse ' : 'Expand ') + category.path + ', ' + category.lots.length + (category.lots.length === 1 ? ' lot' : ' lots')">
+            <ion-icon [name]="isCategoryExpanded(category.id) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                      aria-hidden="true"></ion-icon>
+            <span class="category-path">{{ category.path }}</span>
+            <span class="category-count" aria-hidden="true">{{ category.lots.length }}</span>
+          </button>
+        </h2>
+        @if (isCategoryExpanded(category.id)) {
+          <div class="category-lots">
+            @for (lot of category.lots; track lot.id) {
+              <div class="lot" [class.expired]="expiryStatus(lot) === 'expired'"
+                   [class.soon]="expiryStatus(lot) === 'soon'" [class.no-expiry]="expiryStatus(lot) === 'none'">
+                <button class="lot-main" type="button" (click)="editing?.id === lot.id ? cancelEdit() : edit(lot)"
+                        [attr.aria-label]="'Edit ' + productName(lot.productId)" [attr.aria-expanded]="editing?.id === lot.id">
+                  <span class="lot-quantity"><strong>{{ lotAmount(lot) }}</strong><small>{{ lotUnit(lot) }}</small></span>
+                  <span class="lot-info">
+                    <span class="lot-name">{{ productName(lot.productId) }}</span>
+                    @if (productSubtitle(lot.productId)) {
+                      <small>{{ productSubtitle(lot.productId) }}</small>
+                    }
+                    @if (lot.expiryDate) {
+                      <small>Expires {{ lot.expiryDate }}</small>
+                    }
+                  </span>
+                </button>
+                <button class="remove-button" type="button" (click)="remove(lot)"
+                        [attr.aria-label]="'Remove ' + productName(lot.productId)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+              @if (editing?.id === lot.id) {
+                <div class="edit-panel">
+                  <div class="edit-fields">
+                    <label>Remaining {{ lot.acquiredUnit }}
+                      <input type="number" min="0" step="any" [(ngModel)]="remainingAmount" aria-label="Remaining amount">
+                    </label>
+                    <label>Expiry date
+                      <input type="date" [(ngModel)]="expiryDate" aria-label="Expiry date">
+                    </label>
+                  </div>
+                  <div class="edit-actions">
+                    <button type="button" (click)="cancelEdit()">Cancel</button>
+                    <button class="primary-action" type="button" (click)="saveEdit()">Save</button>
+                  </div>
+                </div>
+              }
             }
-            @if (lot.expiryDate) {
-              <small>Expires {{ lot.expiryDate }}</small>
-            }
-          </span>
-        </button>
-        <button class="remove-button" type="button" (click)="remove(lot)"
-                [attr.aria-label]="'Remove ' + productName(lot.productId)">
-          <ion-icon name="trash-outline"></ion-icon>
-        </button>
-      </div>
-      @if (editing?.id === lot.id) {
-        <div class="edit-panel">
-          <div class="edit-fields">
-            <label>Remaining {{ lot.acquiredUnit }}
-              <input type="number" min="0" step="any" [(ngModel)]="remainingAmount" aria-label="Remaining amount">
-            </label>
-            <label>Expiry date
-              <input type="date" [(ngModel)]="expiryDate" aria-label="Expiry date">
-            </label>
           </div>
-          <div class="edit-actions">
-            <button type="button" (click)="cancelEdit()">Cancel</button>
-            <button class="primary-action" type="button" (click)="saveEdit()">Save</button>
-          </div>
-        </div>
-      }
+        }
+      </section>
     } @empty {
       <div class="empty-state">
         <ion-icon name="snow-outline" aria-hidden="true"></ion-icon>

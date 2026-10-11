@@ -37,6 +37,19 @@ interface StockReview {
   categoryError: boolean;
 }
 
+interface StockCategoryGroup {
+  id: string;
+  path: string;
+  lots: StockLot[];
+}
+
+type ExpiryStatus = 'expired' | 'soon' | 'fine' | 'none';
+
+const EXPIRY_WARNING_DAYS = 3;
+const EXPANDED_CATEGORIES_KEY = 'fridge-expanded-category-ids-v1';
+const UNKNOWN_CATEGORY_ID = 'unknown-category';
+const stockNameCollator = new Intl.Collator('de', {sensitivity: 'base'});
+
 @Component({
   selector: 'app-stock-page', standalone: true,
   imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonTitle, IonToolbar],
@@ -55,6 +68,7 @@ export class StockPageComponent implements OnInit, OnDestroy {
   private readonly subscriptions = new Subscription();
   public nodes: CatalogNode[] = [];
   public lots: StockLot[] = [];
+  public expandedCategoryIds = new Set<string>();
   public productId = '';
   public packages = 1;
   public bulkAmount = 1;
@@ -74,6 +88,7 @@ export class StockPageComponent implements OnInit, OnDestroy {
   private reviewTimer: ReturnType<typeof setTimeout> | null = null;
 
   public ngOnInit(): void {
+    this.restoreExpandedCategories();
     void OfflineSpeech.available().then(available => {
       this.voiceSupported = available;
       this.cdr.markForCheck();
@@ -86,6 +101,7 @@ export class StockPageComponent implements OnInit, OnDestroy {
     }));
     this.subscriptions.add(this.stock.observe().subscribe(lots => {
       this.lots = lots;
+      if (this.editing && !lots.some(lot => lot.id === this.editing?.id)) this.cancelEdit();
       this.cdr.detectChanges();
     }));
   }
@@ -104,6 +120,70 @@ export class StockPageComponent implements OnInit, OnDestroy {
 
   public categoryPath(category: CatalogNode): string {
     return catalogPath(category, this.nodes);
+  }
+
+  public get stockCategories(): StockCategoryGroup[] {
+    const byId = new Map(this.nodes.map(node => [node.id, node]));
+    const grouped = new Map<string, StockLot[]>();
+    for (const lot of this.lots) {
+      const product = byId.get(lot.productId);
+      const parent = product?.parentId ? byId.get(product.parentId) : undefined;
+      const categoryId = parent?.kind === 'class' ? parent.id : UNKNOWN_CATEGORY_ID;
+      const categoryLots = grouped.get(categoryId) ?? [];
+      categoryLots.push(lot);
+      grouped.set(categoryId, categoryLots);
+    }
+    const categories = sortCatalogCategoriesByPath(
+      [...grouped.keys()].map(id => byId.get(id)).filter((node): node is CatalogNode => !!node), this.nodes);
+    const result = categories.map(category => ({
+      id: category.id,
+      path: catalogPath(category, this.nodes),
+      lots: this.sortCategoryLots(grouped.get(category.id)!, byId)
+    }));
+    if (grouped.has(UNKNOWN_CATEGORY_ID)) {
+      result.push({id: UNKNOWN_CATEGORY_ID, path: 'Unknown category',
+        lots: this.sortCategoryLots(grouped.get(UNKNOWN_CATEGORY_ID)!, byId)});
+    }
+    return result;
+  }
+
+  public isCategoryExpanded(id: string): boolean {
+    return this.expandedCategoryIds.has(id);
+  }
+
+  public toggleCategory(id: string): void {
+    if (this.expandedCategoryIds.has(id)) {
+      this.expandedCategoryIds.delete(id);
+      if (this.editing && this.stockCategories.some(category => category.id === id &&
+        category.lots.some(lot => lot.id === this.editing?.id))) this.cancelEdit();
+    } else this.expandedCategoryIds.add(id);
+    try {
+      localStorage.setItem(EXPANDED_CATEGORIES_KEY, JSON.stringify([...this.expandedCategoryIds]));
+    } catch {
+      // Keep the current view usable when device storage is unavailable.
+    }
+  }
+
+  private restoreExpandedCategories(): void {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(EXPANDED_CATEGORIES_KEY) ?? '[]');
+      if (Array.isArray(saved)) this.expandedCategoryIds = new Set(saved.filter((id): id is string => typeof id === 'string'));
+    } catch {
+      this.expandedCategoryIds = new Set();
+    }
+  }
+
+  private sortCategoryLots(lots: StockLot[], byId: Map<string, CatalogNode>): StockLot[] {
+    return [...lots].sort((left, right) => {
+      const leftProduct = byId.get(left.productId);
+      const rightProduct = byId.get(right.productId);
+      return stockNameCollator.compare(leftProduct?.name ?? '', rightProduct?.name ?? '') ||
+        (leftProduct?.name ?? '').localeCompare(rightProduct?.name ?? '', 'de') ||
+        stockNameCollator.compare(leftProduct?.brand ?? '', rightProduct?.brand ?? '') ||
+        left.productId.localeCompare(right.productId) ||
+        (left.expiryDate ?? '9999-12-31').localeCompare(right.expiryDate ?? '9999-12-31') ||
+        left.createdAt - right.createdAt || left.id.localeCompare(right.id);
+    });
   }
 
   public get reviewProduct(): CatalogNode | null {
@@ -316,13 +396,13 @@ export class StockPageComponent implements OnInit, OnDestroy {
     return lot.acquiredUnit === 'package' ? 'pkg' : lot.acquiredUnit;
   }
 
-  public expiryStatus(lot: StockLot): 'expired' | 'soon' | 'fresh' {
-    if (!lot.expiryDate) return 'fresh';
+  public expiryStatus(lot: StockLot): ExpiryStatus {
+    if (!lot.expiryDate) return 'none';
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const expiry = new Date(`${lot.expiryDate}T00:00:00`);
-    const days = Math.floor((expiry.getTime() - today.getTime()) / 86400000);
-    return days < 0 ? 'expired' : days <= 3 ? 'soon' : 'fresh';
+    const days = Math.round((expiry.getTime() - today.getTime()) / 86400000);
+    return days < 0 ? 'expired' : days <= EXPIRY_WARNING_DAYS ? 'soon' : 'fine';
   }
 
   public inputChanged(value: string): void {
