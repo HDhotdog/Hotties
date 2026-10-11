@@ -2,7 +2,12 @@
 <ion-menu menuId="main-menu" contentId="main-content" swipe-gesture="true" max-edge-start="400">
   <ion-header>
     <ion-toolbar>
-      <ion-title class="menu-title">Hotties</ion-title>
+      <ion-title class="menu-title">
+        <span class="menu-brand">
+          <img class="menu-logo" src="assets/icon/favicon.png" alt="" aria-hidden="true">
+          Hotties
+        </span>
+      </ion-title>
       <ion-buttons slot="end">
         <ion-button class="menu-close-button" aria-label="Close menu" (click)="closeMenu()">
           <ion-icon slot="icon-only" aria-hidden="true" name="close-outline"></ion-icon>

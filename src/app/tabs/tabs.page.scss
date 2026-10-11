@@ -17,6 +17,19 @@ ion-menu {
     text-align: start;
   }
 
+  .menu-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .menu-logo {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    object-fit: contain;
+  }
+
   ion-list {
     padding: 0;
     background: var(--drawer-surface);
