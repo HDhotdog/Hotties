@@ -24,6 +24,8 @@ log.txt
 /plugins
 /ios
 /android
+/resources/android/
+/resources/ios/
 
 # Generated
 /src/environments/version.ts
@@ -39,6 +41,15 @@ log.txt
 /.model-cache
 npm-debug.log
 yarn-error.log
+
+# Local configuration and signing material
+.env*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
 
 # IDEs and editors
 .idea/
