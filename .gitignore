@@ -42,6 +42,7 @@ yarn-error.log
 
 # IDEs and editors
 .idea/
+.vscode
 .project
 .classpath
 .c9/
@@ -49,6 +50,10 @@ yarn-error.log
 .settings/
 *.sublime-project
 *.sublime-workspace
+.codex
+.claude
+.aws
+.agents
 
 # Visual Studio Code
 .vscode/*
