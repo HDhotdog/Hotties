@@ -251,4 +251,8 @@ export class RecipeComponent implements OnInit, OnDestroy {
   get recipes(): Recipe[] {
     return this.results;
   }
+
+  get hasRecipes(): boolean {
+    return this._recipes.length > 0;
+  }
 }

@@ -54,6 +54,22 @@ describe('RecipeComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('guides users to add their first recipe when the list is empty', () => {
+    expect(fixture.nativeElement.textContent).toContain('Your recipe list is empty');
+    expect(fixture.nativeElement.textContent).toContain('Tap + above to add your first recipe.');
+  });
+
+  it('explains when search has no matching recipes', () => {
+    (component as any)._recipes = [{id: 'recipe', name: 'Soup', preparationTime: 5}];
+    component.search = 'Pizza';
+    component.filterRecipes();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('No matching recipes');
+    expect(fixture.nativeElement.textContent).toContain('Try a different search or clear your filters.');
+    expect(fixture.nativeElement.textContent).not.toContain('Your recipe list is empty');
+  });
+
   it('refreshes recipe readiness when catalog conversions change', async () => {
     const catalogChanges = new Subject<unknown[]>();
     let converted = false;

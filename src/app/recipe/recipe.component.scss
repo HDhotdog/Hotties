@@ -32,6 +32,25 @@
   padding-bottom: 20%;
 }
 
+.empty-state {
+  text-align: center;
+  margin: 18vh auto 0;
+  opacity: .62;
+}
+
+.empty-state ion-icon {
+  font-size: 48px;
+}
+
+.empty-state p {
+  margin: 12px 0 3px;
+  font-weight: 600;
+}
+
+.empty-state span {
+  font-size: 14px;
+}
+
 .recipe-preview-container {
   display: flex;
   flex-direction: row;

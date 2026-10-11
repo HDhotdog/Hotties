@@ -46,7 +46,7 @@
       </ion-title>
 
       <ion-buttons slot="end">
-        <ion-button class="add-button" (click)="newRecipe()">
+        <ion-button class="add-button" (click)="newRecipe()" aria-label="Add recipe">
           <ion-icon name="add"></ion-icon>
         </ion-button>
         <ion-button (click)="openFilterMenu()">
@@ -101,6 +101,17 @@
               }
             </div>
           </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
+          @if (hasRecipes) {
+            <p>No matching recipes</p>
+            <span>Try a different search or clear your filters.</span>
+          } @else {
+            <p>Your recipe list is empty</p>
+            <span>Tap + above to add your first recipe.</span>
+          }
         </div>
       }
     </div>
