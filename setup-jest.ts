@@ -1,6 +1,7 @@
 import {setupZoneTestEnv} from 'jest-preset-angular/setup-env/zone';
 import {disableWarnings} from 'rxdb/plugins/dev-mode';
 import {webcrypto} from 'node:crypto';
+import {registerAppIcons} from './src/app/app-icons';
 
 // jsdom doesn't implement crypto.subtle, which RxDB needs to hash schemas.
 if (!globalThis.crypto?.subtle) {
@@ -80,4 +81,5 @@ if (typeof HTMLCanvasElement !== 'undefined') {
 }
 
 setupZoneTestEnv();
+registerAppIcons();
 disableWarnings();
