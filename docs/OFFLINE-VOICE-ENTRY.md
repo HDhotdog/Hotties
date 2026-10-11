@@ -20,12 +20,15 @@ six product names already assigned to each category. These are suggestions,
 not classifications guaranteed to be correct. Newly selected products enrich
 future suggestions. The base model is Apache-2.0 licensed.
 
-`npm run build` downloads a pinned model revision into the ignored
-`.model-cache/` directory, verifies SHA-256 hashes, and bundles the weights,
-tokenizer, and ONNX WASM runtime with the app. A verified cache supports later
-offline builds. At runtime, remote model loading is disabled; product names and
-embeddings remain on the device. Only a build-time model download needs a
-network connection.
+The Android APK contains no model weights, tokenizer, or ONNX WASM files.
+In **Settings → Manage AI models**, the user can download or delete the optional
+model. Android downloads the pinned files on Wi-Fi by default; using cellular
+data requires confirmation for that download. Every file is checked against a
+size and SHA-256 hash before the model becomes available. The manifest is in
+`native/android/ai-model-manifest.json`. When installed, all category ranking
+runs locally and works offline. The **Use AI suggestions** switch can disable
+ranking without deleting the model; typed entry, speech, and manual category
+selection continue to work. Web and iOS use manual selection for now.
 
 For Android, run `npm run native:configure` before `npx cap sync android`.
 The native project is generated and ignored by Git; configuration copies and
@@ -33,8 +36,9 @@ registers the tracked offline speech plugin and adds microphone permission.
 
 ## Verification on a phone
 
-1. Create a food category such as **Backwaren**. Install the APK and switch to airplane mode.
+1. Install the APK, open **Manage AI models**, and download the model over Wi-Fi. Create a food category such as **Backwaren**, then switch to airplane mode.
 2. Type `Brezel`, choose Backwaren, confirm, and check one piece in the fridge.
 3. With a German on-device speech pack available, say `Eine Brezel`; correct the review if needed, confirm, and check one additional piece.
 4. Try a different food name and quantity, a category with no product examples, microphone denial, and cancelled recognition.
-5. Record cold model load, warm suggestion latency, memory, UI responsiveness, and APK size on the target phone. The build alone does not establish phone performance.
+5. Disable AI suggestions and verify no ranking runs; delete the model and verify manual selection still works.
+6. Record cold model load, warm suggestion latency, memory, UI responsiveness, and APK size on the target phone. The build alone does not establish phone performance.

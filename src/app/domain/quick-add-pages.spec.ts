@@ -28,7 +28,7 @@ describe('Quick add pages', () => {
     byId: jest.Mock; matches: jest.Mock; observe: jest.Mock };
   let shopping: { addProduct: jest.Mock; observe: jest.Mock; reconcileCompleted: jest.Mock };
   let stock: { receive: jest.Mock; suggestedPackages: jest.Mock; observe: jest.Mock; all: jest.Mock };
-  let categorySuggestions: { rank: jest.Mock };
+  let categorySuggestions: { rank: jest.Mock; availability: jest.Mock };
 
   beforeEach(() => {
     catalog = {
@@ -47,7 +47,8 @@ describe('Quick add pages', () => {
       receive: jest.fn().mockResolvedValue({}), suggestedPackages: jest.fn().mockReturnValue(1),
       observe: jest.fn().mockReturnValue(of([])), all: jest.fn().mockResolvedValue([])
     };
-    categorySuggestions = {rank: jest.fn().mockResolvedValue([])};
+    categorySuggestions = {rank: jest.fn().mockResolvedValue([]),
+      availability: jest.fn().mockResolvedValue({enabled: true, ready: true})};
     TestBed.configureTestingModule({
       providers: [
         provideIonicAngular(),

@@ -1,0 +1,33 @@
+.model-settings {
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.setting-card {
+  border: 1px solid var(--ion-color-medium-tint);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.setting-card h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
+
+.setting-card p {
+  line-height: 1.4;
+}
+
+.setting-card progress {
+  width: 100%;
+  height: 12px;
+}
+
+.setting-card ion-button {
+  margin-top: 12px;
+}
+
+.error {
+  color: var(--ion-color-danger);
+}

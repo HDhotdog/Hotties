@@ -35,6 +35,7 @@ interface StockReview {
   suggestedIds: string[];
   ranking: boolean;
   categoryError: boolean;
+  modelUnavailable: boolean;
 }
 
 interface StockCategoryGroup {
@@ -225,7 +226,8 @@ export class StockPageComponent implements OnInit, OnDestroy {
       name: parsed.name, count: parsed.count,
       productId: selectedNode?.kind === 'product' ? selectedNode.id : '',
       categoryId: selectedNode?.kind === 'class' ? selectedNode.id : '',
-      newCategoryName: '', bulkAmount: null, suggestedIds: [], ranking: false, categoryError: false
+      newCategoryName: '', bulkAmount: null, suggestedIds: [], ranking: false, categoryError: false,
+      modelUnavailable: false
     };
     this.suggestionsOpen = false;
     await this.refreshReview();
@@ -268,16 +270,26 @@ export class StockPageComponent implements OnInit, OnDestroy {
       review.categoryId = product.parentId ?? '';
       review.suggestedIds = [];
       review.ranking = false;
+      review.modelUnavailable = false;
       this.cdr.markForCheck();
       return;
     }
     review.productId = '';
     review.suggestedIds = [];
-    review.ranking = this.foodClasses.length > 0;
+    review.ranking = false;
     review.categoryError = false;
+    review.modelUnavailable = false;
     this.cdr.markForCheck();
-    if (!review.ranking) return;
+    if (!this.foodClasses.length) return;
     try {
+      const availability = await this.categorySuggestions.availability();
+      if (this.review !== review || version !== this.reviewVersion) return;
+      if (!availability.ready) {
+        review.modelUnavailable = availability.enabled;
+        return;
+      }
+      review.ranking = true;
+      this.cdr.markForCheck();
       const ids = await this.categorySuggestions.rank(review.name, this.nodes);
       if (this.review === review && version === this.reviewVersion) review.suggestedIds = ids;
     } catch {

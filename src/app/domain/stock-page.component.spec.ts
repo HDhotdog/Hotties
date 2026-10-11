@@ -66,7 +66,8 @@ describe('StockPageComponent category view', () => {
         {provide: MenuController, useValue: {open: jest.fn()}},
         {provide: CatalogService, useValue: {observe: () => nodes$.asObservable(), matches: jest.fn()}},
         {provide: StockService, useValue: {observe: () => lots$.asObservable(), save, remove}},
-        {provide: CategorySuggestionService, useValue: {rank: jest.fn()}}
+        {provide: CategorySuggestionService, useValue: {rank: jest.fn(),
+          availability: jest.fn().mockResolvedValue({enabled: true, ready: true})}}
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(StockPageComponent);

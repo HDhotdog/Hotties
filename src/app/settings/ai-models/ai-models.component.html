@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()" aria-label="Back to settings">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Manage AI models</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="model-settings">
+    <section class="setting-card">
+      <ion-toggle [checked]="enabled" (ionChange)="toggleEnabled($event.detail.checked)"
+                  aria-label="Use AI suggestions">Use AI suggestions</ion-toggle>
+      <p>Suggests food categories on this device. Typing, speech, scanning, and manual category selection still work when off.</p>
+    </section>
+
+    <section class="setting-card" aria-label="Category suggestion model">
+      <h2>Category suggestion model</h2>
+      @if (!supported) {
+        <p>Model downloads are available on Android. Choose categories manually on this device.</p>
+      } @else {
+        @switch (status.state) {
+          @case ('ready') {
+            <p role="status">Downloaded · available offline</p>
+          }
+          @case ('downloading') {
+            <p role="status">Downloading {{ progressPercent() }}% · {{ formatBytes(status.downloadedBytes) }} of {{ formatBytes(status.totalBytes) }}</p>
+            <progress [value]="status.downloadedBytes" [max]="status.totalBytes" aria-label="Model download progress"></progress>
+          }
+          @case ('paused') {
+            <p role="status">Waiting for an allowed network · {{ progressPercent() }}% downloaded</p>
+            <progress [value]="status.downloadedBytes" [max]="status.totalBytes" aria-label="Model download progress"></progress>
+          }
+          @case ('failed') {
+            <p role="status">Download failed. Verified files are kept for retry.</p>
+          }
+          @default {
+            <p role="status">Not downloaded · about 157 MB</p>
+          }
+        }
+        @if (status.state === 'missing' || status.state === 'failed') {
+          <ion-button expand="block" (click)="download()" [disabled]="busy">
+            {{ status.state === 'failed' ? 'Retry download' : 'Download model' }}
+          </ion-button>
+          <p>Downloads use Wi-Fi by default. You can approve cellular data for one download.</p>
+        }
+        @if (status.state !== 'missing') {
+          <ion-button expand="block" fill="outline" color="danger" (click)="delete()" [disabled]="busy">
+            {{ status.state === 'ready' ? 'Delete model' : 'Cancel and delete download' }}
+          </ion-button>
+        }
+      }
+      @if (error) {
+        <p class="error" role="alert">{{ error }}</p>
+      }
+    </section>
+  </div>
+</ion-content>

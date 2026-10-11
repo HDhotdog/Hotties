@@ -3,7 +3,6 @@ import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 
 import {RouterModule} from '@angular/router';
 import {Keyboard} from '@capacitor/keyboard';
-import {CategorySuggestionService} from "./domain/category-suggestion.service";
 
 @Component({
   selector: 'app-root',
@@ -19,7 +18,6 @@ import {CategorySuggestionService} from "./domain/category-suggestion.service";
 })
 export class AppComponent {
   private platform = inject(Platform);
-  private categorySuggestionService = inject(CategorySuggestionService);
 
   constructor() {
     this.initializeApp();
@@ -33,6 +31,5 @@ export class AppComponent {
         Keyboard.setScroll({isDisabled: false});
       }
     });
-    this.categorySuggestionService.warmUp();
   }
 }

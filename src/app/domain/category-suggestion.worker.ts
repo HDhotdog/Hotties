@@ -1,12 +1,15 @@
-import {pipeline} from '@huggingface/transformers';
+import {env, pipeline} from '@huggingface/transformers';
 
 let extractor: any = null;
+let configured = false;
 let cachedEmbeddings: Array<{ categoryId: string; embedding: number[] }> = [];
 let lastNodeCount = 0;
 
 async function getExtractor() {
+  if (!configured) throw new Error('AI model is not configured.');
   if (!extractor) {
-    extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+    extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+      {dtype: 'q8', local_files_only: true});
   }
   return extractor;
 }
@@ -24,6 +27,19 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 self.onmessage = async (event: MessageEvent) => {
+  if (event.data.kind === 'configure') {
+    const baseUrl = String(event.data.baseUrl).replace(/\/$/, '');
+    env.allowRemoteModels = false;
+    env.allowLocalModels = true;
+    env.useBrowserCache = false;
+    env.localModelPath = `${baseUrl}/models/`;
+    env.backends.onnx.wasm.wasmPaths = {
+      mjs: `${baseUrl}/wasm/ort-wasm-simd-threaded.jsep.mjs`,
+      wasm: `${baseUrl}/wasm/ort-wasm-simd-threaded.jsep.wasm`
+    };
+    configured = true;
+    return;
+  }
   const {id, name, nodes} = event.data;
 
   try {
@@ -35,7 +51,6 @@ self.onmessage = async (event: MessageEvent) => {
     const model = await getExtractor();
     // 1. Extract product nodes that have a parent category (parentId)
     const productNodes = nodes.filter((n: any) => n.kind === 'product' && n.parentId);
-    console.log(productNodes)
     // 2. Re-embed catalog nodes only if the catalog size/items changed
     if (productNodes.length !== lastNodeCount || cachedEmbeddings.length === 0) {
       cachedEmbeddings = [];

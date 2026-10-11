@@ -6,6 +6,7 @@ import {CategorySettingComponent} from './category-setting/category-setting.comp
 import {SettingsComponent} from './settings.component';
 import {LabelSettingComponent} from './label-setting/label-setting.component';
 import {InfoComponent} from "./info/info.component";
+import {AiModelsComponent} from './ai-models/ai-models.component';
 
 const routes: Routes = [
   {
@@ -27,6 +28,10 @@ const routes: Routes = [
   {
     path: 'info',
     component: InfoComponent
+  },
+  {
+    path: 'ai-models',
+    component: AiModelsComponent
   },
   {
     path: 'category/new',

@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 // Native projects are generated locally and gitignored. Apply required scanner
 // settings after `cap add` and before every `cap sync`.
@@ -14,7 +14,7 @@ if (existsSync(androidVariables)) {
   const manifestPath = 'android/app/src/main/AndroidManifest.xml';
   if (existsSync(manifestPath)) {
     let manifest = readFileSync(manifestPath, 'utf8');
-    for (const permission of ['android.permission.CAMERA', 'android.permission.INTERNET', 'android.permission.RECORD_AUDIO']) {
+    for (const permission of ['android.permission.CAMERA', 'android.permission.INTERNET', 'android.permission.RECORD_AUDIO', 'android.permission.ACCESS_NETWORK_STATE']) {
       if (!manifest.includes(permission)) {
         manifest = manifest.replace(/<manifest\b[^>]*>/, (tag) => `${tag}\n    <uses-permission android:name="${permission}" />`);
       }
@@ -43,7 +43,16 @@ if (existsSync(androidVariables)) {
       if (!activity.includes('OfflineSpeechPlugin.class')) throw new Error('Could not register offline speech plugin.');
       writeFileSync(mainActivityPath, activity);
     }
+    if (!activity.includes('AiModelPlugin.class')) {
+      activity = activity.replace('registerPlugin(OfflineSpeechPlugin.class);',
+        'registerPlugin(OfflineSpeechPlugin.class);\n    registerPlugin(AiModelPlugin.class);');
+      if (!activity.includes('AiModelPlugin.class')) throw new Error('Could not register AI model plugin.');
+      writeFileSync(mainActivityPath, activity);
+    }
     copyFileSync('native/android/OfflineSpeechPlugin.java', `${javaDir}/OfflineSpeechPlugin.java`);
+    copyFileSync('native/android/AiModelPlugin.java', `${javaDir}/AiModelPlugin.java`);
+    mkdirSync('android/app/src/main/assets', {recursive: true});
+    copyFileSync('native/android/ai-model-manifest.json', 'android/app/src/main/assets/ai-model-manifest.json');
   }
 }
 

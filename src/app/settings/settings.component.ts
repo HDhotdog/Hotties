@@ -58,4 +58,8 @@ export class SettingsComponent {
   public openInfoSetting() {
     this.router.navigate(['info'], {relativeTo: this.route});
   }
+
+  public openAiModels(): void {
+    void this.router.navigate(['ai-models'], {relativeTo: this.route});
+  }
 }

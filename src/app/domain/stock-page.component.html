@@ -132,6 +132,9 @@
           @if (review.categoryError) {
             <span>Suggestions are unavailable. Choose a category below.</span>
           }
+          @if (review.modelUnavailable) {
+            <span>AI suggestions need a downloaded model. Choose a category below, or download it in Settings.</span>
+          }
           @if (reviewSuggestions.length) {
             <div class="category-chips" aria-label="Suggested categories">
               @for (category of reviewSuggestions; track category.id) {
