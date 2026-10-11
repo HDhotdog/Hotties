@@ -1,3 +1,4 @@
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC_BY--NC--SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 # Hotties
 
 A personal offline-first mobile app for managing cooking recipes and a categorized shopping list. Built with **Ionic Angular** and packaged for Android/iOS with **Capacitor**.
@@ -165,4 +166,4 @@ The active shopping, stock, catalog, scanner, and recipe ingredient flows use Rx
 
 ## License
 
-Private personal project.
+This project is licensed under the [CC BY-NC-SA 4.0](LICENSE) License.
