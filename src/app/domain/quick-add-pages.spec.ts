@@ -1,7 +1,8 @@
 import {TestBed} from '@angular/core/testing';
 import {ChangeDetectorRef} from '@angular/core';
 import {Router} from '@angular/router';
-import {MenuController} from '@ionic/angular';
+import {MenuController, provideIonicAngular} from '@ionic/angular';
+import {of} from 'rxjs';
 import {CatalogService} from './catalog.service';
 import {blankClass, CatalogNode} from './catalog.model';
 import {ShoppingService} from './shopping.service';
@@ -23,28 +24,40 @@ describe('Quick add pages', () => {
     brand: null, barcodes: [], saleKind: 'variable', packageAmount: null, packageUnit: null,
     variableUnit: 'g', rawPackage: null, unitConversions: {}
   };
-  let catalog: { findOrCreateClass: jest.Mock; save: jest.Mock; all: jest.Mock; byId: jest.Mock; matches: jest.Mock };
-  let shopping: { addProduct: jest.Mock; addTask: jest.Mock };
-  let stock: { receive: jest.Mock; suggestedPackages: jest.Mock };
+  let catalog: { findOrCreateClass: jest.Mock; findClass: jest.Mock; save: jest.Mock; all: jest.Mock;
+    byId: jest.Mock; matches: jest.Mock; observe: jest.Mock };
+  let shopping: { addProduct: jest.Mock; observe: jest.Mock; reconcileCompleted: jest.Mock };
+  let stock: { receive: jest.Mock; suggestedPackages: jest.Mock; observe: jest.Mock; all: jest.Mock };
   let categorySuggestions: { rank: jest.Mock };
 
   beforeEach(() => {
     catalog = {
-      findOrCreateClass: jest.fn().mockResolvedValue(milkClass),
+      findOrCreateClass: jest.fn().mockResolvedValue(milkClass), findClass: jest.fn().mockResolvedValue(undefined),
       save: jest.fn().mockResolvedValue(undefined), all: jest.fn().mockResolvedValue([milkClass, carton, loose]),
+      observe: jest.fn().mockReturnValue(of([milkClass, carton, loose])),
       byId: jest.fn(async (id: string) => [milkClass, carton, loose].find(node => node.id === id)),
       matches: jest.fn((_root: string, id: string, nodes: CatalogNode[]) =>
         nodes.find(node => node.id === id)?.parentId === 'root-food')
     };
-    shopping = {addProduct: jest.fn().mockResolvedValue({}), addTask: jest.fn().mockResolvedValue({})};
-    stock = {receive: jest.fn().mockResolvedValue({}), suggestedPackages: jest.fn().mockReturnValue(1)};
+    shopping = {
+      addProduct: jest.fn().mockResolvedValue({}), observe: jest.fn().mockReturnValue(of([])),
+      reconcileCompleted: jest.fn().mockResolvedValue(undefined)
+    };
+    stock = {
+      receive: jest.fn().mockResolvedValue({}), suggestedPackages: jest.fn().mockReturnValue(1),
+      observe: jest.fn().mockReturnValue(of([])), all: jest.fn().mockResolvedValue([])
+    };
     categorySuggestions = {rank: jest.fn().mockResolvedValue([])};
     TestBed.configureTestingModule({
       providers: [
+        provideIonicAngular(),
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: MenuController, useValue: {open: jest.fn()}},
         {provide: ChangeDetectorRef, useValue: {detectChanges: jest.fn(), markForCheck: jest.fn()}},
-        {provide: CategoryService, useValue: {}},
+        {provide: CategoryService, useValue: {
+          getCategories: () => of([{id: 'list', name: 'Shopping'}]),
+          getSelectedCategoryId: () => of('list'), saveCurrentCategory: () => of({})
+        }},
         {provide: CatalogService, useValue: catalog},
         {provide: ShoppingService, useValue: shopping},
         {provide: StockService, useValue: stock},
@@ -61,6 +74,35 @@ describe('Quick add pages', () => {
     await page.add();
     expect(shopping.addProduct).toHaveBeenCalledWith('list', milkClass.id, {kind: 'unspecified'}, 'Milk');
     expect(page.newName).toBe('');
+  });
+
+  it('keeps quick entry for names outside the catalog', async () => {
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    page.selectedListId = 'list';
+    page.nodes = [milkClass];
+    page.inputChanged('Dish soap');
+    await page.add();
+    expect(shopping.addProduct).toHaveBeenCalledWith('list', undefined, {kind: 'unspecified'}, 'Dish soap');
+  });
+
+  it('opens the scanner at the shopping route', () => {
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    page.openScanner();
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/tabs/shopping/scan']);
+  });
+
+  it('shows quantity controls without a task option', async () => {
+    const fixture = TestBed.createComponent(ShoppingPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const toggle = fixture.nativeElement.querySelector('.details-toggle') as HTMLButtonElement;
+    expect(toggle.getAttribute('aria-label')).toBe('Show quantity options');
+    toggle.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('select[aria-label="Quantity type"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.kind-switch')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Task');
   });
 
   it('adds an exact product as one package, with measured amount available in options', async () => {

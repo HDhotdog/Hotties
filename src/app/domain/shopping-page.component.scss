@@ -69,10 +69,6 @@ ion-toolbar {
   background: var(--ion-color-primary);
 }
 
-.entry.task::before {
-  background: var(--ion-color-medium);
-}
-
 .entry.checked {
   opacity: .58;
 }
@@ -270,26 +266,6 @@ ion-toolbar {
 
 .add-details {
   padding: 8px 4px 12px;
-}
-
-.kind-switch {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.kind-switch button {
-  min-height: 38px;
-  border: 0;
-  border-radius: 8px;
-  padding: 0 14px;
-  color: var(--ion-text-color);
-  background: #2a2a2a;
-}
-
-.kind-switch button.active {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
 }
 
 .detail-fields {

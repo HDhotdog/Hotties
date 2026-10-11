@@ -45,7 +45,6 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   public entries: ShoppingEntry[] = [];
   public nodes: CatalogNode[] = [];
   public lots: StockLot[] = [];
-  public kind: 'product' | 'task' = 'product';
   public selectedNodeId = '';
   public newName = '';
   public needKind: NeedKind = 'unspecified';
@@ -94,7 +93,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   }
 
   public openScanner(): void {
-    void this.router.navigate(['/tabs/todo/scan']);
+    void this.router.navigate(['/tabs/shopping/scan']);
   }
 
   public selectList(): void {
@@ -113,7 +112,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
 
   public get suggestions(): CatalogNode[] {
     const query = this.newName.trim().toLocaleLowerCase();
-    if (!query || this.kind === 'task' || !this.suggestionsOpen) return [];
+    if (!query || !this.suggestionsOpen) return [];
     return this.nodesForSelection.filter(node =>
       `${node.name} ${node.brand ?? ''}`.toLocaleLowerCase().includes(query))
       .sort((a, b) => Number(b.name.toLocaleLowerCase() === query) - Number(a.name.toLocaleLowerCase() === query) ||
@@ -211,32 +210,27 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
       if (!this.selectedListId) {
         throw new Error('Create a shopping list first.');
       }
-      if (this.kind === 'task') {
-        await this.shopping.addTask(this.selectedListId, this.newName);
+      const originalUserInput = this.newName.trim();
+      const userInput = originalUserInput.toLocaleLowerCase();
+      const exactClass = this.nodesForSelection.find(node => node.kind === 'class' && node.name.toLocaleLowerCase() === userInput);
+      const exactProduct = this.nodesForSelection.find(node => node.kind === 'product' && node.name.toLocaleLowerCase() === userInput);
+      const targetNode = this.selectedNodeId ? this.nodes.find(node => node.id === this.selectedNodeId) : exactClass ?? exactProduct;
+      const target = targetNode?.id ?? (await this.catalog.findClass(this.newName))?.id;
+      const optionalName = targetNode?.name ?? originalUserInput;
+      const needKind = this.detailsOpen ? this.needKind : targetNode?.kind === 'product' ? 'packages' : 'unspecified';
+      if (needKind === 'quantity') {
+        await this.shopping.addProduct(this.selectedListId, target,
+          {kind: 'quantity', quantity: normalizeQuantity({amount: this.needAmount, unit: this.needUnit})}, optionalName);
+      } else if (needKind === 'packages') {
+        await this.shopping.addProduct(this.selectedListId, target,
+          {kind: 'packages', count: this.needAmount}, optionalName);
       } else {
-        const originalUserInput = this.newName.trim();
-        const userInput = originalUserInput.toLocaleLowerCase();
-        const exactClass = this.nodesForSelection.find(node => node.kind === 'class' && node.name.toLocaleLowerCase() === userInput);
-        const exactProduct = this.nodesForSelection.find(node => node.kind === 'product' && node.name.toLocaleLowerCase() === userInput);
-        const targetNode = this.selectedNodeId ? this.nodes.find(node => node.id === this.selectedNodeId) : exactClass ?? exactProduct;
-        const target = targetNode?.id ?? (await this.catalog.findClass(this.newName))?.id;
-        const optionalName = targetNode?.name ?? originalUserInput;
-        const needKind = this.detailsOpen ? this.needKind : targetNode?.kind === 'product' ? 'packages' : 'unspecified';
-        if (needKind === 'quantity') {
-          await this.shopping.addProduct(this.selectedListId, target,
-            {kind: 'quantity', quantity: normalizeQuantity({amount: this.needAmount, unit: this.needUnit})}, optionalName);
-        } else if (needKind === 'packages') {
-          await this.shopping.addProduct(this.selectedListId, target,
-            {kind: 'packages', count: this.needAmount}, optionalName);
-        } else {
-          await this.shopping.addProduct(this.selectedListId, target, {kind: 'unspecified'}, optionalName);
-        }
+        await this.shopping.addProduct(this.selectedListId, target, {kind: 'unspecified'}, optionalName);
       }
       this.newName = '';
       this.selectedNodeId = '';
       this.needKind = 'unspecified';
       this.needAmount = 1;
-      this.kind = 'product';
       this.suggestionsOpen = false;
       this.quickInput?.nativeElement.focus();
     } catch (error) {

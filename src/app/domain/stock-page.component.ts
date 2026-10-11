@@ -354,7 +354,7 @@ export class StockPageComponent implements OnInit, OnDestroy {
   }
 
   public openScanner(): void {
-    void this.router.navigate(['/tabs/todo/scan'], {queryParams: {from: 'fridge'}});
+    void this.router.navigate(['/tabs/shopping/scan'], {queryParams: {from: 'fridge'}});
   }
 
   public get products(): CatalogNode[] {

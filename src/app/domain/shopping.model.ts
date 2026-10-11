@@ -5,7 +5,7 @@ export type NeedKind = 'quantity' | 'packages' | 'unspecified';
 export interface ShoppingEntry {
   id: string;
   shoppingListId: string;
-  kind: 'product' | 'task';
+  kind: 'product';
   targetNodeId?: string | null;
   label?: string;
   needKind: NeedKind;

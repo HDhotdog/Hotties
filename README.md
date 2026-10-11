@@ -10,7 +10,7 @@ Shopping, recipes, scanning, and stock now share a [catalog tree and quantity mo
 
 ### Shopping List
 - Create product or class needs with measured quantities, exact package counts, or no specified amount
-- Keep text errands alongside product needs and organize lists by store
+- Quickly add food or household items by name and organize lists by store
 - Check entries to strike them through and move them below active entries
 - Scan purchased products after shopping; matching needs clear once their quantities are covered
 - Keep partial needs visible and show package suggestions for a chosen product

@@ -383,7 +383,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
 
   public backToShopping(): void {
     this.endCameraSession();
-    void this.router.navigate([this.route.snapshot.queryParamMap.get('from') === 'fridge' ? '/tabs/fridge' : '/tabs/todo']);
+    void this.router.navigate([this.route.snapshot.queryParamMap.get('from') === 'fridge' ? '/tabs/fridge' : '/tabs/shopping']);
   }
 
   public viewFridge(): void {

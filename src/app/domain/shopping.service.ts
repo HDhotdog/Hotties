@@ -46,24 +46,6 @@ export class ShoppingService {
     return entry;
   }
 
-  public async addTask(listId: string, label: string): Promise<ShoppingEntry> {
-    const entry: ShoppingEntry = {
-      id: uuidv4(),
-      shoppingListId: listId,
-      kind: 'task',
-      targetNodeId: null,
-      label: label.trim(),
-      needKind: 'unspecified',
-      needAmount: null,
-      needUnit: null,
-      checked: false,
-      createdAt: Date.now(),
-      retiredAllocations: []
-    };
-    await this.save(entry);
-    return entry;
-  }
-
   public async save(entry: ShoppingEntry): Promise<void> {
     if (!entry.label?.trim()) throw new Error('A shopping entry needs a name.');
     const db = await this.database.getDb();
@@ -114,7 +96,6 @@ export class ShoppingService {
 
   public async reconcileCompleted(lots: StockLot[]): Promise<void> {
     for (const entry of await this.all()) {
-      if (entry.kind === 'task') continue;
       const fulfilled = await this.progress(entry, lots);
       if (fulfilled >= (entry.needAmount ?? 1) - 1e-9) await this.remove(entry.id);
     }

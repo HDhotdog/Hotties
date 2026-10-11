@@ -5,6 +5,7 @@ import {v4 as uuidv4} from 'uuid';
 import {createHottiesDatabase} from './database';
 import {CATALOG_SCHEMA_LITERAL} from './schema/catalog.schema';
 import {SHOPPING_ENTRY_SCHEMA_LITERAL} from './schema/shopping-entry.schema';
+import {STOCK_LOT_SCHEMA_LITERAL} from './schema/stock-lot.schema';
 
 describe('createHottiesDatabase() seeding', () => {
   let db: RxDatabase;
@@ -148,6 +149,54 @@ describe('shopping entry schema migration (v0 -> v1, retired allocations)', () =
     try {
       expect((await db['shopping_entries'].findOne('need').exec())?.toJSON())
         .toMatchObject({needAmount: 200, retiredAllocations: []});
+    } finally {
+      await db.close();
+    }
+  });
+});
+
+describe('shopping entry schema migration (v1 -> v2, products only)', () => {
+  it('deletes saved tasks while retaining product needs and stock allocations', async () => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    await oldDb.addCollections({
+      shopping_entries: {
+        schema: {...SHOPPING_ENTRY_SCHEMA_LITERAL.schema, version: 1, properties: {
+          ...SHOPPING_ENTRY_SCHEMA_LITERAL.schema.properties,
+          kind: {type: 'string', enum: ['product', 'task']}
+        }},
+        migrationStrategies: {1: (oldDoc: any) => oldDoc}
+      },
+      stock_lots: STOCK_LOT_SCHEMA_LITERAL
+    });
+    await oldDb['shopping_entries'].bulkInsert([
+      {id: 'task', shoppingListId: 'list', kind: 'task', targetNodeId: null, label: 'Call plumber',
+        needKind: 'unspecified', needAmount: null, needUnit: null, checked: false, createdAt: 1,
+        retiredAllocations: []},
+      {id: 'milk', shoppingListId: 'list', kind: 'product', targetNodeId: 'milk-class', label: 'Milk',
+        needKind: 'quantity', needAmount: 2000, needUnit: 'ml', checked: false, createdAt: 2,
+        retiredAllocations: [{lotId: 'old-lot', amount: 500, unit: 'ml'}]}
+    ]);
+    await oldDb['stock_lots'].upsert({
+      id: 'lot', productId: 'carton', acquiredPackages: 1,
+      acquiredAmount: 1000, acquiredUnit: 'ml', remainingAmount: 500, expiryDate: null,
+      allocations: [{shoppingEntryId: 'milk', amount: 500, unit: 'ml'}], createdAt: 3
+    });
+    await oldDb.close();
+
+    const db = await createHottiesDatabase(storage, dbName, false);
+    try {
+      expect((await db['shopping_entries'].find().exec()).map((doc: any) => doc.id)).toEqual(['milk']);
+      expect((await db['shopping_entries'].findOne('milk').exec())?.toJSON())
+        .toMatchObject({kind: 'product', retiredAllocations: [{lotId: 'old-lot', amount: 500, unit: 'ml'}]});
+      expect((await db['stock_lots'].findOne('lot').exec())?.toJSON())
+        .toMatchObject({allocations: [{shoppingEntryId: 'milk', amount: 500, unit: 'ml'}]});
+      await expect(db['shopping_entries'].insert({
+        id: 'new-task', shoppingListId: 'list', kind: 'task', label: 'Call plumber',
+        needKind: 'unspecified', needAmount: null, needUnit: null, checked: false,
+        createdAt: 4, retiredAllocations: []
+      })).rejects.toThrow();
     } finally {
       await db.close();
     }

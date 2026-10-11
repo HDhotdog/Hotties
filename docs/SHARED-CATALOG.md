@@ -11,7 +11,7 @@ Products have fixed, variable, or unknown sale specifications. Fixed products st
 ## Usage records
 
 - `recipe_ingredients` stores the recipe's target node and required amount independently of package size.
-- `shopping_entries` stores an exact product or generic class need, or a separate text task. Needs are measured quantity, exact-product package count, or unspecified. Checking an entry keeps it visible at the bottom.
+- `shopping_entries` stores an exact product, generic class, or free-text shopping need. Needs are measured quantity, exact-product package count, or unspecified. Checking an entry keeps it visible at the bottom. Existing task entries are removed by the v2 collection migration.
 - `stock_lots` stores an acquired product, package count or bulk amount, remaining amount, expiry, and allocations to shopping entries. A lot may group packages with the same expiry. Remaining stock cannot exceed acquired stock.
 
 Scanning adds one package to a lot and assigns its content to compatible entries in the active shopping list. Exact product matches win, then the deepest matching class, then checked entries. Allocations are stored on the lot. Partially fulfilled entries remain; completed entries are removed. A scan ID makes retries idempotent, and opening the shopping page reconciles completed entries after an interrupted removal.

@@ -2,7 +2,7 @@
 
 ## Flow
 
-1. The shopping list toolbar opens `/tabs/todo/scan`.
+1. The shopping list toolbar opens `/tabs/shopping/scan`.
 2. On a phone, the scan page opens the native camera scanner. A manual barcode field remains available if camera access fails or the code cannot be read.
 3. The barcode is validated as 8–14 digits and checked against the local `items` collection. A cached item needs no network request.
 4. For a new barcode, the app requests only `code,product_name,generic_name,brands,quantity` from the Open Food Facts v3 product endpoint. The response creates an `items` row with the barcode, name, brand, and package quantity. A scan represents one package. It then creates a `fridge_items` row linked by `itemId`, with quantity one and no guessed expiry date.

@@ -1,10 +1,10 @@
 export const SHOPPING_ENTRY_SCHEMA_LITERAL = {
   schema: {
-    version: 1, primaryKey: 'id', type: 'object',
+    version: 2, primaryKey: 'id', type: 'object',
     properties: {
       id: {type: 'string', maxLength: 255},
       shoppingListId: {type: 'string'},
-      kind: {type: 'string', enum: ['product', 'task']},
+      kind: {type: 'string', enum: ['product']},
       targetNodeId: {type: ['string', 'null']},
       label: {type: 'string', minLength: 1},
       needKind: {type: 'string', enum: ['quantity', 'packages', 'unspecified']},
@@ -22,6 +22,7 @@ export const SHOPPING_ENTRY_SCHEMA_LITERAL = {
     required: ['id', 'shoppingListId', 'kind', 'needKind', 'needAmount', 'needUnit', 'checked', 'createdAt', 'retiredAllocations'],
   },
   migrationStrategies: {
-    1: (oldDoc: any) => ({...oldDoc, retiredAllocations: []})
+    1: (oldDoc: any) => ({...oldDoc, retiredAllocations: []}),
+    2: (oldDoc: any) => oldDoc.kind === 'task' ? null : oldDoc
   }
 };

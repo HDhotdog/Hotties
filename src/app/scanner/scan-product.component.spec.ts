@@ -80,6 +80,15 @@ describe('ScanProductComponent', () => {
 
   afterEach(() => scanner.mockRestore());
 
+  it('returns to shopping, or to the fridge when the scan started there', () => {
+    const router = TestBed.inject(Router);
+    component.backToShopping();
+    expect(router.navigate).toHaveBeenLastCalledWith(['/tabs/shopping']);
+    (TestBed.inject(ActivatedRoute).snapshot as any).queryParamMap = convertToParamMap({from: 'fridge'});
+    component.backToShopping();
+    expect(router.navigate).toHaveBeenLastCalledWith(['/tabs/fridge']);
+  });
+
   it('orders category choices by their full path', () => {
     const food = {...product, id: 'root-food', kind: 'class' as const, name: 'Food', parentId: null};
     const pasta = {...food, id: 'pasta', name: 'Teigwaren', parentId: food.id};

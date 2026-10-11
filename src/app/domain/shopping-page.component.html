@@ -25,19 +25,14 @@
 <ion-content>
   <div class="entries">
     @for (entry of entries; track entry.id) {
-      <div class="entry" [class.checked]="entry.checked" [class.task]="entry.kind === 'task'">
+      <div class="entry" [class.checked]="entry.checked">
         <button class="remove-button" type="button" (click)="remove(entry)" [attr.aria-label]="'Remove ' + entry.label">
           <ion-icon name="close-outline"></ion-icon>
         </button>
         <button class="entry-main" type="button" (click)="toggleEntryDetails(entry)"
                 [attr.aria-label]="'Details for ' + entry.label" [attr.aria-expanded]="expandedEntryId === entry.id">
           <span class="entry-name">{{ entryTitle(entry) }}</span>
-          @if (entry.kind === 'product') {
-            <span
-              class="entry-meta">{{ progress(entry) > 0 ? remainingLabel(entry) + ' left' : needLabel(entry) }}</span>
-          } @else {
-            <span class="entry-meta">Task</span>
-          }
+          <span class="entry-meta">{{ progress(entry) > 0 ? remainingLabel(entry) + ' left' : needLabel(entry) }}</span>
         </button>
         <button class="check-button" type="button" (click)="toggle(entry)"
                 [attr.aria-label]="(entry.checked ? 'Uncheck ' : 'Check ') + entry.label">
@@ -46,23 +41,19 @@
       </div>
       @if (expandedEntryId === entry.id) {
         <div class="entry-details">
-          @if (entry.kind === 'task') {
-            <span>Remove this task when it is done.</span>
-          } @else {
-            <span>Checked items stay here until the product is added to stock.</span>
-            @if (entry.needKind === 'quantity' && matchingProducts(entry).length > 0) {
-              <label>Package estimate
-                <select [(ngModel)]="suggestionProductIds[entry.id]"
-                        [attr.aria-label]="'Package estimate for ' + entry.label">
-                  <option value="">Choose a product</option>
-                  @for (product of matchingProducts(entry); track product.id) {
-                    <option [value]="product.id">{{ product.name }} {{ product.brand ?? '' }}</option>
-                  }
-                </select>
-              </label>
-              @if (suggestedPackagesForEntry(entry); as count) {
-                <span>{{ count }} package(s) to buy</span>
-              }
+          <span>Checked items stay here until the product is added to stock.</span>
+          @if (entry.needKind === 'quantity' && matchingProducts(entry).length > 0) {
+            <label>Package estimate
+              <select [(ngModel)]="suggestionProductIds[entry.id]"
+                      [attr.aria-label]="'Package estimate for ' + entry.label">
+                <option value="">Choose a product</option>
+                @for (product of matchingProducts(entry); track product.id) {
+                  <option [value]="product.id">{{ product.name }} {{ product.brand ?? '' }}</option>
+                }
+              </select>
+            </label>
+            @if (suggestedPackagesForEntry(entry); as count) {
+              <span>{{ count }} package(s) to buy</span>
             }
           }
         </div>
@@ -95,51 +86,44 @@
   }
   @if (detailsOpen) {
     <div class="add-details">
-      <div class="kind-switch" role="group" aria-label="Entry type">
-        <button type="button" [class.active]="kind === 'product'" (click)="kind = 'product'">Product</button>
-        <button type="button" [class.active]="kind === 'task'" (click)="kind = 'task'; suggestionsOpen = false">Task
-        </button>
-      </div>
-      @if (kind === 'product') {
-        <div class="detail-fields">
-          <label>Need
-            <select [(ngModel)]="needKind" aria-label="Quantity type">
-              <option value="unspecified">One purchase</option>
-              <option value="quantity">Measured amount</option>
-              @if (selectedProduct) {
-                <option value="packages">Packages</option>
-              }
-            </select>
-          </label>
-          @if (needKind !== 'unspecified') {
-            <label>Amount <input type="number" min="0.001" step="any" [(ngModel)]="needAmount"
-                                 aria-label="Amount"></label>
-            @if (needKind === 'quantity') {
-              <label>Unit
-                <select [(ngModel)]="needUnit" aria-label="Unit">
-                  @for (unit of units; track unit) {
-                    <option [value]="unit">{{ unit }}</option>
-                  }
-                </select>
-              </label>
+      <div class="detail-fields">
+        <label>Need
+          <select [(ngModel)]="needKind" aria-label="Quantity type">
+            <option value="unspecified">One purchase</option>
+            <option value="quantity">Measured amount</option>
+            @if (selectedProduct) {
+              <option value="packages">Packages</option>
             }
+          </select>
+        </label>
+        @if (needKind !== 'unspecified') {
+          <label>Amount <input type="number" min="0.001" step="any" [(ngModel)]="needAmount"
+                               aria-label="Amount"></label>
+          @if (needKind === 'quantity') {
+            <label>Unit
+              <select [(ngModel)]="needUnit" aria-label="Unit">
+                @for (unit of units; track unit) {
+                  <option [value]="unit">{{ unit }}</option>
+                }
+              </select>
+            </label>
           }
-        </div>
-        @if (suggestedPackages !== null) {
-          <span class="package-hint">About {{ suggestedPackages }} package(s)</span>
         }
+      </div>
+      @if (suggestedPackages !== null) {
+        <span class="package-hint">About {{ suggestedPackages }} package(s)</span>
       }
     </div>
   }
   <div class="composer-row">
     <button class="details-toggle" type="button" (click)="toggleDetails()"
-            [attr.aria-label]="detailsOpen ? 'Hide add options' : 'Show quantity and task options'"
+            [attr.aria-label]="detailsOpen ? 'Hide add options' : 'Show quantity options'"
             [attr.aria-expanded]="detailsOpen">
       <ion-icon [name]="detailsOpen ? 'options' : 'options-outline'"></ion-icon>
     </button>
     <input #quickInput type="text" [ngModel]="newName" (ngModelChange)="inputChanged($event)"
-           (keydown.enter)="add()" [placeholder]="kind === 'task' ? 'Add a task' : 'Add to shopping list'"
-           [attr.aria-label]="kind === 'task' ? 'New task' : 'New shopping item'" autocomplete="off">
+           (keydown.enter)="add()" placeholder="Add to shopping list"
+           aria-label="New shopping item" autocomplete="off">
     <ion-button class="add-button" (click)="add()" [disabled]="adding" aria-label="Add to shopping list">
       <ion-icon slot="icon-only" name="add"></ion-icon>
     </ion-button>
