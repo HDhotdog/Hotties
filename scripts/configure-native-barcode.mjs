@@ -1,9 +1,26 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
+const androidPackage = 'io.github.hdhotdog.hotties';
+
 // Native projects are generated locally and gitignored. Apply required scanner
 // settings after `cap add` and before every `cap sync`.
 const androidVariables = 'android/variables.gradle';
 if (existsSync(androidVariables)) {
+  const gradlePath = 'android/app/build.gradle';
+  const gradle = readFileSync(gradlePath, 'utf8');
+  if (!gradle.includes(`namespace = "${androidPackage}"`) ||
+      !gradle.includes(`applicationId "${androidPackage}"`)) {
+    throw new Error(`Unexpected Android package in ${gradlePath}. Recreate the generated project with npx cap add android.`);
+  }
+  const variantsScript = "apply from: '../../scripts/android-variants.gradle'";
+  if (!gradle.includes(variantsScript)) {
+    writeFileSync(gradlePath, `${gradle.trimEnd()}\n\n${variantsScript}\n`);
+  }
+
+  const debugStrings = 'android/app/src/debug/res/values/strings.xml';
+  mkdirSync('android/app/src/debug/res/values', { recursive: true });
+  writeFileSync(debugStrings, '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <string name="app_name">Hotties Dev</string>\n    <string name="title_activity_main">Hotties Dev</string>\n</resources>\n');
+
   const original = readFileSync(androidVariables, 'utf8');
   const updated = original.replace(/minSdkVersion\s*=\s*\d+/, 'minSdkVersion = 26');
   if (updated === original && !/minSdkVersion\s*=\s*26/.test(original)) {
@@ -26,7 +43,7 @@ if (existsSync(androidVariables)) {
     writeFileSync(manifestPath, manifest);
   }
 
-  const javaDir = 'android/app/src/main/java/io/ionic/hotties';
+  const javaDir = 'android/app/src/main/java/io/github/hdhotdog/hotties';
   const mainActivityPath = `${javaDir}/MainActivity.java`;
   if (existsSync(mainActivityPath)) {
     let activity = readFileSync(mainActivityPath, 'utf8');

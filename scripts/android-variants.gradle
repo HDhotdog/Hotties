@@ -1,0 +1,59 @@
+import groovy.json.JsonSlurper
+
+// The native Android project is generated and ignored. Keep versioning and
+// variant configuration in this tracked file instead of editing it by hand.
+def packageVersion = new JsonSlurper().parse(file('../../package.json')).version as String
+def versionMatch = (packageVersion =~ /^(\d+)\.(\d+)\.(\d+)$/)
+if (!versionMatch.matches()) {
+    throw new GradleException("Android releases require a plain major.minor.patch version: ${packageVersion}")
+}
+def major = versionMatch[0][1].toLong()
+def minor = versionMatch[0][2].toLong()
+def patch = versionMatch[0][3].toLong()
+def androidVersionCode = major * 1000000L + minor * 1000L + patch
+if (minor > 999 || patch > 999 || androidVersionCode < 1 || androidVersionCode > 2100000000L) {
+    throw new GradleException("Version ${packageVersion} cannot be represented as an Android versionCode")
+}
+
+android {
+    defaultConfig {
+        versionCode androidVersionCode.toInteger()
+        versionName packageVersion
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix '.dev'
+        }
+    }
+}
+
+def signingNames = [
+    'ANDROID_SIGNING_KEYSTORE',
+    'ANDROID_SIGNING_STORE_PASSWORD',
+    'ANDROID_SIGNING_KEY_ALIAS',
+    'ANDROID_SIGNING_KEY_PASSWORD'
+]
+def signingValues = signingNames.collectEntries { name -> [(name): System.getenv(name)] }
+if (signingValues.values().any { it }) {
+    if (signingValues.values().any { !it }) {
+        throw new GradleException('All Android signing environment variables are required for a signed release')
+    }
+    if (!file(signingValues.ANDROID_SIGNING_KEYSTORE).isFile()) {
+        throw new GradleException('Android signing keystore file was not found')
+    }
+    android {
+        signingConfigs {
+            hottiesRelease {
+                storeFile file(signingValues.ANDROID_SIGNING_KEYSTORE)
+                storePassword signingValues.ANDROID_SIGNING_STORE_PASSWORD
+                keyAlias signingValues.ANDROID_SIGNING_KEY_ALIAS
+                keyPassword signingValues.ANDROID_SIGNING_KEY_PASSWORD
+            }
+        }
+        buildTypes {
+            release {
+                signingConfig signingConfigs.hottiesRelease
+            }
+        }
+    }
+}

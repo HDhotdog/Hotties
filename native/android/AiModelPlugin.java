@@ -1,4 +1,4 @@
-package io.ionic.hotties;
+package io.github.hdhotdog.hotties;
 
 import android.app.DownloadManager;
 import android.content.Context;
