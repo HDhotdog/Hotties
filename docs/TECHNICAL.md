@@ -297,7 +297,8 @@ npx cap sync android
 ionic cap open android
 ```
 
-App ID: `io.ionic.hotties`  
+Production app ID and Java namespace: `io.github.hdhotdog.hotties`
+Debug app ID: `io.github.hdhotdog.hotties.dev`
 Web output: `www/`
 
 ## Testing

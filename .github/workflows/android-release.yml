@@ -1,0 +1,136 @@
+name: Android release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require master
+        run: |
+          if [[ "$GITHUB_REF" != refs/heads/master ]]; then
+            echo 'Android releases must run from master.' >&2
+            exit 1
+          fi
+
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22.23.1'
+          cache: npm
+
+      - name: Check release version and commit
+        id: version
+        run: |
+          set -euo pipefail
+          remote_master="$(git ls-remote origin refs/heads/master | cut -f 1)"
+          if [[ -z "$remote_master" || "$remote_master" != "$GITHUB_SHA" ]]; then
+            echo 'master moved after this run started. Start a new release run.' >&2
+            exit 1
+          fi
+          version="$(node -p "require('./package.json').version")"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo 'The release version must be major.minor.patch.' >&2
+            exit 1
+          fi
+          tag="v$version"
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            echo "Tag $tag already exists." >&2
+            exit 1
+          fi
+          latest="$(git tag -l 'v[0-9]*' | sort -V | tail -n 1)"
+          if [[ -n "$latest" && "$(printf '%s\n%s\n' "$latest" "$tag" | sort -V | tail -n 1)" != "$tag" ]]; then
+            echo "Version $tag must be newer than $latest." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Generate and sync Android project
+        run: |
+          set -euo pipefail
+          npx cap add android
+          npm run native:configure
+          npm run native:assets
+          npx cap sync android
+
+      - name: Build signed release APK
+        env:
+          ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_SIGNING_KEYSTORE_BASE64 ANDROID_SIGNING_STORE_PASSWORD ANDROID_SIGNING_KEY_ALIAS ANDROID_SIGNING_KEY_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "Missing GitHub Actions secret: $name" >&2
+              exit 1
+            fi
+          done
+          umask 077
+          export ANDROID_SIGNING_KEYSTORE="$RUNNER_TEMP/hotties-release.jks"
+          trap 'rm -f "$ANDROID_SIGNING_KEYSTORE"' EXIT
+          printf '%s' "$ANDROID_SIGNING_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_SIGNING_KEYSTORE"
+          (cd android && ./gradlew --no-daemon assembleRelease)
+
+      - name: Verify release APK
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          test -f "$apk"
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V | tail -n 1)"
+          "$ANDROID_HOME/build-tools/$build_tools/apksigner" verify --verbose --print-certs "$apk"
+          badging="$("$ANDROID_HOME/build-tools/$build_tools/aapt" dump badging "$apk" | head -n 1)"
+          expected_code="$(node -e "const [major, minor, patch] = process.env.RELEASE_VERSION.split('.').map(Number); process.stdout.write(String(major * 1000000 + minor * 1000 + patch))")"
+          [[ "$badging" == *"name='io.github.hdhotdog.hotties'"* ]] || { echo "Unexpected package: $badging" >&2; exit 1; }
+          [[ "$badging" == *"versionCode='$expected_code'"* ]] || { echo "Unexpected versionCode: $badging" >&2; exit 1; }
+          [[ "$badging" == *"versionName='$RELEASE_VERSION'"* ]] || { echo "Unexpected versionName: $badging" >&2; exit 1; }
+          cp "$apk" "$RUNNER_TEMP/Hotties-v$RELEASE_VERSION.apk"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" "$RUNNER_TEMP/Hotties-v$RELEASE_VERSION.apk" \
+            --target "$GITHUB_SHA" --generate-notes --fail-on-no-commits

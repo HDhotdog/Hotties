@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.hotties',
+  appId: 'io.github.hdhotdog.hotties',
   appName: 'Hotties',
   webDir: 'www/browser',
   server: {
