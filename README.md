@@ -3,7 +3,6 @@
 
 A personal offline-first mobile app for managing cooking recipes and a categorized shopping list. Built with **Ionic Angular** and packaged for Android/iOS with **Capacitor**.
 
-Shopping, recipes, scanning, and stock now share a [catalog tree and quantity model](docs/SHARED-CATALOG.md): generic categories such as milk can match specific barcode products, while package sizes remain separate from recipe requirements.
 
 > *"Hot cooking for hot people!"*
 
@@ -21,7 +20,6 @@ Shopping, recipes, scanning, and stock now share a [catalog tree and quantity mo
 - Review the recognized product and amount before adding stock
 - Receive local category suggestions from a bundled multilingual embedding model; choose the category yourself
 
-See [offline voice entry](docs/OFFLINE-VOICE-ENTRY.md) for device support and verification.
 
 ### Recipes
 - Create, view, edit, and delete recipes
@@ -82,7 +80,7 @@ The app opens at `http://localhost:8100` (Ionic default). All data is stored loc
 
 ## Building for Android
 
-On a fresh checkout, create the native project with `npx cap add android` first. The barcode scanner needs Android min SDK 26; `npm run export` configures the generated native project before syncing it. See [barcode scanning setup](docs/BARCODE-SCANNING.md).
+On a fresh checkout, create the native project with `npx cap add android` first. The barcode scanner needs Android min SDK 26; `npm run export` configures the generated native project before syncing it.
 
 ```bash
 # Full pipeline: build → copy → sync → open Android Studio
@@ -116,56 +114,6 @@ npm run android:install
 
 The script builds the app and APK, then updates the app on the connected phone. It uses `ANDROID_HOME` or `ANDROID_SDK_ROOT` if set, otherwise `~/Android/Sdk`. Set `JAVA_HOME` if your default Java is not JDK 21. If more than one device is connected, set `ANDROID_SERIAL` to the target device ID shown by `adb devices`.
 
-### Signed GitHub releases
-
-The [Android release workflow](.github/workflows/android-release.yml) runs manually
-from `master`. It builds and checks the app, signs a release APK, then creates
-`vX.Y.Z` with generated notes and an APK download. It does not publish to Google
-Play. To prepare a version, create a feature branch and use one of:
-
-```bash
-npm version patch --no-git-tag-version
-npm version minor --no-git-tag-version
-npm version major --no-git-tag-version
-```
-
-Review and merge the resulting `package.json` and `package-lock.json` changes
-through a pull request. Then choose **Actions → Android release → Run workflow**
-on `master`. The workflow rejects an existing tag or an older version. Android's
-`versionName` is the npm version; `versionCode` is
-`major × 1,000,000 + minor × 1,000 + patch` (minor and patch must be below 1000).
-
-Before the first run, create a dedicated release keystore outside this repository
-with a long-lived RSA key, then make a secure backup of the keystore and its
-passwords. The setup script refuses to overwrite an existing key:
-
-```bash
-node scripts/create-android-signing-key.mjs
-```
-
-After `gh auth login -h github.com`, set these repository Actions secrets without
-putting their values in files in the repository:
-
-| Secret | Value |
-|---|---|
-| `ANDROID_SIGNING_KEYSTORE_BASE64` | Base64 of the keystore (`base64 -w0 "$HOME/.local/share/hotties/signing/release.jks" \| gh secret set ANDROID_SIGNING_KEYSTORE_BASE64`) |
-| `ANDROID_SIGNING_STORE_PASSWORD` | Keystore password |
-| `ANDROID_SIGNING_KEY_ALIAS` | `hotties-release` |
-| `ANDROID_SIGNING_KEY_PASSWORD` | Key password |
-
-The local setup keeps the three text secrets in
-`~/.local/share/hotties/signing/credentials.env` with owner-only permissions.
-Upload them and the keystore without putting passwords on the command line:
-
-```bash
-gh secret set -f "$HOME/.local/share/hotties/signing/credentials.env"
-base64 -w0 "$HOME/.local/share/hotties/signing/release.jks" |
-  gh secret set ANDROID_SIGNING_KEYSTORE_BASE64
-```
-
-Back up both local signing files securely before the first public release.
-Later APKs must use the same key to update installed apps.
-
 ### App Icon
 
 The Android app icon is generated from `resources/icon.png` via `@capacitor/assets`. The `android/` folder is gitignored, so the generated `mipmap-*` icons live only on your local machine. Both `npm run export` and `npm run android:install` now regenerate them before building.
@@ -177,46 +125,10 @@ npx cap add android          # only if android/ doesn't exist yet
 npm run native:assets
 ```
 
-The `package.json` overrides keep `@capacitor/assets` on patched `sharp`, `tar`,
-and `uuid` transitive releases while its published dependencies still pin older
-versions. Recheck these overrides when `@capacitor/assets` updates.
-
-## Project Structure
-
-```
-src/app/
-├── database/          # RxDB setup, schemas, base repository
-├── domain/            # Catalog, quantities, shopping entries, stock lots, active screens
-├── todo/              # Shopping routing and legacy model
-├── recipe/            # Recipes (list, add/edit, detail)
-├── category/          # Shopping categories
-├── label/             # Labels and label groups
-├── ingredients/       # Recipe ingredients
-├── settings/          # Settings screens
-└── tabs/              # Main navigation shell
-
-docs/
-├── TECHNICAL.md       # Architecture & data model reference
-└── RXDB-MIGRATION.md  # Migration status & completion plan
-```
-
-## Documentation
-
-- **[Technical Documentation](docs/TECHNICAL.md)** — Architecture, data model, routing, build instructions, known issues
-- **[Shared Catalog](docs/SHARED-CATALOG.md)** — Current entity model and quantity rules
-- **[RxDB Migration Plan](docs/RXDB-MIGRATION.md)** — Historical migration notes
-- **[Roadmap](src/roadmap.md)** — Future features and technical debt
-- **[App Summary](src/summary.md)** — Original feature overview
-
-## Current State (October 2026)
-
-The active shopping, stock, catalog, scanner, and recipe ingredient flows use RxDB with Dexie/IndexedDB storage. The new catalog starts in a fresh local database; old pre-release records are not copied. Legacy entity collections are present only in the test database, and their screens are no longer routed. See [Shared Catalog](docs/SHARED-CATALOG.md) for the current model.
-
 ## Design Principles
 
 - **Offline-first** — No backend, all data stored on device
 - **Local-only** — No account system or cloud sync
-- **Customizable** — User-defined categories, label groups, and labels
 
 ## License
 
