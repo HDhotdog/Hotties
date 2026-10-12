@@ -60,13 +60,15 @@ async function seedInitialData(db: RxDatabase) {
   const kindLabelGroup: RxLabelGroup = {
     id: UUIDv4(),
     name: "Art",
+    sortOrder: 0,
   }
 
   const kinds = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
-  const kindLabels: RxLabel[] = kinds.map((kind) => {
+  const kindLabels: RxLabel[] = kinds.map((kind, sortOrder) => {
     return {
       id: UUIDv4(),
       name: kind,
+      sortOrder,
       groupId: kindLabelGroup.id,
       recipeId: ""
     }
@@ -74,14 +76,16 @@ async function seedInitialData(db: RxDatabase) {
 
   const tasteLabelGroup: RxLabelGroup = {
     id: UUIDv4(),
-    name: "Geschmack"
+    name: "Geschmack",
+    sortOrder: 1
   }
 
   const tastes = ["Süß", "Scharf", "Salzig", "Sauer"]
-  const tasteLabels: RxLabel[] = tastes.map((taste) => {
+  const tasteLabels: RxLabel[] = tastes.map((taste, sortOrder) => {
     return {
       id: UUIDv4(),
       name: taste,
+      sortOrder,
       groupId: tasteLabelGroup.id,
       recipeId: ""
     }

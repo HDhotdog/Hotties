@@ -1,101 +1,166 @@
-// Layout and Structure
-.group-container {
-  margin-bottom: 24px;
+.label-settings {
+  display: grid;
+  gap: 16px;
+  padding: 16px 12px 24px;
 }
 
-.labels-container {
-  padding-left: 24px;
+.group-card, .new-group-card {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ion-item-background, var(--ion-color-light));
 }
 
-ion-reorder-group {
-  width: 100%;
-}
-
-// Item Styling
-ion-item-divider {
-  --background: var(--ion-color-light);
-  --padding-top: 12px;
-  --padding-bottom: 12px;
-  margin-bottom: 8px;
-}
-
-ion-item {
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --min-height: 48px;
-  margin-bottom: 4px;
-
-  &::part(native) {
-    display: flex;
-    align-items: center;
-  }
-}
-
-ion-reorder {
-  margin-right: 8px;
-}
-
-// Input Styling
-ion-input {
-  --padding-start: 16px;
-  text-align: center;
-  border-radius: 4px;
-  border: 1px solid;
-  margin: 4px 0;
-  max-width: 200px;
-  //background: var(--ion-background-color);
-  //color: var(--ion-color-light);
-
-  &::part(placeholder) {
-    text-align: center;
-    color: var(--ion-color-medium);
-  }
-}
-
-// New Label Group Input
-ion-item:first-of-type ion-input {
-  margin: 16px auto;
-  width: 200px;
-}
-
-// Label Group Input
-ion-item-divider ion-input {
-  background: var(--ion-color-light-shade);
-}
-
-// Label Input
-ion-item:not(:first-of-type) ion-input {
-  background: var(--ion-color-medium-shade);
-}
-
-// Button Styling
-ion-buttons {
+.group-header {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin-left: auto;
+  min-height: 56px;
+  padding: 4px 8px 4px 12px;
+  border-left: 6px solid var(--ion-color-primary);
+  background: var(--ion-color-step-100, #e9e9e9);
+}
+
+h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.labels {
+  padding: 0 8px 0 18px;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--ion-color-step-100, #e9e9e9);
+}
+
+.label-name {
+  flex: 1;
+  min-width: 0;
+  padding-block: 8px;
+  font-size: 16px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.row-actions {
+  display: flex;
+  flex: none;
 }
 
 ion-button {
-  --padding-start: 12px;
-  --padding-end: 12px;
-  height: 36px;
-
-  &[color="danger"] {
-    margin-left: 4px;
-  }
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 8px;
 }
 
-.action-buttons {
+ion-icon {
+  font-size: 20px;
+}
+
+.add-row, .edit-row {
   display: flex;
   align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
 
-  > div {
-    display: flex;
-    gap: 8px;
+.add-row {
+  padding: 12px;
+}
+
+.edit-row {
+  flex: 1;
+  padding-block: 4px;
+  gap: 4px;
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--ion-color-step-250, #b9b9b9);
+  border-radius: 8px;
+  background: var(--ion-color-step-100, #fff);
+  color: var(--ion-text-color, #000);
+  font: inherit;
+  font-size: 16px;
+}
+
+input::placeholder {
+  color: var(--ion-color-medium);
+  opacity: 1;
+}
+
+input:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: -2px;
+}
+
+.new-group-card {
+  padding: 16px 12px 12px;
+}
+
+.new-group-card h2 {
+  padding-bottom: 12px;
+}
+
+.new-group-card .add-row {
+  padding: 0;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  line-height: 1.5;
+}
+
+.error {
+  margin: 0;
+  color: var(--ion-color-danger);
+}
+
+@media (max-width: 390px) {
+  .label-settings {
+    padding-inline: 8px;
   }
 }
 
-.button-group {
+.group-order {
+  display: grid;
+  gap: 16px;
+}
+
+.labels {
+  display: block;
+}
+
+ion-reorder {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  color: var(--ion-color-medium);
+}
+
+.labels.reorder-list-active > .label-row {
   display: flex;
-  gap: 8px;
 }

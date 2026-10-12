@@ -5,6 +5,8 @@ import {v4 as uuidv4} from 'uuid';
 import {createHottiesDatabase} from './database';
 import {CATALOG_SCHEMA_LITERAL} from './schema/catalog.schema';
 import {SHOPPING_ENTRY_SCHEMA_LITERAL} from './schema/shopping-entry.schema';
+import {LABEL_SCHEMA_LITERAL} from './schema/label.schema';
+import {LABEL_GROUP_SCHEMA_LITERAL} from './schema/label-groups.schema';
 import {STOCK_LOT_SCHEMA_LITERAL} from './schema/stock-lot.schema';
 
 describe('createHottiesDatabase() seeding', () => {
@@ -490,5 +492,40 @@ describe('item schema migration (v1 -> v2, barcode metadata)', () => {
     expect(migrated?.toJSON()).toMatchObject({
       id: 'i1', name: 'Milk', barcode: null, brand: null, packageQuantity: null,
     });
+  });
+});
+
+
+describe('label ordering schema migration (v0 -> v1)', () => {
+  it('preserves existing groups, template labels and recipe assignments', async () => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    const oldSchema = (literal: typeof LABEL_SCHEMA_LITERAL | typeof LABEL_GROUP_SCHEMA_LITERAL) => {
+      const properties = {...literal.schema.properties};
+      delete (properties as any).sortOrder;
+      return {schema: {...literal.schema, version: 0, properties}};
+    };
+    await oldDb.addCollections({
+      labels: oldSchema(LABEL_SCHEMA_LITERAL),
+      label_groups: oldSchema(LABEL_GROUP_SCHEMA_LITERAL),
+    });
+    await oldDb['label_groups'].upsert({id: 'taste', name: 'Geschmack'});
+    await oldDb['labels'].bulkUpsert([
+      {id: 'salty', groupId: 'taste', recipeId: '', name: 'Salzig'},
+      {id: 'assigned', groupId: 'taste', recipeId: 'recipe', name: 'Salzig'},
+    ]);
+    await oldDb.close();
+    const db = await createHottiesDatabase(storage, dbName, false);
+    try {
+      expect((await db['label_groups'].findOne('taste').exec())?.toJSON())
+        .toMatchObject({id: 'taste', name: 'Geschmack', sortOrder: 0});
+      expect((await db['labels'].findOne('salty').exec())?.toJSON())
+        .toMatchObject({id: 'salty', groupId: 'taste', recipeId: '', name: 'Salzig', sortOrder: 0});
+      expect((await db['labels'].findOne('assigned').exec())?.toJSON())
+        .toMatchObject({id: 'assigned', groupId: 'taste', recipeId: 'recipe', name: 'Salzig', sortOrder: 0});
+    } finally {
+      await db.close();
+    }
   });
 });

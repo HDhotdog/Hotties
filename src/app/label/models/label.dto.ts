@@ -4,9 +4,11 @@ export interface Label {
   groupId: string;
   recipeId: string;
   name: string;
+  sortOrder?: number;
 }
 
 export interface LabelGroup {
   id: string;
   name: string;
+  sortOrder?: number;
 }

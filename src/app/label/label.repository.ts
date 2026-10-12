@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {RxLabel} from './models/label';
-import {from, map, Observable, switchMap} from 'rxjs';
+import {from, map, Observable, of, switchMap} from 'rxjs';
 import {AbstractRepository} from '../database/abstract-repository';
 import {DatabaseService} from '../database/database';
 
@@ -50,6 +50,26 @@ export class LabelRepository extends AbstractRepository<RxLabel> {
         }
         return Array.from(byName.values());
       })
+    );
+  }
+
+  /** Recipe assignments have their own ids; their definition is identified by group and name. */
+  public deleteWithRecipeAssignmentsById(labelId: string): Observable<boolean> {
+    return this.getCollection().pipe(
+      switchMap(col => from(col.findOne(labelId).exec()).pipe(
+        switchMap(label => {
+          if (!label) return of(false);
+          const selector = label.recipeId !== '' ? {id: labelId} : {
+            $or: [
+              {id: labelId},
+              {groupId: label.groupId, name: label.name, recipeId: {$ne: ''}},
+            ],
+          };
+          return from(col.find({selector}).remove()).pipe(
+            map(removed => removed.some(doc => doc.id === labelId))
+          );
+        })
+      ))
     );
   }
 
