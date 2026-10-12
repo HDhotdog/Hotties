@@ -3,6 +3,7 @@ import {getRxStorageMemory} from 'rxdb/plugins/storage-memory';
 import {wrappedValidateAjvStorage} from 'rxdb/plugins/validate-ajv';
 import {v4 as uuidv4} from 'uuid';
 import {createHottiesDatabase} from './database';
+import {CATEGORY_SCHEMA_LITERAL} from './schema/category.schema';
 import {CATALOG_SCHEMA_LITERAL} from './schema/catalog.schema';
 import {SHOPPING_ENTRY_SCHEMA_LITERAL} from './schema/shopping-entry.schema';
 import {LABEL_SCHEMA_LITERAL} from './schema/label.schema';
@@ -527,5 +528,43 @@ describe('label ordering schema migration (v0 -> v1)', () => {
     } finally {
       await db.close();
     }
+  });
+});
+
+
+describe('shopping list schema migration and saved order', () => {
+  let db: RxDatabase;
+
+  afterEach(async () => { if (db) await db.close(); });
+
+  it('migrates existing lists without changing names or suggestion preferences', async () => {
+    const storage = getRxStorageMemory();
+    const name = `test-db-${uuidv4()}`;
+    const oldDb = await createRxDatabase({name, storage: wrappedValidateAjvStorage({storage})});
+    const {sortOrder: _sortOrder, ...properties} = CATEGORY_SCHEMA_LITERAL.schema.properties;
+    await oldDb.addCollections({categories: {schema: {
+      ...CATEGORY_SCHEMA_LITERAL.schema, version: 0, properties,
+    }}});
+    await oldDb['categories'].upsert({id: 'old-list', name: 'Weekly groceries', saveSuggestions: false});
+    await oldDb.close();
+
+    db = await createHottiesDatabase(storage, name, false);
+    expect((await db['categories'].findOne('old-list').exec())?.toJSON()).toMatchObject({
+      id: 'old-list', name: 'Weekly groceries', saveSuggestions: false, sortOrder: 0,
+    });
+  });
+
+  it('retains a manually reordered list after closing and reopening the database', async () => {
+    const storage = getRxStorageMemory();
+    const name = `test-db-${uuidv4()}`;
+    db = await createHottiesDatabase(storage, name, false);
+    await db['categories'].bulkUpsert([
+      {id: 'z-first', name: 'First', saveSuggestions: true, sortOrder: 0},
+      {id: 'a-last', name: 'Last', saveSuggestions: false, sortOrder: 5},
+    ]);
+    await db.close();
+    db = await createHottiesDatabase(storage, name, false);
+    expect((await db['categories'].findOne('z-first').exec())?.toJSON().sortOrder).toBe(0);
+    expect((await db['categories'].findOne('a-last').exec())?.toJSON().sortOrder).toBe(5);
   });
 });

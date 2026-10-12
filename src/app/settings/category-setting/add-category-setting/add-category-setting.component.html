@@ -6,7 +6,7 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Edit category
+      Edit shopping list
     </ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="saveCategory()" [ngClass]="{'save-button-active': this.inputChanged()}"
@@ -21,7 +21,7 @@
   <div class="container">
     <ion-grid>
       <ion-row id="data-row">
-        <ion-input [(ngModel)]="name" placeholder="Enter category name"></ion-input>
+        <ion-input [(ngModel)]="name" placeholder="Enter shopping list name"></ion-input>
       </ion-row>
       <ion-row id="data-row">
         <ion-label>Save suggestions:</ion-label>

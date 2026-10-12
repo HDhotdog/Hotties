@@ -98,7 +98,7 @@ export class AddCategorySettingComponent implements OnInit {
         .length > 0
     ) {
       let toast = this.toastCtrl.create({
-        message: 'There already exists a category with this name',
+        message: 'There already exists a shopping list with this name',
         duration: 2000,
         position: 'bottom',
         color: 'danger',
@@ -117,6 +117,7 @@ export class AddCategorySettingComponent implements OnInit {
           id: uuidv4(),
           name: this._name,
           saveSuggestions: this._saveSuggestions,
+          sortOrder: Math.max(-1, ...this._categories.map(list => list.sortOrder ?? 0)) + 1,
         };
       }
       this.categoryService.save(category).subscribe(() => {

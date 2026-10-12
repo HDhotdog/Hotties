@@ -1,5 +1,7 @@
 # Commit and push conventions
 
+- For UI or feature changes, leave all changes uncommitted for review until the user explicitly authorizes committing, pushing, or creating a pull request.
+- Treat "Hit it" as authorization to commit all current changes, push them to a feature branch, and create a pull request.
 - Write every commit message in Conventional Commits format: `<type>[optional scope][!]: <description>`. Use a concise, imperative description that starts with a lowercase letter. Common types include `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, and `chore`.
 - Use a scope when it helps identify the affected area, for example `feat(scanner): resume after a successful scan`.
 - Mark breaking changes with `!` before the colon and describe them in a `BREAKING CHANGE:` footer when useful or required to explain their impact.

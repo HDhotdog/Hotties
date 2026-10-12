@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {Ingredient} from '../ingredients/ingredient.dto';
 import {CategoryRepository} from './category.repository';
-import {from, map, Observable, switchMap} from 'rxjs';
+import {defer, firstValueFrom, from, map, Observable} from 'rxjs';
 import {ShoppingService} from '../domain/shopping.service';
 import {normalizeQuantity, QuantityUnit} from '../domain/quantity';
 import {SettingsService} from '../database/settings/settings.service';
@@ -33,23 +33,45 @@ export class CategoryService {
   public getCategories(): Observable<Category[]> {
     return this.categoryRepository
       .findAll()
-      .pipe(map((docs) => docs.map(toCategory)));
+      .pipe(map((docs) => docs.map(toCategory).sort((a, b) =>
+        (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id.localeCompare(b.id))));
   }
 
   public getCategoryById(categoryId: string): Observable<Category> {
     return this.categoryRepository.findById(categoryId).pipe(map(toCategory));
   }
 
-  public deleteCategory(id: string): Observable<boolean> {
-    return this.categoryRepository.deleteById(id).pipe(switchMap(deleted =>
-      from(this.clearMappings(id)).pipe(map(() => deleted))));
+  private deletionQueue: Promise<unknown> = Promise.resolve();
+
+  public async getItemCount(id: string): Promise<number> {
+    return (await this.shopping.all(id)).length;
   }
 
-  private async clearMappings(storeId: string): Promise<void> {
-    const db = await this.database.getDb();
-    for (const mapping of await db['internal_product_map'].find().exec()) {
-      if (mapping.storeId === storeId) await mapping.remove();
+  /** Serialize deletions so concurrent requests cannot remove the last list. */
+  public deleteCategory(id: string, confirmedItemCount = 0): Observable<boolean> {
+    return defer(() => {
+      const deletion = this.deletionQueue.then(() => this.deleteList(id, confirmedItemCount));
+      this.deletionQueue = deletion.catch(() => undefined);
+      return from(deletion);
+    });
+  }
+
+  private async deleteList(id: string, confirmedItemCount: number): Promise<boolean> {
+    const lists = await firstValueFrom(this.getCategories());
+    if (!lists.some(list => list.id === id)) return false;
+    if (lists.length <= 1) throw new Error('Keep at least one shopping list.');
+    if (await this.getItemCount(id) !== confirmedItemCount) {
+      throw new Error('The items in this list changed. Please review the deletion again.');
     }
+    // Remove contents first; if cleanup fails, the list remains available for retry.
+    await this.shopping.clearList(id);
+    const db = await this.database.getDb();
+    await db['internal_product_map'].find({selector: {storeId: id}}).remove();
+    await db['suggestions'].find({selector: {categoryId: id}}).remove();
+    if (await firstValueFrom(this.getSelectedCategoryId()) === id) {
+      await firstValueFrom(this.settingsService.setSelectedCategoryId(lists.find(list => list.id !== id)!.id));
+    }
+    return firstValueFrom(this.categoryRepository.deleteById(id));
   }
 
   public getSelectedCategoryId(): Observable<string | null> {
