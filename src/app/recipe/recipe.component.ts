@@ -79,7 +79,8 @@ export class RecipeComponent implements OnInit, OnDestroy {
 
   private _setFilters: Label[] = [];
   public search: string = '';
-  public selectedTime: number | null = null;
+  public selectedTime: number | null = 0;
+  public formatPreparationTime = (value: number | null): string => value ? `${value} min` : 'All';
   public results: Recipe[] = [];
 
   private imageUrls = new Map<string, string>();

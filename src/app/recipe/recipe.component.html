@@ -7,14 +7,13 @@
   <ion-content>
     <div class="filter-container">
       <div class="time-filter">
-        <ion-label>Preparation time: {{ '<' + selectedTime ? selectedTime + ' min' : 'No limit' }}</ion-label>
+        <ion-label>Preparation time: {{ formatPreparationTime(selectedTime) }}</ion-label>
         <ion-range
           [min]="0"
           [max]="120"
           [step]="10"
           [(ngModel)]="selectedTime"
           (ionChange)="filterRecipes()"
-          [pin]="true"
           [snaps]="true"
           [ticks]="true">
         </ion-range>

@@ -54,6 +54,52 @@ describe('RecipeComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('starts the preparation time filter at zero and displays All', () => {
+    expect(component.selectedTime).toBe(0);
+    expect(fixture.nativeElement.querySelector('.time-filter ion-label').textContent)
+      .toBe('Preparation time: All');
+  });
+
+  it('displays All when the preparation time value is null', () => {
+    component.selectedTime = null;
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.time-filter ion-label').textContent)
+      .toBe('Preparation time: All');
+  });
+
+  it('restores all recipes when the preparation time slider returns to zero', async () => {
+    const recipes = [
+      {id: 'quick', name: 'Soup', description: '', preparationTime: 30},
+      {id: 'slow', name: 'Stew', description: '', preparationTime: 150},
+    ];
+    jest.spyOn(TestBed.inject(RecipeService), 'findAll').mockReturnValue(of(recipes));
+    component.ngOnInit();
+    expect(component.results).toEqual(recipes);
+
+    const range = fixture.nativeElement.querySelector('.time-filter ion-range');
+    await fixture.whenStable();
+    range.value = 30;
+    range.dispatchEvent(new CustomEvent('ionInput', {detail: {value: 30}}));
+    range.dispatchEvent(new CustomEvent('ionChange', {detail: {value: 30}}));
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    expect(component.selectedTime).toBe(30);
+    expect(component.results).toEqual([recipes[0]]);
+    expect(fixture.nativeElement.querySelector('.time-filter ion-label').textContent)
+      .toBe('Preparation time: 30 min');
+
+    range.value = 0;
+    range.dispatchEvent(new CustomEvent('ionInput', {detail: {value: 0}}));
+    range.dispatchEvent(new CustomEvent('ionChange', {detail: {value: 0}}));
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    expect(component.selectedTime).toBe(0);
+    expect(component.results).toEqual(recipes);
+    expect(fixture.nativeElement.querySelector('.time-filter ion-label').textContent)
+      .toBe('Preparation time: All');
+  });
+
   it('guides users to add their first recipe when the list is empty', () => {
     expect(fixture.nativeElement.textContent).toContain('Your recipe list is empty');
     expect(fixture.nativeElement.textContent).toContain('Tap + above to add your first recipe.');
