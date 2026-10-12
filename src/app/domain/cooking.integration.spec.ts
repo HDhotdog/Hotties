@@ -182,16 +182,26 @@ describe('cooking a recipe', () => {
     expect((await stock.all())[0].remainingAmount).toBe(10);
   });
 
-  it('resumes an interrupted cook without deducting an already updated lot twice', async () => {
+  it.each([
+    ['receipt order', 'a-first', 'z-second'],
+    ['reverse receipt order', 'z-first', 'a-second']
+  ])('resumes an interrupted cook without applying completed changes twice (%s)', async (_, firstId, secondId) => {
     const flour = await catalog.createClass('Flour');
     const bag = catalog.productDraft({barcode: 'flour', name: 'Flour bag', brand: null, packageQuantity: '100 g'}, flour.id);
     await catalog.save(bag);
-    const first = await stock.receive(bag.id);
-    const second = await stock.receive(bag.id);
+    const first = await stock.receive(bag.id, {scanId: firstId});
+    const second = await stock.receive(bag.id, {scanId: secondId});
+    // Exercise the lot ID tie-breaker without depending on wall-clock timing.
+    await stock.save({...first, createdAt: 1});
+    await stock.save({...second, createdAt: 1});
     await firstValueFrom(ingredients.saveIngredientsForRecipe('recipe', [
       {id: 'flour', recipeId: 'recipe', targetNodeId: bag.id, name: 'Flour', amount: 150, unit: 'g'}
     ]));
     const reviewed = await stock.planCook('recipe');
+    const exhaustedId = [firstId, secondId].sort()[0];
+    const partialId = [firstId, secondId].sort()[1];
+    expect(reviewed.ingredients[0].deductions.map(item => [item.lotId, item.amount]))
+      .toEqual([[exhaustedId, 100], [partialId, 50]]);
     const actualSave = stock.save.bind(stock);
     let attempts = 0;
     const spy = jest.spyOn(stock, 'save').mockImplementation(async lot => {
@@ -200,9 +210,12 @@ describe('cooking a recipe', () => {
     });
     await expect(stock.cook('recipe', reviewed)).rejects.toThrow('temporary write failure');
     spy.mockRestore();
+    // The exhausted lot was removed before the partial-lot write failed.
+    expect((await stock.all()).find(lot => lot.id === exhaustedId)).toBeUndefined();
+    expect((await stock.all()).find(lot => lot.id === partialId)?.remainingAmount).toBe(100);
     expect((await stock.cook('recipe', reviewed)).status).toBe('cooked');
-    expect((await stock.all()).find(lot => lot.id === first.id)).toBeUndefined();
-    expect((await stock.all()).find(lot => lot.id === second.id)?.remainingAmount).toBe(50);
+    expect((await stock.all()).find(lot => lot.id === exhaustedId)).toBeUndefined();
+    expect((await stock.all()).find(lot => lot.id === partialId)?.remainingAmount).toBe(50);
   });
 
   it('finishes a confirmed cook left pending when stock is next opened', async () => {
