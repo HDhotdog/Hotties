@@ -13,6 +13,10 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "allowedCommonJsDependencies": [
+              "ajv",
+              "ajv-formats"
+            ],
             "outputPath": {
               "base": "www"
             },
