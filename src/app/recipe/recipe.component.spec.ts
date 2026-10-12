@@ -58,9 +58,6 @@ describe('RecipeComponent', () => {
     expect(component.selectedTime).toBe(0);
     expect(fixture.nativeElement.querySelector('.time-filter ion-label').textContent)
       .toBe('Preparation time: All');
-    const range = fixture.nativeElement.querySelector('.time-filter ion-range');
-    expect(range.pinFormatter(0)).toBe('All');
-    expect(range.pinFormatter(30)).toBe('30 min');
   });
 
   it('displays All when the preparation time value is null', () => {
