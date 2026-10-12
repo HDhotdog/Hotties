@@ -18,12 +18,6 @@ export class CategoryService {
   private settingsService = inject(SettingsService);
   private database = inject(DatabaseService);
 
-  public initCategories(categories: Category[]): Observable<Category[]> {
-    return this.categoryRepository
-      .saveAll(categories.map(toRxCategory))
-      .pipe(map((docs) => docs.map(toCategory)));
-  }
-
   public save(category: Category): Observable<Category> {
     return this.categoryRepository
       .save(toRxCategory(category))
@@ -46,20 +40,15 @@ export class CategoryService {
     return this.categoryRepository.findById(categoryId).pipe(map(toCategory));
   }
 
-  public deleteAllCategories(): Observable<number> {
-    return this.categoryRepository.deleteAll().pipe(switchMap(count =>
-      from(this.clearMappings()).pipe(map(() => count))));
-  }
-
   public deleteCategory(id: string): Observable<boolean> {
     return this.categoryRepository.deleteById(id).pipe(switchMap(deleted =>
       from(this.clearMappings(id)).pipe(map(() => deleted))));
   }
 
-  private async clearMappings(storeId?: string): Promise<void> {
+  private async clearMappings(storeId: string): Promise<void> {
     const db = await this.database.getDb();
     for (const mapping of await db['internal_product_map'].find().exec()) {
-      if (!storeId || mapping.storeId === storeId) await mapping.remove();
+      if (mapping.storeId === storeId) await mapping.remove();
     }
   }
 

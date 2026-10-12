@@ -21,24 +21,4 @@ export class SuggestionService {
       .save(toRxSuggestion(suggestion))
       .pipe(map(toSuggestion));
   }
-
-  public saveAll(suggestions: Suggestion[]): Observable<Suggestion[]> {
-    return this.suggestionRepository
-      .saveAll(suggestions.map(toRxSuggestion))
-      .pipe(map((docs) => docs.map(toSuggestion)));
-  }
-
-  public findAll(): Observable<Suggestion[]> {
-    return this.suggestionRepository
-      .findAll()
-      .pipe(map((docs) => docs.map(toSuggestion)));
-  }
-
-  public clearSuggestions(): Observable<number> {
-    return this.suggestionRepository.deleteAll();
-  }
-
-  public deleteById(id: string): Observable<boolean> {
-    return this.suggestionRepository.deleteById(id);
-  }
 }

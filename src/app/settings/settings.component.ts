@@ -43,10 +43,6 @@ export class SettingsComponent {
     this.menuController.open('main-menu');
   }
 
-  public openCacheSetting() {
-    this.router.navigate(['cache'], {relativeTo: this.route});
-  }
-
   public openCategorySetting() {
     this.router.navigate(['category'], {relativeTo: this.route});
   }
