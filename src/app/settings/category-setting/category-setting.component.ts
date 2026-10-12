@@ -1,19 +1,13 @@
 import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonReorder,
-  IonReorderGroup,
-  IonTitle,
-  IonToolbar,
+  AlertController, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
+  IonReorder, IonReorderGroup, IonTitle, IonToolbar, ReorderEndEventDetail,
 } from '@ionic/angular';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject} from '@angular/core';
-import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {FormsModule} from '@angular/forms';
+import {Router} from '@angular/router';
+import {firstValueFrom} from 'rxjs';
+import {v4 as uuidv4} from 'uuid';
 import {CategoryService} from '../../category/category.service';
 import {Category} from '../../category/category.dto';
 
@@ -23,66 +17,156 @@ import {Category} from '../../category/category.dto';
   styleUrls: ['./category-setting.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    RouterModule,
-    IonButton,
-    IonButtons,
-    IonContent,
-    IonHeader,
-    IonIcon,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonReorder,
-    IonReorderGroup,
-    IonTitle,
-    IonToolbar,
-  ],
+  imports: [FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
+    IonReorder, IonReorderGroup, IonTitle, IonToolbar],
 })
-export class CategorySettingComponent {
+export class CategorySettingComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  private alerts = inject(AlertController);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
-  private _categories: Category[] = [];
+  categories: Category[] = [];
+  newListName = '';
+  editingList: Category | null = null;
+  editName = '';
+  editSaveSuggestions = true;
+  busy = false;
+  reordering = false;
+  error = '';
 
-  async ionViewWillEnter() {
-    this.categoryService.getCategories().subscribe((categories) => {
-      this._categories = categories;
+  ngOnInit() {
+    this.categoryService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(categories => {
+      if (!this.reordering) this.categories = categories;
       this.cdr.markForCheck();
     });
   }
 
-  public addNewCategory() {
-    this.router.navigate(['new'], {relativeTo: this.route});
+  async addList() {
+    const name = this.newListName.trim();
+    if (!name || this.busy) return;
+    if (!this.validName(name)) return;
+    const draft = this.newListName;
+    this.busy = true;
+    this.error = '';
+    try {
+      await firstValueFrom(this.categoryService.save({
+        id: uuidv4(), name, saveSuggestions: true,
+        sortOrder: Math.max(-1, ...this.categories.map(list => list.sortOrder ?? 0)) + 1,
+      }));
+      if (this.newListName === draft) this.newListName = '';
+    } catch {
+      this.error = 'Could not add the shopping list. Please try again.';
+    } finally {
+      this.busy = false;
+      this.cdr.markForCheck();
+    }
   }
 
-  public editCategory(id: string) {
-    this.router.navigate(['new', id], {relativeTo: this.route});
+  startEditing(list: Category) {
+    if (this.busy) return;
+    this.editingList = list;
+    this.editName = list.name;
+    this.editSaveSuggestions = list.saveSuggestions;
+    this.error = '';
   }
 
-  public navigateBack() {
-    // Explicit destination rather than Location.back() (see AddRecipeComponent for why).
+  async saveEdit() {
+    const name = this.editName.trim();
+    if (!this.editingList || !name || this.busy) return;
+    if (!this.validName(name, this.editingList.id)) return;
+    this.busy = true;
+    this.error = '';
+    try {
+      await firstValueFrom(this.categoryService.save({
+        ...this.editingList, name, saveSuggestions: this.editSaveSuggestions,
+      }));
+      this.cancelEdit();
+    } catch {
+      this.error = 'Could not save the shopping list. Please try again.';
+    } finally {
+      this.busy = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  cancelEdit() {
+    this.editingList = null;
+    this.editName = '';
+  }
+
+  private validName(name: string, id?: string): boolean {
+    if (name.length > 255) {
+      this.error = 'Shopping list names can have at most 255 characters.';
+      return false;
+    }
+    if (this.categories.some(list => list.id !== id && list.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      this.error = 'A shopping list with this name already exists.';
+      return false;
+    }
+    return true;
+  }
+
+  async deleteList(list: Category) {
+    if (this.busy || this.categories.length <= 1) return;
+    this.busy = true;
+    this.error = '';
+    try {
+      const count = await this.categoryService.getItemCount(list.id);
+      if (count > 0) {
+        const alert = await this.alerts.create({
+          header: 'Delete shopping list?',
+          subHeader: list.name,
+          message: `${count} ${count === 1 ? 'item is' : 'items are'} still added to this list. Deleting the list will also delete ${count === 1 ? 'this item' : 'these items'}.`,
+          buttons: [
+            {text: 'Cancel', role: 'cancel'},
+            {text: 'Delete list and items', role: 'confirm', cssClass: 'alert-button-danger'},
+          ],
+        });
+        await alert.present();
+        if ((await alert.onDidDismiss()).role !== 'confirm') return;
+      }
+      await firstValueFrom(this.categoryService.deleteCategory(list.id, count));
+      if (this.editingList?.id === list.id) this.cancelEdit();
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'Could not delete the shopping list. Please try again.';
+    } finally {
+      this.busy = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  get reorderDisabled(): boolean {
+    return this.busy || !!this.editingList;
+  }
+
+  async reorderLists(event: CustomEvent<ReorderEndEventDetail>) {
+    event.stopPropagation();
+    event.detail.complete(false);
+    const {from, to} = event.detail;
+    if (from === to || this.reorderDisabled) return;
+    const previous = this.categories;
+    const ordered = [...previous];
+    const [list] = ordered.splice(from, 1);
+    ordered.splice(to, 0, list);
+    this.categories = ordered.map((entry, sortOrder) => ({...entry, sortOrder}));
+    this.busy = true;
+    this.reordering = true;
+    this.error = '';
+    try {
+      await firstValueFrom(this.categoryService.saveAll(this.categories));
+    } catch {
+      this.categories = previous;
+      this.error = 'Could not save the shopping list order. Please try again.';
+    } finally {
+      this.busy = false;
+      this.reordering = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  navigateBack() {
     void this.router.navigate(['/tabs/settings']);
-  }
-
-  public deleteCategory(id: string) {
-    this.categoryService.deleteCategory(id).subscribe();
-    this._categories = this._categories.filter(
-      (category) => category.id !== id
-    );
-  }
-
-  // handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
-  //   [this._categories[ev.detail.from], this._categories[ev.detail.to]]
-  //     = [this._categories[ev.detail.to], this._categories[ev.detail.from]];
-  //   this.categoryService.saveAll(this._categories).subscribe(() => {
-  //     ev.detail.complete();
-  //   });
-  // }
-
-  get categories(): Category[] {
-    return this._categories;
   }
 }

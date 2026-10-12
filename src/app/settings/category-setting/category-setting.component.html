@@ -1,39 +1,68 @@
 <ion-header [translucent]="true">
-  <ion-toolbar class="toolbar">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="navigateBack()">
-        <ion-icon name="arrow-back"></ion-icon>
+      <ion-button (click)="navigateBack()" aria-label="Back to settings">
+        <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>
-      Manage categories
-    </ion-title>
+    <ion-title>Shopping lists</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-list>
-    <ion-item>
-      <ion-button class="add-button" (click)="addNewCategory()">
-        <ion-icon aria-hidden="true" name="add" slot="end"></ion-icon>
-        <ion-label>Add new category</ion-label>
-      </ion-button>
-    </ion-item>
-
-    <ion-reorder-group [disabled]="false">
-      <!--                       (ionItemReorder)="handleReorder($any($event))-->
-      @for (category of this.categories; track category) {
-        <ion-item>
-          <ion-reorder slot="start"></ion-reorder>
-          <ion-label>{{ category.name }}</ion-label>
-          <ion-icon aria-hidden="true" name="pencil" slot="end" class="edit-button"
-                    (click)="editCategory(category.id)"></ion-icon>
-          @if (this.categories.length > 1) {
-            <ion-icon aria-hidden="true" name="trash" slot="end"
-                      (click)="deleteCategory(category.id)" class="delete-button"></ion-icon>
+  <div class="list-settings">
+    @if (error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+    <ion-reorder-group class="list-order" [disabled]="reorderDisabled"
+                       (ionReorderEnd)="reorderLists($event)">
+      @for (list of categories; track list.id) {
+        <section class="list-card" [attr.aria-label]="list.name">
+          <div class="list-header">
+            <ion-reorder [attr.aria-label]="'Drag to reorder shopping list ' + list.name"></ion-reorder>
+            @if (editingList?.id === list.id) {
+              <form class="edit-row" (ngSubmit)="saveEdit()">
+                <input [(ngModel)]="editName" name="listName" aria-label="Shopping list name" maxlength="255"
+                       [disabled]="busy" (keydown.escape)="!busy && cancelEdit()">
+                <ion-button type="submit" fill="clear" aria-label="Save shopping list" [disabled]="!editName.trim() || busy">
+                  <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" color="medium" (click)="cancelEdit()" aria-label="Cancel editing" [disabled]="busy">
+                  <ion-icon name="close" aria-hidden="true"></ion-icon>
+                </ion-button>
+              </form>
+            } @else {
+              <h2>{{ list.name }}</h2>
+              <div class="row-actions">
+                <ion-button fill="clear" color="medium" (click)="startEditing(list)"
+                            [attr.aria-label]="'Rename shopping list ' + list.name" [disabled]="busy">
+                  <ion-icon name="pencil" aria-hidden="true"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" color="danger" (click)="deleteList(list)"
+                            [attr.aria-label]="'Delete shopping list ' + list.name" [disabled]="busy || categories.length <= 1">
+                  <ion-icon name="trash" aria-hidden="true"></ion-icon>
+                </ion-button>
+              </div>
+            }
+          </div>
+          @if (editingList?.id === list.id) {
+            <label class="suggestions-row">
+              <input type="checkbox" [(ngModel)]="editSaveSuggestions" [disabled]="busy">
+              Save suggestions
+            </label>
           }
-        </ion-item>
+        </section>
       }
     </ion-reorder-group>
-  </ion-list>
+    <p class="hint">Keep at least one shopping list.</p>
+    <section class="new-list-card" aria-labelledby="new-list-heading">
+      <h2 id="new-list-heading">New shopping list</h2>
+      <form class="add-row" (ngSubmit)="addList()">
+        <input [(ngModel)]="newListName" name="newList" placeholder="List name" aria-label="New shopping list" maxlength="255">
+        <ion-button type="submit" aria-label="Add shopping list" [disabled]="!newListName.trim() || busy">
+          <ion-icon name="add" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </form>
+    </section>
+  </div>
 </ion-content>

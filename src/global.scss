@@ -56,3 +56,8 @@ ion-content {
 ion-modal ion-content {
   --padding-bottom: 0px;
 }
+
+// Alerts render outside their originating component.
+ion-alert .alert-button.alert-button-danger {
+  color: var(--ion-color-danger);
+}

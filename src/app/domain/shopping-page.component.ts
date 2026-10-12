@@ -80,6 +80,14 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
     this.selectedListId = this.lists.some(list => list.id === previousId) ? previousId! : this.lists[0].id;
     this.selectList();
     await this.shopping.reconcileCompleted(await this.stock.all());
+    this.subscriptions.add(this.categories.getCategories().subscribe(lists => {
+      this.lists = lists;
+      if (!lists.some(list => list.id === this.selectedListId)) {
+        this.selectedListId = lists[0]?.id ?? '';
+        this.selectList();
+      }
+      this.cdr.detectChanges();
+    }));
     this.cdr.detectChanges();
   }
 

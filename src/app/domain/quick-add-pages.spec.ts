@@ -2,7 +2,7 @@ import {TestBed} from '@angular/core/testing';
 import {ChangeDetectorRef} from '@angular/core';
 import {Router} from '@angular/router';
 import {MenuController, provideIonicAngular} from '@ionic/angular';
-import {of} from 'rxjs';
+import {BehaviorSubject, of} from 'rxjs';
 import {CatalogService} from './catalog.service';
 import {blankClass, CatalogNode} from './catalog.model';
 import {ShoppingService} from './shopping.service';
@@ -65,6 +65,29 @@ describe('Quick add pages', () => {
         {provide: CategorySuggestionService, useValue: categorySuggestions},
       ]
     });
+  });
+
+  it('updates list names and order in a cached shopping page and selects a surviving list after deletion', async () => {
+    const lists = new BehaviorSubject([
+      {id: 'list', name: 'Shopping', saveSuggestions: true},
+      {id: 'other', name: 'Weekend', saveSuggestions: true},
+    ]);
+    const categories = TestBed.inject(CategoryService);
+    jest.spyOn(categories, 'getCategories').mockReturnValue(lists);
+    const page = TestBed.runInInjectionContext(() => new ShoppingPageComponent());
+    await page.ngOnInit();
+    lists.next([
+      {id: 'other', name: 'Weekend groceries', saveSuggestions: true},
+      {id: 'list', name: 'Shopping', saveSuggestions: true},
+    ]);
+    expect(page.lists.map(list => list.name)).toEqual(['Weekend groceries', 'Shopping']);
+    expect(page.selectedListId).toBe('list');
+    lists.next([{id: 'other', name: 'Weekend groceries', saveSuggestions: true}]);
+    expect(page.selectedListId).toBe('other');
+    expect(shopping.observe).toHaveBeenLastCalledWith('other');
+    page.ngOnDestroy();
+    lists.next([]);
+    expect(page.lists).toHaveLength(1);
   });
 
   it('adds a typed class to shopping in one step', async () => {
