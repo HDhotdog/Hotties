@@ -132,10 +132,6 @@ export class AddCategorySettingComponent implements OnInit {
     return changed;
   }
 
-  public editingCategory(): boolean {
-    return this.route.snapshot.paramMap.get('id') != null;
-  }
-
   set categories(categories: Category[]) {
     this._categories = categories;
   }
