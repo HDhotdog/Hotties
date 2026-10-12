@@ -118,6 +118,8 @@ The script builds the app and APK, then updates the app on the connected phone. 
 
 The Android app icon is generated from `resources/icon.png` via `@capacitor/assets`. The `android/` folder is gitignored, so the generated `mipmap-*` icons live only on your local machine. Both `npm run export` and `npm run android:install` now regenerate them before building.
 
+`npm run native:assets` also generates debug launcher icons with inverted RGB colors and unchanged transparency. This covers the legacy, round, and adaptive icons, so **Hotties Dev** is easy to distinguish when installed alongside the release app. The release icon retains its original colors.
+
 If you build Android manually, regenerate assets after changing `resources/icon.png` or recreating the `android/` folder:
 
 ```bash
