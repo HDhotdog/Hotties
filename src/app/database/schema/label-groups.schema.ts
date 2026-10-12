@@ -1,6 +1,6 @@
 export const LABEL_GROUP_SCHEMA_LITERAL = {
   schema: {
-    version: 0,
+    version: 1,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -8,6 +8,7 @@ export const LABEL_GROUP_SCHEMA_LITERAL = {
         type: 'string',
         maxLength: 255,
       },
+      sortOrder: {type: 'integer', minimum: 0, default: 0},
       name: {
         type: 'string',
         minLength: 1,
@@ -16,6 +17,9 @@ export const LABEL_GROUP_SCHEMA_LITERAL = {
       },
     },
     required: ['id', 'name'],
+  },
+  migrationStrategies: {
+    1: (oldDoc: any) => ({...oldDoc, sortOrder: 0})
   }
 };
 

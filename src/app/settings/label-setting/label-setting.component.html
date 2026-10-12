@@ -1,126 +1,112 @@
 <ion-header [translucent]="true">
-  <ion-toolbar class="toolbar">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="navigateBack()">
-        <ion-icon name="arrow-back"></ion-icon>
+      <ion-button (click)="navigateBack()" aria-label="Back to settings">
+        <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>
-      Manage labels
-    </ion-title>
+    <ion-title>Manage labels</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-list>
-    <!-- Add Label Group -->
-    <ion-item>
-      <ion-input [(ngModel)]="newGroupName" placeholder="New Label Group"></ion-input>
-      <ion-button slot="end" (click)="addLabelGroup()" [disabled]="!newGroupName.trim()">
-        <ion-icon name="add"></ion-icon>
-      </ion-button>
-    </ion-item>
-
-    <!-- Label Groups with Reordering -->
-    <ion-reorder-group [disabled]="false"> <!--(ionItemReorder)="handleReorderOfLabelGroups($any($event))"-->
-      @for (group of this.labelGroups; track group) {
-        <div class="group-container">
-          <ion-item-divider>
-            <ion-reorder slot="start"></ion-reorder>
-            <!-- Group Name (Edit Mode) -->
-            @if (editingGroup === group) {
-              <ion-input
-                [(ngModel)]="editName"
-                placeholder="Group name"
-                (keyup.enter)="saveEdit()">
-              </ion-input>
-            }
-            <!-- Group Name (Display Mode) -->
-            @if (editingGroup !== group) {
-              <ion-label>{{ group.name }}</ion-label>
-            }
-            <!-- Group Actions -->
-            <ion-buttons slot="end">
-              <!-- Edit Mode Actions -->
-              @if (editingGroup === group) {
-                <ion-button (click)="saveEdit()">
-                  <ion-icon name="checkmark"></ion-icon>
-                </ion-button>
-                <ion-button (click)="cancelEdit()">
-                  <ion-icon name="close"></ion-icon>
-                </ion-button>
-              }
-              <!-- Display Mode Actions -->
-              @if (editingGroup !== group) {
-                <ion-button (click)="startEditingGroup(group)">
-                  <ion-icon name="pencil"></ion-icon>
-                </ion-button>
-                <ion-button color="danger" (click)="removeLabelGroup(group)">
-                  <ion-icon name="trash"></ion-icon>
-                </ion-button>
-              }
-            </ion-buttons>
-          </ion-item-divider>
-          <div class="labels-container">
-            <!-- Add Label to Group -->
-            @if (selectedGroup === group) {
-              <ion-item>
-                <ion-input [(ngModel)]="newLabelName" placeholder="New Label"></ion-input>
-                <ion-button slot="end" (click)="addLabel()" [disabled]="!newLabelName.trim()">
-                  <ion-icon name="add"></ion-icon>
-                </ion-button>
-              </ion-item>
-            }
-            <!-- Labels with Reordering -->
-            <ion-reorder-group [disabled]="false"><!--(ionItemReorder)="handleReorderOfLabels($any($event), group)"-->
-              @for (label of this.labelsForGroup(group.id); track label) {
-                <ion-item>
-                  <ion-reorder slot="start"></ion-reorder>
-                  <!-- Label Name (Edit Mode) -->
-                  @if (editingLabel?.label === label) {
-                    <ion-input
-                      [(ngModel)]="editName"
-                      placeholder="Label name"
-                      (keyup.enter)="saveEdit()">
-                    </ion-input>
-                  }
-                  <!-- Label Name (Display Mode) -->
-                  @if (editingLabel?.label !== label) {
-                    <ion-label>{{ label.name }}</ion-label>
-                  }
-                  <!-- Label Actions -->
-                  <ion-buttons slot="end">
-                    <div [style.display]="editingLabel?.label === label ? 'flex' : 'none'" class="button-group">
-                      <ion-button (click)="saveEdit()">
-                        <ion-icon name="checkmark"></ion-icon>
-                      </ion-button>
-                      <ion-button (click)="cancelEdit()">
-                        <ion-icon name="close"></ion-icon>
-                      </ion-button>
-                    </div>
-                    <div [style.display]="editingLabel?.label !== label ? 'flex' : 'none'" class="button-group">
-                      <ion-button (click)="startEditingLabel(group, label)">
-                        <ion-icon name="pencil"></ion-icon>
-                      </ion-button>
-                      <ion-button color="danger" (click)="removeLabel(label)">
-                        <ion-icon name="trash"></ion-icon>
-                      </ion-button>
-                    </div>
-                  </ion-buttons>
-                </ion-item>
-              }
-            </ion-reorder-group>
-            <!-- Add Label Button -->
-            @if (selectedGroup !== group) {
-              <ion-item>
-                <ion-button expand="block" (click)="selectedGroup = group">
-                  Add Label to {{ group.name }}
-                </ion-button>
-              </ion-item>
-            }
-          </div>
+  <div class="label-settings">
+    @if (error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+    <ion-reorder-group class="group-order" [disabled]="reorderDisabled"
+                       (ionReorderEnd)="reorderGroups($event)">
+    @for (group of labelGroups; track group.id) {
+      <section class="group-card" [attr.aria-label]="group.name">
+        <div class="group-header">
+          <ion-reorder [attr.aria-label]="'Drag to reorder group ' + group.name"></ion-reorder>
+          @if (editingGroup?.id === group.id) {
+            <form class="edit-row" (ngSubmit)="saveEdit()">
+              <input [(ngModel)]="editName" name="groupName" aria-label="Group name"
+                     [disabled]="savingEdit || reorderingGroups || reorderingLabels" (keydown.escape)="cancelEdit()">
+              <ion-button type="submit" fill="clear" aria-label="Save group name"
+                          [disabled]="!editName.trim() || savingEdit">
+                <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="medium" (click)="cancelEdit()" aria-label="Cancel editing"
+                          [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                <ion-icon name="close" aria-hidden="true"></ion-icon>
+              </ion-button>
+            </form>
+          } @else {
+            <h2>{{ group.name }}</h2>
+            <div class="row-actions">
+              <ion-button fill="clear" color="medium" (click)="startEditingGroup(group)"
+                          [attr.aria-label]="'Rename group ' + group.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                <ion-icon name="pencil" aria-hidden="true"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" (click)="removeLabelGroup(group)"
+                          [attr.aria-label]="'Delete group ' + group.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                <ion-icon name="trash" aria-hidden="true"></ion-icon>
+              </ion-button>
+            </div>
+          }
         </div>
-      }
+
+        <ion-reorder-group class="labels" [disabled]="reorderDisabled"
+                           (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
+                           (ionReorderEnd)="reorderLabels($event, group)">
+          @for (label of labelsForGroup(group.id); track label.id) {
+            <div class="label-row">
+              <ion-reorder [attr.aria-label]="'Drag to reorder label ' + label.name"></ion-reorder>
+              @if (editingLabel?.label?.id === label.id) {
+                <form class="edit-row" (ngSubmit)="saveEdit()">
+                  <input [(ngModel)]="editName" name="labelName" aria-label="Label name"
+                         [disabled]="savingEdit || reorderingGroups || reorderingLabels" (keydown.escape)="cancelEdit()">
+                  <ion-button type="submit" fill="clear" aria-label="Save label name"
+                              [disabled]="!editName.trim() || savingEdit">
+                    <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" color="medium" (click)="cancelEdit()" aria-label="Cancel editing"
+                              [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                    <ion-icon name="close" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                </form>
+              } @else {
+                <span class="label-name">{{ label.name }}</span>
+                <div class="row-actions">
+                  <ion-button fill="clear" color="medium" (click)="startEditingLabel(group, label)"
+                              [attr.aria-label]="'Rename label ' + label.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                    <ion-icon name="pencil" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" color="danger" (click)="removeLabel(label)"
+                              [attr.aria-label]="'Delete label ' + label.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                    <ion-icon name="trash" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                </div>
+              }
+            </div>
+          }
+        </ion-reorder-group>
+
+        <form class="add-row" (ngSubmit)="addLabel(group)">
+          <input [ngModel]="labelDraft(group.id)" (ngModelChange)="labelDrafts[group.id] = $event"
+                 name="newLabel" placeholder="New label" [attr.aria-label]="'New label in ' + group.name">
+          <ion-button type="submit" [attr.aria-label]="'Add label to ' + group.name"
+                      [disabled]="!labelDraft(group.id).trim() || savingLabels.has(group.id) || reorderingGroups || reorderingLabels">
+            <ion-icon name="add" aria-hidden="true"></ion-icon>
+          </ion-button>
+        </form>
+      </section>
+    } @empty {
+      <p class="empty-state">No label groups yet. Add a group to get started.</p>
+    }
+
     </ion-reorder-group>
-  </ion-list>
+
+    <section class="new-group-card" aria-labelledby="new-group-heading">
+      <h2 id="new-group-heading">New label group</h2>
+      <form class="add-row" (ngSubmit)="addLabelGroup()">
+        <input [(ngModel)]="newGroupName" name="newGroup" placeholder="Group name" aria-label="New label group">
+        <ion-button type="submit" aria-label="Add label group" [disabled]="!newGroupName.trim() || savingGroup || reorderingGroups || reorderingLabels">
+          <ion-icon name="add" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </form>
+    </section>
+  </div>
 </ion-content>
