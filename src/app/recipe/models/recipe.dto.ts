@@ -1,3 +1,5 @@
+import {RecipeStep} from './recipe-step';
+
 /** UI-facing recipe model, distinct from the RxDB document shape (`RxRecipe`). */
 export interface Recipe {
   id: string;
@@ -5,4 +7,5 @@ export interface Recipe {
   description: string;
   preparationTime: number;
   emoji?: string | null;
+  steps?: RecipeStep[];
 }

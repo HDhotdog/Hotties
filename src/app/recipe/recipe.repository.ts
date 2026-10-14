@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {from, Observable, of, switchMap} from 'rxjs';
+import {distinctUntilChanged, from, map, Observable, of, switchMap} from 'rxjs';
 import {RxRecipe} from './models/recipe';
 import {AbstractRepository} from '../database/abstract-repository';
 import {DatabaseService} from '../database/database';
@@ -20,6 +20,24 @@ export class RecipeRepository extends AbstractRepository<RxRecipe> {
     super(database);
 
     this.database = database;
+  }
+
+  /** Live data for cached detail views; editor prefills still use the one-shot findById. */
+  public observeById(id: string): Observable<RxRecipe | null> {
+    return this.getCollection().pipe(
+      switchMap(col => col.findOne(id).$),
+      map(doc => doc ? doc.toJSON() as RxRecipe : null)
+    );
+  }
+
+  public observeImage(id: string): Observable<Blob | null> {
+    return this.getCollection().pipe(
+      switchMap(col => col.findOne(id).$),
+      map(doc => doc?.getAttachment(IMAGE_ATTACHMENT_ID) ?? null),
+      // Recipe text saves also emit document changes. Only reread changed attachments.
+      distinctUntilChanged((previous, current) => previous?.digest === current?.digest && previous?.type === current?.type),
+      switchMap(attachment => attachment ? from(attachment.getData()) : of(null))
+    );
   }
 
   public saveImage(id: string, blob: Blob): Observable<void> {

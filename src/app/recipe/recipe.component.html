@@ -18,10 +18,10 @@
           [ticks]="true">
         </ion-range>
       </div>
-      @for (group of this.labelGroups; track group) {
+      @for (group of this.labelGroups; track group.id) {
         <div class="label-group">
           <div class="group-name">{{ group.name }}</div>
-          @for (label of this.labelsForGroup(group.id); track label) {
+          @for (label of this.labelsForGroup(group.id); track label.id) {
             <ion-checkbox labelPlacement="start" (ionChange)="changeFilter($event, label)">{{ label.name }}
             </ion-checkbox>
           }
@@ -58,7 +58,7 @@
   <ion-content class="content-wrapper">
     <ion-searchbar [(ngModel)]="search" (ngModelChange)="filterRecipes()"></ion-searchbar>
     <div class="recipes-list-container">
-      @for (recipe of this.results; track recipe) {
+      @for (recipe of this.results; track recipe.id) {
         <div class="recipe-preview-container" (click)="openRecipe(recipe)">
           <div class="recipe-preview-image">
             @if (imageUrlFor(recipe.id)) {
@@ -95,7 +95,7 @@
               </div>
             }
             <div class="recipe-preview-labels">
-              @for (label of this.labelsForRecipe(recipe.id); track label) {
+              @for (label of this.labelsForRecipe(recipe.id); track label.id) {
                 <div class="recipe-preview-label">{{ label.name }}</div>
               }
             </div>

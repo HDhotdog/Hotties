@@ -436,3 +436,37 @@ ion-title {
   width: 100%;
   overflow: scroll;
 }
+
+.steps-card {
+  align-items: stretch;
+  h2 { margin: 0; font-size: 1.1rem; }
+}
+.step-editor { border-top: 1px solid var(--ion-color-medium); padding: 16px 0 8px; }
+.step-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.step-editor-header h3 { margin: 0; font-size: 1rem; }
+.step-actions { display: flex; }
+.step-actions ion-button { margin: 0; width: 44px; height: 44px; --padding-start: 8px; --padding-end: 8px; }
+.step-ingredient-picker {
+  margin: 0;
+  padding: 12px 20px 20px;
+  border: 0;
+  min-width: 0;
+  overflow-y: auto;
+  legend { font-size: 0.85rem; opacity: 0.7; margin-bottom: 8px; }
+  label { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; }
+  input { width: 20px; height: 20px; flex: none; accent-color: var(--ion-color-primary); }
+  span { overflow-wrap: anywhere; }
+  p { font-size: 0.9rem; opacity: 0.7; }
+}
+
+.step-add-row { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; }
+.step-ingredients-trigger { margin: 8px 0 0; --padding-start: 0; font-size: 0.85rem; text-transform: none; }
+.step-ingredients-modal {
+  --width: min(420px, 94vw);
+  --height: auto;
+  --max-height: 75vh;
+  --border-radius: 16px;
+}
+.step-ingredients-modal-content { display: flex; flex-direction: column; max-height: 75vh; }
+.step-ingredients-modal .picker-header { flex: none; align-items: center; }
+.step-ingredients-modal h2 { margin: 0; font-size: 1rem; }

@@ -2,7 +2,7 @@ import {dataUrlToBytes, syncHash} from '../attachment-utils';
 
 export const RECIPE_SCHEMA_LITERAL = {
   schema: {
-    version: 2,
+    version: 3,
     primaryKey: 'id',
     type: 'object',
     attachments: {},
@@ -24,6 +24,20 @@ export const RECIPE_SCHEMA_LITERAL = {
       preparationTime: {
         type: 'number',
         default: 0
+      },
+      steps: {
+        type: 'array',
+        default: [],
+        items: {
+          type: 'object',
+          properties: {
+            id: {type: 'string', minLength: 1, maxLength: 255},
+            instructions: {type: 'string'},
+            ingredientIds: {type: 'array', uniqueItems: true, items: {type: 'string', maxLength: 255}}
+          },
+          required: ['id', 'instructions', 'ingredientIds'],
+          additionalProperties: false
+        }
       },
       emoji: {
         type: ['string', 'null'],
@@ -58,6 +72,10 @@ export const RECIPE_SCHEMA_LITERAL = {
         };
       }
 
+      return oldDoc;
+    },
+    3: (oldDoc: any) => {
+      oldDoc.steps = [];
       return oldDoc;
     }
   }

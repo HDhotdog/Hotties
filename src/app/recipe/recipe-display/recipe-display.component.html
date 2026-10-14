@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button (click)="navigateBack()">
+      <ion-button aria-label="Back to recipes" (click)="navigateBack()">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -12,7 +12,7 @@
       <ion-button (click)="deleteRecipe()">
         <ion-icon name="trash"></ion-icon>
       </ion-button>
-      <ion-button (click)="editRecipe()">
+      <ion-button aria-label="Edit recipe" (click)="editRecipe()">
         <ion-icon name="pencil"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -20,7 +20,10 @@
 </ion-header>
 
 <ion-content>
-  @if (!isLoading) {
+  @if (!isLoading && recipeMissing) {
+    <p class="ion-padding" role="status">This recipe is no longer available. Return to Recipes to choose another.</p>
+  }
+  @if (!isLoading && !recipeMissing) {
     <div class="recipe-wrapper">
       <div class="recipe-header">
         <div class="title-container">
@@ -31,8 +34,27 @@
         </div>
         <h3>{{ this.parseDate(recipe) }}</h3>
       </div>
+      @if (this.labels.length) {
+        <div class="recipe-labels">
+          @for (recipeLabel of this.labels; track recipeLabel.id) {
+            <p class="recipe-label">
+              {{ recipeLabel.name }}
+            </p>
+          }
+        </div>
+      }
       @if (imageUrl) {
-        <ion-img [src]="imageUrl"></ion-img>
+        <div class="recipe-photo">
+          <div class="cooking-decoration cooking-decoration-left" aria-hidden="true">
+            <ion-icon class="decoration-main" name="restaurant-outline"></ion-icon>
+            <ion-icon class="decoration-small" name="nutrition-outline"></ion-icon>
+          </div>
+          <img class="recipe-image" [src]="imageUrl" [alt]="recipe.name" loading="lazy" decoding="async">
+          <div class="cooking-decoration cooking-decoration-right" aria-hidden="true">
+            <ion-icon class="decoration-main" name="flame-outline"></ion-icon>
+            <ion-icon class="decoration-small" name="leaf-outline"></ion-icon>
+          </div>
+        </div>
       }
       <div class="ingredients">
         <div class="ingredients-header">
@@ -63,29 +85,46 @@
           }
         </div>
       </div>
-      <ion-button expand="block" color="success" class="cooked-button"
-                  [disabled]="cookReviewLoading || cooking || ingredients.length === 0"
-                  (click)="openCookReview()">
-        {{ cookReviewLoading ? 'Checking stock…' : 'Cooked' }}
-      </ion-button>
-      <div class="recipe-description">
-        <p class="recipe-descirption-title">Instructions</p>
-        @if (recipe.description) {
+      @if (recipe.description) {
+        <section class="recipe-description" aria-label="Recipe description">
+          <h3>Description</h3>
           <p class="recipe-description-content">{{ recipe.description }}</p>
-        } @else {
-          <p class="recipe-description-empty">This recipe doesn't have instructions yet. Edit the recipe to add
-            some.</p>
-        }
-      </div>
-      @if (this.labels.length) {
-        <div class="recipe-labels">
-          @for (recipeLabel of this.labels; track recipeLabel) {
-            <p class="recipe-label">
-              {{ recipeLabel.name }}
-            </p>
-          }
-        </div>
+        </section>
       }
+      <section class="recipe-instructions" aria-label="Recipe instructions">
+        <div class="instructions-header">
+          <h3>Instructions</h3>
+          <ion-button class="start-cooking-button" [disabled]="!canStartCooking"
+                      (click)="openCookingMode()">Start cooking</ion-button>
+        </div>
+        @for (step of steps; track step.id; let index = $index) {
+          <section class="recipe-step" [attr.aria-label]="'Step ' + (index + 1)">
+            <h4>Step {{ index + 1 }}</h4>
+            <p class="step-instructions">{{ step.instructions || 'Add instructions for this step.' }}</p>
+            <p class="step-amount-label">Ingredients · recipe amounts</p>
+            <ul>
+              @for (ingredient of ingredientsForStep(step); track ingredient.id) {
+                <li>{{ ingredient.amount }} {{ ingredient.unit }} {{ ingredient.name }}</li>
+              } @empty {
+                <li>No ingredients needed</li>
+              }
+            </ul>
+          </section>
+        } @empty {
+          <p>Edit the recipe to add cooking steps.</p>
+        }
+        @if (steps.length && !canStartCooking) {
+          <p>Complete or remove empty steps to start cooking.</p>
+        }
+        <div class="cooking-completion">
+          <ion-button fill="outline" color="medium" class="cooked-button"
+                      [disabled]="cookReviewLoading || cooking || ingredients.length === 0"
+                      (click)="openCookReview()">
+            <ion-icon slot="start" name="checkmark-outline" aria-hidden="true"></ion-icon>
+            {{ cookReviewLoading ? 'Checking stock…' : 'Mark as cooked' }}
+          </ion-button>
+        </div>
+      </section>
     </div>
 
     <!--
@@ -121,7 +160,7 @@
           </div>
 
           <div class="category-list">
-            @for (category of categories; track category) {
+            @for (category of categories; track category.id) {
               <button type="button" class="category-option" [class.selected]="this.selectedCategoryId === category.id"
                       (click)="selectCategory(category)">
                 {{ category.name }}
@@ -131,6 +170,12 @@
             }
           </div>
         </div>
+      </ng-template>
+    </ion-modal>
+    <ion-modal class="cooking-mode-modal" aria-label="Cooking mode" [isOpen]="cookingModeOpen" [animated]="cookingModeAnimated"
+               (didDismiss)="closeCookingMode()">
+      <ng-template>
+        <app-cooking-mode [recipeName]="cookingRecipeName" [slides]="cookingSlides" (closed)="closeCookingMode()"></app-cooking-mode>
       </ng-template>
     </ion-modal>
     <ion-modal class="cook-modal" aria-label="Review stock use" [isOpen]="cookReviewOpen" [canDismiss]="!cooking"
