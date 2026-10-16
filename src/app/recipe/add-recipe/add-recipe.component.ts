@@ -27,11 +27,12 @@ import {FormsModule} from '@angular/forms';
 import {Ingredient} from '../../ingredients/ingredient.dto';
 import {Label} from '../../label/models/label.dto';
 import {Recipe} from '../models/recipe.dto';
+import {copyRecipeSteps, RecipeStep} from '../models/recipe-step';
 import {RecipeService} from '../recipe.service';
 import {v4 as uuidv4} from 'uuid';
 import {LabelService} from '../../label/label-service.service';
 import {NgxImageCompressService} from 'ngx-image-compress';
-import {combineLatest, forkJoin, of} from 'rxjs';
+import {combineLatest, firstValueFrom, forkJoin, of} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {cropImageToSquare, dataUrlToBlob} from '../../database/attachment-utils';
 import {CatalogNode} from '../../domain/catalog.model';
@@ -96,6 +97,16 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   public readonly minuteOptions: number[] = Array.from({length: 60}, (_, i) => i);
   public readonly amountUnits: QuantityUnit[] = ['g', 'kg', 'ml', 'l', 'piece', 'bunch', 'pinch'];
 
+  public steps: RecipeStep[] = [];
+  public stepIngredientStepId: string | null = null;
+  public stepIngredientNumber = 0;
+  public stepIngredientDraftIds: string[] = [];
+  public saveError = '';
+  public saving = false;
+  private editVersion = 0;
+  private pendingSaves = 0;
+  private saveQueue: Promise<void> = Promise.resolve();
+
   private _name: string = '';
   private _description: string = '';
   private _hours: number = 0;
@@ -158,6 +169,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
         this._recipe = recipe;
         this._name = recipe.name;
         this._description = recipe.description;
+        this.steps = copyRecipeSteps(recipe.steps);
         this._prepTime = recipe.preparationTime;
         this._hours = Math.floor(recipe.preparationTime / 60);
         this._minutes = recipe.preparationTime % 60;
@@ -201,15 +213,14 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Don't drop the last 500ms of edits if the user navigates away
     // (e.g. hardware back button) before the debounce fires.
-    this.flushPendingSave();
+    void this.flushPendingSave();
     if (this.pulseTimer) {
       clearTimeout(this.pulseTimer);
     }
   }
 
-  public navigateBack(): void {
-    this.flushPendingSave();
-    this.doNavigateBack();
+  public async navigateBack(): Promise<void> {
+    if (await this.flushPendingSave()) this.doNavigateBack();
   }
 
   private doNavigateBack(): void {
@@ -225,62 +236,65 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   }
 
   public saveRecipe(): void {
-    this.persist(true);
+    if (!this.saving && this._name.trim()) void this.persist(true);
   }
 
-  private persist(navigateAfter: boolean): void {
-    let recipe: Recipe;
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      recipe = {
-        ...this._recipe,
-        id,
-        name: this._name,
-        description: this._description,
-        preparationTime: this._prepTime,
-        emoji: this._selectedEmoji,
-      };
-    } else {
-      recipe = {
-        id: this._recipe.id,
-        name: this._name,
-        description: this._description,
-        preparationTime: this._prepTime,
-        emoji: this._selectedEmoji,
-      };
-    }
-    const savedRecipe = this.recipeService.save(recipe);
-    const savedLabels = this.labelService.saveLabelsForRecipe(
-      recipe.id,
-      this._labels
-    );
-    const savedIngredients = this.recipeService.saveIngredients(
-      recipe.id,
-      this._ingredients
-    );
-
-    forkJoin([savedRecipe, savedLabels, savedIngredients]).subscribe(() => {
-      const imageOp = this._pendingImageBlob
-        ? this.recipeService.saveImage(recipe.id, this._pendingImageBlob)
-        : this._imageRemoved
-          ? this.recipeService.deleteImage(recipe.id)
-          : of(void 0);
-
-      imageOp.subscribe(() => {
+  private persist(navigateAfter: boolean): Promise<boolean> {
+    // Capture everything before queuing: a later keystroke must never mutate an in-flight write.
+    const recipe: Recipe = {
+      id: this.route.snapshot.paramMap.get('id') ?? this._recipe.id,
+      name: this._name,
+      description: this._description,
+      preparationTime: this._prepTime,
+      emoji: this._selectedEmoji,
+      steps: copyRecipeSteps(this.steps)
+    };
+    const ingredients = this._ingredients.map(ingredient => ({...ingredient}));
+    const labels = this._labels.map(label => ({...label}));
+    const image = this._pendingImageBlob;
+    const imageRemoved = this._imageRemoved;
+    const version = this.editVersion;
+    this.pendingSaves++;
+    this.saving = true;
+    this.saveError = '';
+    const task = this.saveQueue.then(async () => {
+      this.saveError = '';
+      try {
+        await firstValueFrom(forkJoin([
+          this.recipeService.save(recipe),
+          this.labelService.saveLabelsForRecipe(recipe.id, labels),
+          this.recipeService.saveIngredients(recipe.id, ingredients)
+        ]));
+        await firstValueFrom(image
+          ? this.recipeService.saveImage(recipe.id, image)
+          : imageRemoved ? this.recipeService.deleteImage(recipe.id) : of(void 0));
         this._recipe = recipe;
-        this._pendingImageBlob = null;
-        this._imageRemoved = false;
-        this.setSaveStatus('saved');
-        this.cdr.markForCheck();
-        if (navigateAfter) {
-          this.doNavigateBack();
+        if (version === this.editVersion) {
+          this._pendingImageBlob = null;
+          this._imageRemoved = false;
+          this.setSaveStatus('saved');
+          if (navigateAfter) this.doNavigateBack();
         }
-      });
+        return true;
+      } catch {
+        this.saveError = 'Could not save recipe. Please try again.';
+        this.setSaveStatus('unsaved');
+        return false;
+      } finally {
+        this.pendingSaves--;
+        this.saving = this.pendingSaves > 0;
+        this.cdr.markForCheck();
+      }
     });
+    // Both success and failure settle the queue so a failed save can be retried.
+    this.saveQueue = task.then(() => undefined);
+    return task;
   }
 
   public inputChanged(): boolean {
     return (
+      this._saveStatus === 'unsaved' ||
+      JSON.stringify(this._recipe.steps ?? []) !== JSON.stringify(this.steps) ||
       this._recipe.name !== this._name ||
       this._recipe.description !== this._description ||
       this._recipe.preparationTime !== this._prepTime ||
@@ -297,6 +311,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
    * abandoned "new recipe" form doesn't leave a half-filled entry behind.
    */
   private scheduleAutoSave(): void {
+    this.editVersion++;
     this.setSaveStatus('unsaved');
     if (this._isNew) {
       return;
@@ -306,17 +321,72 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
     }
     this.autoSaveTimer = setTimeout(() => {
       this.autoSaveTimer = null;
-      this.persist(false);
+      void this.persist(false);
     }, AUTO_SAVE_DELAY_MS);
   }
 
   /** Saves immediately if a debounced save is pending, skipping the wait. */
-  private flushPendingSave(): void {
+  private async flushPendingSave(): Promise<boolean> {
+    if (this._isNew) return true;
+    const version = this.editVersion;
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
       this.autoSaveTimer = null;
-      this.persist(false);
+      if (!await this.persist(false)) return false;
+    } else {
+      await this.saveQueue;
+      if (this._saveStatus !== 'saved' && !await this.persist(false)) return false;
     }
+    // An edit made while navigation awaited an older write still needs to be flushed.
+    return version === this.editVersion || this.flushPendingSave();
+  }
+
+  public addStep(): void {
+    this.steps = [...this.steps, {id: uuidv4(), instructions: '', ingredientIds: []}];
+    this.scheduleAutoSave();
+  }
+
+  public updateStepInstructions(id: string, instructions: string): void {
+    this.steps = this.steps.map(step => step.id === id ? {...step, instructions} : step);
+    this.scheduleAutoSave();
+  }
+
+  public openStepIngredients(step: RecipeStep): void {
+    this.stepIngredientDraftIds = step.ingredientIds.filter(id => this._ingredients.some(item => item.id === id));
+    this.stepIngredientStepId = step.id;
+    this.stepIngredientNumber = this.steps.findIndex(item => item.id === step.id) + 1;
+  }
+
+  public toggleDraftStepIngredient(ingredientId: string, selected: boolean): void {
+    this.stepIngredientDraftIds = selected ? [...new Set([...this.stepIngredientDraftIds, ingredientId])]
+      : this.stepIngredientDraftIds.filter(id => id !== ingredientId);
+  }
+
+  public confirmStepIngredients(): void {
+    if (!this.steps.some(step => step.id === this.stepIngredientStepId)) return;
+    const ingredientIds = this.stepIngredientDraftIds.filter(id => this._ingredients.some(item => item.id === id));
+    this.steps = this.steps.map(step => step.id === this.stepIngredientStepId ? {...step, ingredientIds} : step);
+    this.scheduleAutoSave();
+    this.closeStepIngredients();
+  }
+
+  public closeStepIngredients(): void {
+    this.stepIngredientStepId = null;
+  }
+
+  public removeStep(id: string): void {
+    if (this.stepIngredientStepId === id) this.closeStepIngredients();
+    this.steps = this.steps.filter(step => step.id !== id);
+    this.scheduleAutoSave();
+  }
+
+  public moveStep(index: number, direction: -1 | 1): void {
+    const target = index + direction;
+    if (target < 0 || target >= this.steps.length) return;
+    const steps = [...this.steps];
+    [steps[index], steps[target]] = [steps[target], steps[index]];
+    this.steps = steps;
+    this.scheduleAutoSave();
   }
 
   private setSaveStatus(status: SaveStatus): void {
@@ -388,8 +458,10 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   }
 
   public removeIngredient(ingredient: Ingredient) {
-    const index = this._ingredients.indexOf(ingredient);
-    this._ingredients.splice(index, 1);
+    this._ingredients = this._ingredients.filter(item => item.id !== ingredient.id);
+    this.steps = this.steps.map(step => ({
+      ...step, ingredientIds: step.ingredientIds.filter(id => id !== ingredient.id)
+    }));
     this.scheduleAutoSave();
   }
 

@@ -1,19 +1,19 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button (click)="navigateBack()">
+      <ion-button aria-label="Back to recipe" (click)="navigateBack()">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>Edit recipe</ion-title>
     <ion-buttons slot="end">
       @if (this.isNew) {
-        <ion-button (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
-                    [disabled]="!this.inputChanged()">
+        <ion-button aria-label="Save recipe" (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
+                    [disabled]="!this.inputChanged() || saving || !name.trim()">
           <ion-icon name="save"></ion-icon>
         </ion-button>
       } @else {
-        <ion-button class="save-status-button" (click)="navigateBack()" [ngClass]="{
+        <ion-button aria-label="Save and return to recipe" class="save-status-button" (click)="navigateBack()" [ngClass]="{
           'save-status-saved': this.saveStatus === 'saved',
           'save-status-unsaved': this.saveStatus === 'unsaved',
           'save-status-pulse': this.savePulse
@@ -27,6 +27,9 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
+    @if (saveError) {
+      <p role="alert">{{ saveError }} <ion-button fill="clear" (click)="saveRecipe()">Retry</ion-button></p>
+    }
     <div class="name-row">
       <input
         class="emoji-input"
@@ -103,7 +106,7 @@
         </ion-button>
       </div>
       @if (this.ingredients.length) {
-        @for (ingredient of this.ingredients; track ingredient) {
+        @for (ingredient of this.ingredients; track ingredient.id) {
           <div class="ingredient">
             <span class="ingredient-amount">{{ ingredient.amount }} <span
               class="ingredient-unit">{{ ingredient.unit }}</span></span>
@@ -178,11 +181,82 @@
       </ng-template>
     </ion-modal>
 
+    <section class="card steps-card" aria-label="Cooking instructions">
+      <h2>Instructions</h2>
+      @for (step of steps; track step.id; let index = $index) {
+        <section class="step-editor" [attr.aria-label]="'Step ' + (index + 1)">
+          <div class="step-editor-header">
+            <h3>Step {{ index + 1 }}</h3>
+            <div class="step-actions">
+              <ion-button fill="clear" [disabled]="index === 0" (click)="moveStep(index, -1)"
+                          [attr.aria-label]="'Move step ' + (index + 1) + ' up'">
+                <ion-icon slot="icon-only" name="arrow-up" aria-hidden="true"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" [disabled]="index === steps.length - 1" (click)="moveStep(index, 1)"
+                          [attr.aria-label]="'Move step ' + (index + 1) + ' down'">
+                <ion-icon slot="icon-only" name="arrow-down" aria-hidden="true"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" class="ingredient-remove-button" (click)="removeStep(step.id)"
+                          [attr.aria-label]="'Remove step ' + (index + 1)">
+                <ion-icon slot="icon-only" name="close-circle" aria-hidden="true"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ion-textarea [ngModel]="step.instructions" (ngModelChange)="updateStepInstructions(step.id, $event)"
+                        [attr.aria-label]="'Step ' + (index + 1) + ' instructions'"
+                        placeholder="Describe this cooking step" [autoGrow]="true" rows="3"></ion-textarea>
+          <ion-button fill="clear" class="step-ingredients-trigger" (click)="openStepIngredients(step)"
+                      [attr.aria-label]="'Select ingredients for step ' + (index + 1)">
+            Ingredients · {{ step.ingredientIds.length ? step.ingredientIds.length + ' selected' : 'Choose ingredients' }}
+          </ion-button>
+        </section>
+      } @empty {
+        <p>Add steps to guide you through cooking this recipe.</p>
+      }
+      <div class="step-add-row">
+        <span class="subtle-label">Add step</span>
+        <ion-button fill="clear" class="ingredient-add-button" aria-label="Add step" (click)="addStep()">
+          <ion-icon slot="icon-only" name="add-circle" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </div>
+    </section>
+
+    <ion-modal class="step-ingredients-modal" [isOpen]="stepIngredientStepId !== null"
+               aria-label="Select step ingredients" (didDismiss)="closeStepIngredients()">
+      <ng-template>
+        <div class="step-ingredients-modal-content">
+          <div class="picker-header">
+            <ion-button fill="clear" class="modal-close-button" aria-label="Cancel ingredient selection"
+                        (click)="closeStepIngredients()">
+              <ion-icon slot="icon-only" name="close" aria-hidden="true"></ion-icon>
+            </ion-button>
+            <h2>Step {{ stepIngredientNumber }} ingredients</h2>
+            <ion-button fill="clear" class="modal-confirm-button" aria-label="Save ingredient selection"
+                        (click)="confirmStepIngredients()">
+              <ion-icon slot="icon-only" name="save" aria-hidden="true"></ion-icon>
+            </ion-button>
+          </div>
+          <fieldset class="step-ingredient-picker">
+            <legend>Select ingredients for this step</legend>
+            @for (ingredient of ingredients; track ingredient.id) {
+              <label>
+                <input type="checkbox" [checked]="stepIngredientDraftIds.includes(ingredient.id)"
+                       (change)="toggleDraftStepIngredient(ingredient.id, $any($event.target).checked)">
+                <span>{{ ingredient.amount }} {{ ingredient.unit }} {{ ingredient.name }}</span>
+              </label>
+            } @empty {
+              <p>Add ingredients to the recipe first, then select them here.</p>
+            }
+          </fieldset>
+        </div>
+      </ng-template>
+    </ion-modal>
+
     <div class="card label-card">
       <span class="subtle-label">Labels</span>
       <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector"
                   placeholder="Choose labels" [multiple]="true">
-        @for (label of this.availableLabels; track label) {
+        @for (label of this.availableLabels; track label.id) {
           <ion-select-option value="{{label.id}}">{{ label.name }}</ion-select-option>
         }
       </ion-select>

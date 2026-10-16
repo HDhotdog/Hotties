@@ -27,6 +27,15 @@ export class RecipeService {
     return this.recipeRepository.findById(id).pipe(map(toRecipe));
   }
 
+  public observeById(id: string): Observable<Recipe | null> {
+    return this.recipeRepository.observeById(id).pipe(map(doc => doc ? toRecipe(doc) : null));
+  }
+
+  /** The subscriber owns each emitted object URL and must revoke it when replaced or released. */
+  public observeImageUrl(id: string): Observable<string | null> {
+    return this.recipeRepository.observeImage(id).pipe(map(blob => blob ? URL.createObjectURL(blob) : null));
+  }
+
   public deleteAll(): Observable<number> {
     return this.recipeRepository.deleteAll().pipe(switchMap(count =>
       this.ingredientService.deleteAll().pipe(map(() => count))));

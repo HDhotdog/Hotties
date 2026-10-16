@@ -4,7 +4,6 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonImg,
   IonModal,
   IonTitle,
   IonToolbar,
@@ -18,6 +17,8 @@ import {Recipe} from '../models/recipe.dto';
 import {CategoryService} from '../../category/category.service';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Subscription} from 'rxjs';
+import {CookingModeComponent, CookingSlide} from '../cooking-mode/cooking-mode.component';
+import {RecipeStep} from '../models/recipe-step';
 import {Category} from '../../category/category.dto';
 import {Ingredient} from '../../ingredients/ingredient.dto';
 import {Label} from '../../label/models/label.dto';
@@ -33,6 +34,7 @@ import {BaseUnit} from '../../domain/quantity';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CookingModeComponent,
     FormsModule,
     RouterModule,
     IonButton,
@@ -40,7 +42,6 @@ import {BaseUnit} from '../../domain/quantity';
     IonContent,
     IonHeader,
     IonIcon,
-    IonImg,
     IonModal,
     IonTitle,
     IonToolbar,
@@ -56,16 +57,21 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   private catalog = inject(CatalogService);
   private toastCtrl = inject(ToastController);
   private cdr = inject(ChangeDetectorRef);
-  private readonly subscriptions = new Subscription();
+  private subscriptions = new Subscription();
   private initialized = false;
   private availabilityVersion = 0;
   private ingredientAvailability = new Map<string, Availability>();
   public availabilityPending = true;
+  public recipeMissing = false;
   public cookReviewOpen = false;
   public cookReviewLoading = false;
   public cooking = false;
   public cookReview: CookingPlan | null = null;
   public cookReviewMessage = '';
+  public cookingModeOpen = false;
+  public cookingModeAnimated = true;
+  public cookingSlides: CookingSlide[] = [];
+  public cookingRecipeName = '';
 
   private _recipe: Recipe = {} as Recipe;
   private _isLoading: boolean = true;
@@ -79,14 +85,16 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     if (!this.initialized && this.route.snapshot.paramMap.has('id')) {
       this.initialized = true;
       const recipeId: string = this.route.snapshot.paramMap.get('id')!;
-      const recipe = this.recipeService.findById(recipeId);
+      const recipe = this.recipeService.observeById(recipeId);
       const categories = this.categoryService.getCategories();
       const ingredients = this.recipeService.getIngredients(recipeId);
       const labels = this.labelService.getLabelsForRecipe(recipeId);
 
       this.subscriptions.add(combineLatest([recipe, categories, ingredients, labels]).subscribe(
         ([recipe, categories, ingredients, labels]) => {
-          this._recipe = recipe;
+          this.recipeMissing = !recipe;
+          if (recipe) this._recipe = recipe;
+          else this.closeCookingMode();
           this._categories = categories;
           this._ingredients = ingredients;
           this._labels = labels;
@@ -96,17 +104,13 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
           }
           this._isLoading = false;
           this.cdr.markForCheck();
-
-          if (this._imageUrl) {
-            URL.revokeObjectURL(this._imageUrl);
-            this._imageUrl = null;
-          }
-          this.subscriptions.add(this.recipeService.getImageUrl(recipeId).subscribe((url) => {
-            this._imageUrl = url;
-            this.cdr.markForCheck();
-          }));
         }
       ));
+      this.subscriptions.add(this.recipeService.observeImageUrl(recipeId).subscribe(url => {
+        if (this._imageUrl) URL.revokeObjectURL(this._imageUrl);
+        this._imageUrl = url;
+        this.cdr.markForCheck();
+      }));
       this.subscriptions.add(combineLatest([ingredients, this.stock.observe(), this.catalog.observe()])
         .subscribe(([currentIngredients]) => {
           void this.refreshIngredientAvailability(currentIngredients);
@@ -118,12 +122,50 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     this.ngOnInit();
   }
 
-  public ngOnDestroy(): void {
+  public ionViewWillLeave(): void {
+    this.closeCookingMode();
     this.availabilityVersion++;
     this.subscriptions.unsubscribe();
+    this.subscriptions = new Subscription();
+    this.initialized = false;
     if (this._imageUrl) {
       URL.revokeObjectURL(this._imageUrl);
+      this._imageUrl = null;
     }
+  }
+
+  public ngOnDestroy(): void {
+    this.ionViewWillLeave();
+  }
+
+  public get steps(): RecipeStep[] {
+    return this._recipe.steps ?? [];
+  }
+
+  public get canStartCooking(): boolean {
+    return !this.recipeMissing && this.steps.length > 0 && this.steps.every(step => step.instructions.trim().length > 0);
+  }
+
+  public ingredientsForStep(step: RecipeStep): Ingredient[] {
+    return this._ingredients.filter(ingredient => step.ingredientIds.includes(ingredient.id));
+  }
+
+  public openCookingMode(): void {
+    if (!this.canStartCooking || this.cookingModeOpen || this.cookReviewOpen || this.cookReviewLoading) return;
+    this.cookingSlides = this.steps.map(step => ({
+      id: step.id,
+      instructions: step.instructions,
+      ingredients: this.ingredientsForStep(step).map(ingredient => ({...ingredient}))
+    }));
+    this.cookingRecipeName = this._recipe.name;
+    this.cookingModeAnimated = !(typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    this.cookingModeOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  public closeCookingMode(): void {
+    this.cookingModeOpen = false;
+    this.cdr.markForCheck();
   }
 
   private async refreshIngredientAvailability(ingredients: Ingredient[]): Promise<void> {
@@ -201,7 +243,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   }
 
   public async openCookReview(): Promise<void> {
-    if (this.cookReviewLoading || this.cooking || !this._recipe.id || !this._ingredients.length) return;
+    if (this.cookReviewLoading || this.cooking || this.cookingModeOpen || !this._recipe.id || !this._ingredients.length) return;
     this.cookReviewLoading = true;
     this.cookReviewMessage = '';
     this.cdr.markForCheck();

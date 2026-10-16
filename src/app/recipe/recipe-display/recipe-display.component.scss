@@ -8,26 +8,67 @@
 .recipe-header {
   display: flex;
   flex-direction: row;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  padding: 6px 16px 0;
+
+  h3 { margin: 0; flex-shrink: 0; }
 }
 
 ion-title {
   text-align: center;
 }
 
-ion-img {
+.recipe-photo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 160px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(8px, 3vw, 24px);
+  width: 100%;
+  max-width: 520px;
+  align-self: center;
+  padding: 4px 16px 8px;
+}
+
+.cooking-decoration {
+  position: relative;
+  height: 136px;
+  color: rgba(var(--ion-color-medium-rgb), 0.35);
+  pointer-events: none;
+  user-select: none;
+  font-size: clamp(36px, 8vw, 60px);
+
+  ion-icon { position: absolute; }
+  .decoration-main { top: 18px; }
+  .decoration-small { bottom: 18px; font-size: 0.55em; }
+}
+.cooking-decoration-left {
+  .decoration-main { left: 8%; transform: rotate(-14deg); }
+  .decoration-small { right: 8%; transform: rotate(12deg); }
+}
+.cooking-decoration-right {
+  .decoration-main { right: 8%; transform: rotate(14deg); }
+  .decoration-small { left: 8%; transform: rotate(-12deg); }
+}
+
+.recipe-image {
+  display: block;
+  align-self: center;
+  width: min(160px, 100%);
+  aspect-ratio: 1;
   border-radius: 10px;
   overflow: hidden;
-  width: 100%;
+  object-fit: contain;
 }
 
 .recipe-description {
   background-color: #1f1f1f;
-  padding: 5px;
-  border-radius: 5%;
+  padding: 16px;
+  border-radius: 10px;
 
   p {
-    margin: 5px;
+    margin: 0;
   }
 }
 
@@ -37,7 +78,7 @@ ion-img {
 }
 
 .recipe-description-content {
-  padding-top: 10px;
+  padding-top: 0;
 }
 
 .recipe-description-empty {
@@ -48,7 +89,7 @@ ion-img {
 
 .ingredients {
   background-color: #1f1f1f;
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-radius: 10px;
 }
 
@@ -80,6 +121,9 @@ ion-img {
 .ingredients-items {
   display: flex;
   flex-direction: column;
+  margin-top: 8px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .ingredient-row {
@@ -106,9 +150,13 @@ ion-img {
     background: rgba(var(--ion-color-warning-rgb), 0.08);
   }
 
+  &:first-child {
+    padding-top: 12px;
+  }
+
   &:last-child {
     border-bottom: none;
-    padding-bottom: 2px;
+    padding-bottom: 12px;
   }
 }
 
@@ -146,19 +194,23 @@ ion-img {
 }
 
 .recipe-labels {
-  background-color: #1f1f1f;
-  padding: 5px;
-  border-radius: 5px;
   display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px 8px;
+  padding: 0 16px 4px;
 }
 
 .recipe-label {
-  width: fit-content;
   margin: 0;
+  padding: 2px 8px;
+  max-width: 100%;
+  border-radius: 6px;
+  background: rgba(var(--ion-color-medium-rgb), 0.1);
+  color: var(--ion-color-medium);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .export-modal {
@@ -169,13 +221,48 @@ ion-img {
   --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
 }
 
-.cooked-button { margin: 8px 0; }
+.start-cooking-button, .cooked-button {
+  margin: 0;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  --border-radius: 10px;
+  --box-shadow: none;
+}
+
+.instructions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding-bottom: 12px;
+}
+
+.recipe-instructions .instructions-header h3 { margin: 0; }
+.start-cooking-button { --padding-start: 16px; --padding-end: 16px; }
+.cooking-completion {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 8px;
+}
+.cooked-button { --padding-start: 12px; --padding-end: 12px; --border-width: 1px; }
+
 
 .cook-modal {
   --width: min(420px, 94vw);
   --height: auto;
   --max-height: 75vh;
+  --background: var(--ion-color-step-100, #f5f5f5);
   --border-radius: 16px;
+  --border-width: 1px;
+  --border-style: solid;
+  --border-color: var(--ion-color-step-250, #d0d0d0);
+  --box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --backdrop-opacity: 0.65;
 }
 
 .cook-modal-content {
@@ -279,9 +366,12 @@ ion-img {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex: 1;
 
   h2 {
     margin: 0;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -290,3 +380,20 @@ ion-img {
   display: flex;
   align-items: center;
 }
+
+.cooking-mode-modal {
+  --width: 100%;
+  --height: 100%;
+  --max-width: 100%;
+  --max-height: 100%;
+  --border-radius: 0;
+  --box-shadow: none;
+}
+.recipe-instructions { padding: 16px; border-radius: 10px; background: var(--ion-card-background, #1f1f1f); }
+.recipe-instructions h3, .recipe-description h3 { margin: 8px 0 12px; font-size: 1.1rem; }
+.recipe-step { padding: 16px 0; border-top: 1px solid var(--ion-color-medium); }
+.recipe-step h4 { margin: 0 0 8px; font-size: 1rem; }
+.step-instructions, .recipe-description-content { white-space: pre-wrap; overflow-wrap: anywhere; }
+.step-amount-label { font-size: 0.85rem; opacity: 0.65; }
+.recipe-step ul { padding-left: 20px; margin-bottom: 0; }
+.recipe-step li { margin-top: 6px; }

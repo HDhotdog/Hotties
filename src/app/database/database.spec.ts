@@ -359,6 +359,47 @@ describe('recipe schema migration (v1 -> v2, imgSrc to attachment)', () => {
   });
 });
 
+describe('recipe schema migration (v2 -> v3, cooking steps)', () => {
+  it.each([true, false])('preserves recipe metadata and attachments (image: %s)', async withImage => {
+    const dbName = `test-db-${uuidv4()}`;
+    const storage = getRxStorageMemory();
+    const oldDb = await createRxDatabase({name: dbName, storage: wrappedValidateAjvStorage({storage})});
+    await oldDb.addCollections({
+      recipes: {
+        schema: {
+          version: 2, primaryKey: 'id', type: 'object', attachments: {},
+          properties: {
+            id: {type: 'string', maxLength: 255},
+            name: {type: 'string', minLength: 1, maxLength: 255},
+            description: {type: 'string'}, preparationTime: {type: 'number'},
+            emoji: {type: ['string', 'null']}
+          },
+          required: ['id', 'name', 'description', 'preparationTime']
+        },
+        migrationStrategies: {1: (doc: any) => doc, 2: (doc: any) => doc}
+      }
+    });
+    const recipe = {id: 'legacy', name: 'Soup', description: withImage ? 'Original notes' : '', preparationTime: 25, emoji: '🍲'};
+    const oldDoc = await oldDb['recipes'].upsert(recipe);
+    if (withImage) await oldDoc.putAttachment({id: 'image', type: 'image/png', data: new Blob(['image-bytes'], {type: 'image/png'})});
+    await oldDb.close();
+    const migratedDb = await createHottiesDatabase(storage, dbName);
+    try {
+      const migrated = await migratedDb['recipes'].findOne('legacy').exec();
+      expect(migrated?.toJSON()).toMatchObject({...recipe, steps: []});
+      const image = migrated?.getAttachment('image');
+      if (withImage) {
+        expect(image?.type).toBe('image/png');
+        expect(await (await image?.getData())?.text()).toBe('image-bytes');
+      } else {
+        expect(image).toBeNull();
+      }
+    } finally {
+      await migratedDb.close();
+    }
+  });
+});
+
 describe('todo schema migration (v0 -> v1, importance to type/amount)', () => {
   let db: RxDatabase;
 
