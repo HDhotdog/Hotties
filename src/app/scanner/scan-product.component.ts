@@ -1,3 +1,7 @@
+import {LocalizedNumberDirective} from '../i18n/localized-number.directive';
+import {Message} from '../i18n/language-pack';
+import {AppError} from '../i18n/language-pack';
+import {LocalizationService} from '../i18n/localization.service';
 import {CommonModule} from '@angular/common';
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {FormsModule} from '@angular/forms';
@@ -38,9 +42,10 @@ type BarcodeOutcome = 'added' | 'pending' | 'stopped';
 @Component({
   selector: 'app-scan-product', standalone: true, templateUrl: './scan-product.component.html',
   styleUrls: ['./scan-product.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonSpinner, IonTitle, IonToolbar]
+  imports: [LocalizedNumberDirective, CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonSpinner, IonTitle, IonToolbar]
 })
 export class ScanProductComponent implements OnInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -53,7 +58,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   public nodes: CatalogNode[] = [];
   public barcodeInput = '';
   public state: ScanState = 'idle';
-  public errorMessage: string | null = null;
+  public errorMessage: Message | null = null;
   public savedName: string | null = null;
   public readonly nativeScanner = Capacitor.isNativePlatform();
   public pendingProduct: FoodProduct | null = null;
@@ -66,7 +71,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   public selectedInternalProductId = '';
   public internalName = '';
   public internalClassId = '';
-  public infoMessage: string | null = null;
+  public infoMessage: Message | null = null;
   public retryAvailable = false;
   public selectedClassId = '';
   public newClassName = '';
@@ -95,11 +100,11 @@ export class ScanProductComponent implements OnInit, OnDestroy {
 
   public get classes(): CatalogNode[] {
     return sortCatalogCategoriesByPath(
-      this.nodes.filter(node => node.kind === 'class' && node.parentId !== null), this.nodes);
+      this.nodes.filter(node => node.kind === 'class' && node.parentId !== null), this.nodes, this.i18n.locale(), node => this.i18n.name(node));
   }
 
   public categoryPath(category: CatalogNode): string {
-    return catalogPath(category, this.nodes);
+    return catalogPath(category, this.nodes, node => this.i18n.name(node));
   }
 
   public get gramProducts(): CatalogNode[] {
@@ -137,17 +142,17 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       const result = await CapacitorBarcodeScanner.scanBarcode({
         hint: CapacitorBarcodeScannerTypeHintALLOption.ALL,
         cameraDirection: CapacitorBarcodeScannerCameraDirection.BACK,
-        scanInstructions: 'Point the camera at a product barcode',
-        cancelButtonAccessibilityLabel: 'Cancel barcode scan',
-        torchButtonOnAccessibilityLabel: 'Turn flashlight off',
-        torchButtonOffAccessibilityLabel: 'Turn flashlight on'
+        scanInstructions: this.i18n.t('ui.pointTheCameraAtAProductBarcode'),
+        cancelButtonAccessibilityLabel: this.i18n.t('ui.cancelBarcodeScan'),
+        torchButtonOnAccessibilityLabel: this.i18n.t('ui.turnFlashlightOff'),
+        torchButtonOffAccessibilityLabel: this.i18n.t('ui.turnFlashlightOn')
       });
       if (this.cameraSession && sessionId === this.cameraSessionId && result.ScanResult) {
         this.barcodeInput = result.ScanResult;
         outcome = await this.addBarcode(result.ScanResult);
       }
     } catch (error) {
-      if (!String(error).toLowerCase().includes('cancel')) this.errorMessage = 'Could not open the camera. Enter the barcode below.';
+      if (!String(error).toLowerCase().includes('cancel')) this.errorMessage = 'ui.couldNotOpenTheCameraEnterTheBarcodeBelow';
     } finally {
       this.setState('idle');
       if (outcome === 'added') this.queueNextScan(sessionId);
@@ -159,7 +164,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
     if (this.state !== 'idle' && this.state !== 'scanning') return 'stopped';
     const barcode = value.trim();
     if (!isInternalBarcode(barcode) && !/^\d{8,14}$/.test(barcode)) {
-      this.errorMessage = 'Enter a valid 8–14 digit barcode.';
+      this.errorMessage = 'ui.enterAValid814DigitBarcode';
       this.setState('idle');
       return 'stopped';
     }
@@ -174,7 +179,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
     this.setState('looking-up');
     try {
       if (isInternalBarcode(barcode)) {
-        if (!barcode.startsWith('29')) throw new Error('This internal barcode format is not supported yet.');
+        if (!barcode.startsWith('29')) throw new AppError('ui.thisInternalBarcodeFormatIsNotSupportedYet', "This internal barcode format is not supported yet.");
         await this.startInternal(decodeWeightedBarcode(barcode));
         return 'pending';
       }
@@ -185,7 +190,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
           try {
             await this.lookup.lookup(barcode);
           } catch {
-            this.infoMessage = 'Using saved product details. Open Food Facts can be checked on a later scan.';
+            this.infoMessage = 'ui.usingSavedProductDetailsOpenFoodFactsCanBeCheckedOnALaterScan';
             await this.receive(existing);
             return 'stopped';
           }
@@ -209,9 +214,9 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.packageUnit = parsed?.unit ?? 'piece';
       return 'pending';
     } catch (error) {
-      this.errorMessage = error instanceof ProductLookupError ? error.message : 'Could not process this product. Try again.';
+      this.errorMessage = this.i18n.error(error);
       if (error instanceof ProductLookupError) this.retryAvailable = error.code === 'not-found';
-      if (isInternalBarcode(barcode) && error instanceof Error) this.errorMessage = error.message;
+      if (isInternalBarcode(barcode) && error instanceof Error) this.errorMessage = this.i18n.error(error);
       return 'stopped';
     } finally {
       this.setState('idle');
@@ -246,7 +251,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.pendingRefresh = null;
       added = true;
     } catch (error) {
-      this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.errorMessage = this.i18n.error(error);
       this.endCameraSession();
     } finally {
       this.setState('idle');
@@ -276,7 +281,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.mappedProduct = await this.internalMap.get(this.selectedStoreId, this.pendingInternal.productCode);
       this.mappingMode = !this.mappedProduct;
     } catch (error) {
-      this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.errorMessage = this.i18n.error(error);
       this.endCameraSession();
     } finally {
       this.setState('idle');
@@ -302,21 +307,21 @@ export class ScanProductComponent implements OnInit, OnDestroy {
           product = await this.catalog.byId(this.selectedInternalProductId);
         } else {
           const name = this.internalName.trim();
-          if (!name) throw new Error('Enter the product name.');
+          if (!name) throw new AppError('ui.enterTheProductName', "Enter the product name.");
           const classId = this.internalClassId || (await this.catalog.findOrCreateClass(name)).id;
           product = this.catalog.createLooseDraft(name, classId, 'g');
           await this.catalog.save(product);
         }
         await this.internalMap.save(this.selectedStoreId, this.pendingInternal.productCode, product.id);
       }
-      if (!product) throw new Error('Choose a product sold by the gram.');
+      if (!product) throw new AppError('ui.chooseAProductSoldByTheGram', "Choose a product sold by the gram.");
       await this.receive(product, {amount: this.pendingInternal.grams, unit: 'g'}, this.selectedStoreId);
       this.pendingInternal = null;
       this.mappedProduct = null;
       this.mappingMode = false;
       added = true;
     } catch (error) {
-      this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.errorMessage = this.i18n.error(error);
       this.endCameraSession();
     } finally {
       this.setState('idle');
@@ -357,7 +362,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
       this.detailsOpen = false;
       added = true;
     } catch (error) {
-      this.errorMessage = String(error instanceof Error ? error.message : error);
+      this.errorMessage = this.i18n.error(error);
       this.endCameraSession();
     } finally {
       this.setState('idle');
@@ -378,7 +383,7 @@ export class ScanProductComponent implements OnInit, OnDestroy {
   }
 
   public get backLabel(): string {
-    return this.route.snapshot.queryParamMap.get('from') === 'fridge' ? 'Back to fridge' : 'Back to shopping list';
+    return this.route.snapshot.queryParamMap.get('from') === 'fridge' ? this.i18n.t('ui.backToFridge') : this.i18n.t('ui.backToShoppingList');
   }
 
   public backToShopping(): void {

@@ -1,3 +1,5 @@
+import {LocalizationService} from '../i18n/localization.service';
+import {SettingsRepository} from '../database/settings/settings.repository';
 import {TestBed} from '@angular/core/testing';
 import {ChangeDetectorRef} from '@angular/core';
 import {Router} from '@angular/router';
@@ -52,6 +54,7 @@ describe('Quick add pages', () => {
     TestBed.configureTestingModule({
       providers: [
         provideIonicAngular(),
+        {provide: SettingsRepository, useValue: {save: () => of({}), findByKey: () => of(null)}},
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: MenuController, useValue: {open: jest.fn()}},
         {provide: ChangeDetectorRef, useValue: {detectChanges: jest.fn(), markForCheck: jest.fn()}},
@@ -190,6 +193,7 @@ describe('Quick add pages', () => {
     categorySuggestions.rank.mockResolvedValue([bakery.id]);
     const page = TestBed.runInInjectionContext(() => new StockPageComponent());
     page.nodes = [blankClass('root-food', 'Food', null), bakery];
+    await TestBed.inject(LocalizationService).setLanguage('de');
     await page.prepareReview('Eine Brezel');
     expect(page.review).toMatchObject({name: 'Brezel', count: 1, suggestedIds: ['bakery'], categoryId: ''});
     expect(stock.receive).not.toHaveBeenCalled();
@@ -205,10 +209,11 @@ describe('Quick add pages', () => {
   it('requires a category for any new product and allows cancellation without writes', async () => {
     const page = TestBed.runInInjectionContext(() => new StockPageComponent());
     page.nodes = [blankClass('root-food', 'Food', null)];
+    await TestBed.inject(LocalizationService).setLanguage('de');
     await page.prepareReview('Drei Tomaten');
     expect(page.review).toMatchObject({name: 'Tomaten', count: 3});
     await page.confirmReview();
-    expect(page.error).toMatch(/Choose or create a food category/);
+    expect(page.i18n.t(page.error)).toMatch(/Lebensmittelkategorie/);
     page.cancelReview();
     expect(catalog.save).not.toHaveBeenCalled();
     expect(stock.receive).not.toHaveBeenCalled();

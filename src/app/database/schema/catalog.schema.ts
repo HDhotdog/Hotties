@@ -1,7 +1,9 @@
 export const CATALOG_SCHEMA_LITERAL = {
   schema: {
-    version: 1, primaryKey: 'id', type: 'object',
+    version: 2, primaryKey: 'id', type: 'object',
     properties: {
+      origin: {type: 'string', enum: ['app', 'user']},
+      translationKey: {type: 'string', maxLength: 255},
       id: {type: 'string', maxLength: 255},
       parentId: {type: ['string', 'null']},
       kind: {type: 'string', enum: ['class', 'product']},
@@ -25,6 +27,7 @@ export const CATALOG_SCHEMA_LITERAL = {
     required: ['id', 'parentId', 'kind', 'name', 'brand', 'barcodes', 'saleKind', 'packageAmount', 'packageUnit', 'variableUnit', 'rawPackage', 'unitConversions'],
   },
   migrationStrategies: {
+    2: (oldDoc: any) => ({...oldDoc}),
     1: (oldDoc: any) => ({...oldDoc, unitConversions: {}})
   }
 };

@@ -1,3 +1,6 @@
+import {LocalizedNumberDirective} from '../i18n/localized-number.directive';
+import {Message} from '../i18n/language-pack';
+import {LocalizationService} from '../i18n/localization.service';
 import {CommonModule} from '@angular/common';
 import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
@@ -31,11 +34,13 @@ import {effectiveConversions} from './unit-conversion';
 
 @Component({
   selector: 'app-catalog-page', standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonModal, IonTitle, IonToolbar],
+  imports: [LocalizedNumberDirective, CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonModal, IonTitle, IonToolbar],
   templateUrl: './catalog-page.component.html',
   styleUrls: ['./catalog-page.component.scss']
 })
 export class CatalogPageComponent implements OnInit, OnDestroy {
+  private initialEditName = '';
+  public readonly i18n = inject(LocalizationService);
   @ViewChild('nameInput') private nameInput?: ElementRef<HTMLInputElement>;
   private readonly menu = inject(MenuController);
   private readonly catalog = inject(CatalogService);
@@ -63,7 +68,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
   public readonly approximateUnits: ApproximateUnit[] = ['piece', 'bunch', 'pinch'];
   public productDetailsOpen = false;
   public readonly units: BaseUnit[] = ['g', 'ml', 'piece', 'bunch', 'pinch'];
-  public error = '';
+  public error: Message = '';
   public deleteConfirmationOpen = false;
   public deleteDescendants = false;
   public deleteImpact: CatalogDeleteImpact | null = null;
@@ -99,14 +104,14 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
   public get classes(): CatalogNode[] {
     const excluded = new Set(this.editingId ? [this.editingId, ...this.catalog.descendantsOf(this.editingId, this.nodes).map(node => node.id)] : []);
     return sortCatalogCategoriesByPath(
-      this.nodes.filter(node => node.kind === 'class' && !excluded.has(node.id)), this.nodes);
+      this.nodes.filter(node => node.kind === 'class' && !excluded.has(node.id)), this.nodes, this.i18n.locale(), node => this.i18n.name(node));
   }
 
   public get visibleNodes(): CatalogNode[] {
     const result: CatalogNode[] = [];
     const visited = new Set<string>();
     const visit = (parentId: string | null): void => {
-      for (const node of this.nodes.filter(item => item.parentId === parentId).sort(compareCatalogCategories)) {
+      for (const node of this.nodes.filter(item => item.parentId === parentId).sort((a, b) => compareCatalogCategories(a, b, this.i18n.locale(), node => this.i18n.name(node)))) {
         if (visited.has(node.id)) continue;
         visited.add(node.id);
         result.push(node);
@@ -168,17 +173,17 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
   }
 
   public path(node: CatalogNode): string {
-    return catalogPath(node, this.nodes);
+    return catalogPath(node, this.nodes, node => this.i18n.name(node));
   }
 
   public saleLabel(node: CatalogNode): string {
-    return node.saleKind === 'fixed' ? `${node.packageAmount} ${node.packageUnit} per package` :
-      node.saleKind === 'variable' ? `sold by ${node.variableUnit}` : 'package size unknown';
+    return node.saleKind === 'fixed' ? this.i18n.t('ui.valueValuePerPackage', {p0: this.i18n.number(node.packageAmount), p1: this.i18n.unit(node.packageUnit, node.packageAmount ?? 0)}) :
+      node.saleKind === 'variable' ? this.i18n.t('catalog.soldBy', {unit: this.i18n.unit(node.variableUnit)}) : this.i18n.t('ui.packageSizeUnknown2');
   }
 
   public parentLabel(): string {
     const parent = this.nodes.find(node => node.id === this.parentId);
-    return parent ? this.path(parent) : 'Top level';
+    return parent ? this.path(parent) : this.i18n.t('ui.topLevel');
   }
 
   public get deleteDescendantCount(): number {
@@ -211,7 +216,8 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     this.editorOpen = true;
     this.editingId = node.id;
     this.kind = node.kind;
-    this.name = node.name;
+    this.name = this.i18n.name(node);
+    this.initialEditName = this.name;
     this.parentId = node.parentId ?? '';
     this.brand = node.brand ?? '';
     this.barcode = node.barcodes[0] ?? '';
@@ -263,11 +269,17 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
           variableUnit: this.saleKind === 'variable' ? this.variableUnit : null, rawPackage: this.rawPackage,
           unitConversions: this.unitConversions
         };
+      const original = this.selectedNode;
+      if (original?.origin) node.origin = original.origin;
+      if (original?.translationKey && this.name.trim() === this.initialEditName) {
+        node.name = original.name;
+        node.translationKey = original.translationKey;
+      }
       await this.catalog.save(node);
       if (parentId) this.collapsedIds.delete(parentId);
       this.reset();
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
     } finally {
       this.cdr.detectChanges();
     }
@@ -293,7 +305,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
       const impact = await this.catalog.previewDelete(this.editingId, this.deleteDescendants);
       if (version === this.deletePreviewVersion) this.deleteImpact = impact;
     } catch (error) {
-      if (version === this.deletePreviewVersion) this.error = String(error instanceof Error ? error.message : error);
+      if (version === this.deletePreviewVersion) this.error = this.i18n.error(error);
     } finally {
       this.cdr.detectChanges();
     }
@@ -314,7 +326,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
       await this.catalog.delete(this.editingId, this.deleteDescendants);
       this.reset();
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
     } finally {
       this.deleteBusy = false;
       this.cdr.detectChanges();

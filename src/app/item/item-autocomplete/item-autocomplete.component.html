@@ -2,12 +2,13 @@
   <ion-input id="text-box"
              [class]="inputClass"
              [placeholder]="placeholder"
+             [attr.aria-label]="placeholder"
              [ngModel]="value"
              (ngModelChange)="onInput($event)"
              (keyup.enter)="onEnter()"
              (ionFocus)="onFocus()"
              (ionBlur)="onBlur()"
-  ></ion-input>
+ ></ion-input>
   @if (showSuggestions) {
     <ion-list class="suggestion-list" [class.suggestion-list-up]="openUpward">
       @for (item of suggestions; track item.id) {

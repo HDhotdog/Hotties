@@ -1,3 +1,4 @@
+import {LocalizationService} from '../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -54,6 +55,7 @@ import {Router} from '@angular/router';
   ],
 })
 export class TodoComponent implements OnInit {
+  public readonly i18n = inject(LocalizationService);
   private menuController = inject(MenuController);
   private categoryService = inject(CategoryService);
   private todoService = inject(TodoService);
@@ -118,7 +120,7 @@ export class TodoComponent implements OnInit {
         this._currentSuggestion = {
           id: UUIDv4(),
           categoryId: this.selectedCategory.id,
-          suggestion: 'Cookies',
+          suggestion: this.i18n.t('ui.cookies'),
           suffix: '! :D',
         };
         this.cdr.markForCheck();
@@ -217,7 +219,7 @@ export class TodoComponent implements OnInit {
       this.suggestionService
         .save(
           SuggestionFactory.createSuggestionWithoutSuffix(
-            'Cookies',
+            this.i18n.t('ui.cookies'),
             this.selectedCategory.id
           )
         )

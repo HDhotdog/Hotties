@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {from, map, Observable, switchMap} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
@@ -31,11 +32,11 @@ export class ShoppingService {
     count?: number
   }, name?: string): Promise<ShoppingEntry> {
     const node = await this.catalog.findById(targetNodeId);
-    if (need.kind === 'packages' && node?.kind !== 'product') throw new Error('Package counts require an exact product.');
+    if (need.kind === 'packages' && node?.kind !== 'product') throw new AppError('ui.packageCountsRequireAnExactProduct', "Package counts require an exact product.");
     const amount = need.kind === 'quantity' ? need.quantity?.amount : need.kind === 'packages' ? need.count : null;
     const unit = need.kind === 'quantity' ? need.quantity?.unit : need.kind === 'packages' ? 'package' : null;
     if (need.kind !== 'unspecified' && (!(amount && Number.isFinite(amount) && amount > 0) || !unit)) {
-      throw new Error('Enter a valid shopping quantity.');
+      throw new AppError('ui.enterAValidShoppingQuantity', "Enter a valid shopping quantity.");
     }
     const entry: ShoppingEntry = {
       id: uuidv4(), shoppingListId: listId, kind: 'product', targetNodeId,
@@ -47,7 +48,7 @@ export class ShoppingService {
   }
 
   public async save(entry: ShoppingEntry): Promise<void> {
-    if (!entry.label?.trim()) throw new Error('A shopping entry needs a name.');
+    if (!entry.label?.trim()) throw new AppError('ui.aShoppingEntryNeedsAName', "A shopping entry needs a name.");
     const db = await this.database.getDb();
     await db['shopping_entries'].upsert({...entry, retiredAllocations: entry.retiredAllocations ?? []});
   }

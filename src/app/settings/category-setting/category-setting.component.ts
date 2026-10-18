@@ -1,3 +1,5 @@
+import {Message, message} from '../../i18n/language-pack';
+import {LocalizationService} from '../../i18n/localization.service';
 import {
   AlertController, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
   IonReorder, IonReorderGroup, IonTitle, IonToolbar, ReorderEndEventDetail,
@@ -21,6 +23,7 @@ import {Category} from '../../category/category.dto';
     IonReorder, IonReorderGroup, IonTitle, IonToolbar],
 })
 export class CategorySettingComponent implements OnInit {
+  public readonly i18n = inject(LocalizationService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
   private alerts = inject(AlertController);
@@ -34,7 +37,7 @@ export class CategorySettingComponent implements OnInit {
   editSaveSuggestions = true;
   busy = false;
   reordering = false;
-  error = '';
+  error: Message = '';
 
   ngOnInit() {
     this.categoryService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(categories => {
@@ -57,7 +60,7 @@ export class CategorySettingComponent implements OnInit {
       }));
       if (this.newListName === draft) this.newListName = '';
     } catch {
-      this.error = 'Could not add the shopping list. Please try again.';
+      this.error = 'ui.couldNotAddTheShoppingListPleaseTryAgain';
     } finally {
       this.busy = false;
       this.cdr.markForCheck();
@@ -84,7 +87,7 @@ export class CategorySettingComponent implements OnInit {
       }));
       this.cancelEdit();
     } catch {
-      this.error = 'Could not save the shopping list. Please try again.';
+      this.error = 'ui.couldNotSaveTheShoppingListPleaseTryAgain';
     } finally {
       this.busy = false;
       this.cdr.markForCheck();
@@ -98,11 +101,11 @@ export class CategorySettingComponent implements OnInit {
 
   private validName(name: string, id?: string): boolean {
     if (name.length > 255) {
-      this.error = 'Shopping list names can have at most 255 characters.';
+      this.error = 'ui.shoppingListNamesCanHaveAtMost255Characters';
       return false;
     }
     if (this.categories.some(list => list.id !== id && list.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
-      this.error = 'A shopping list with this name already exists.';
+      this.error = 'ui.aShoppingListWithThisNameAlreadyExists';
       return false;
     }
     return true;
@@ -116,12 +119,12 @@ export class CategorySettingComponent implements OnInit {
       const count = await this.categoryService.getItemCount(list.id);
       if (count > 0) {
         const alert = await this.alerts.create({
-          header: 'Delete shopping list?',
+          header: this.i18n.t('ui.deleteShoppingList2'),
           subHeader: list.name,
-          message: `${count} ${count === 1 ? 'item is' : 'items are'} still added to this list. Deleting the list will also delete ${count === 1 ? 'this item' : 'these items'}.`,
+          message: this.i18n.t('shopping.deleteMessage', {count, name: list.name}),
           buttons: [
-            {text: 'Cancel', role: 'cancel'},
-            {text: 'Delete list and items', role: 'confirm', cssClass: 'alert-button-danger'},
+            {text: this.i18n.t('ui.cancel'), role: 'cancel'},
+            {text: this.i18n.t('ui.deleteListAndItems'), role: 'confirm', cssClass: 'alert-button-danger'},
           ],
         });
         await alert.present();
@@ -130,7 +133,7 @@ export class CategorySettingComponent implements OnInit {
       await firstValueFrom(this.categoryService.deleteCategory(list.id, count));
       if (this.editingList?.id === list.id) this.cancelEdit();
     } catch (error) {
-      this.error = error instanceof Error ? error.message : 'Could not delete the shopping list. Please try again.';
+      this.error = this.i18n.error(error);
     } finally {
       this.busy = false;
       this.cdr.markForCheck();
@@ -158,7 +161,7 @@ export class CategorySettingComponent implements OnInit {
       await firstValueFrom(this.categoryService.saveAll(this.categories));
     } catch {
       this.categories = previous;
-      this.error = 'Could not save the shopping list order. Please try again.';
+      this.error = 'ui.couldNotSaveTheShoppingListOrderPleaseTryAgain';
     } finally {
       this.busy = false;
       this.reordering = false;

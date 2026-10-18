@@ -1,14 +1,14 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="openMenu()" aria-label="Open menu">
+      <ion-button (click)="openMenu()" [attr.aria-label]="i18n.t('ui.openMenu')">
         <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Catalog</ion-title>
+    <ion-title>{{ i18n.t('ui.catalog') }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="openAdd(null)"
-                  aria-label="Add top-level category">
+                  [attr.aria-label]="i18n.t('ui.addTopLevelCategory')">
         <ion-icon name="add"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -18,21 +18,21 @@
 <ion-content>
   <main class="catalog-tree">
     @for (node of visibleNodes; track node.id) {
-      <div class="node-group" [style.margin-left.px]="indent(node)">
+      <div class="node-group" [style.margin-inline-start.px]="indent(node)">
         <div class="node-row" [class.product]="node.kind === 'product'">
           @if (node.kind === 'class') {
             <button class="node-label category-label" type="button" (click)="toggleExpanded(node)"
-                    [attr.aria-label]="hasChildren(node) ? (isExpanded(node) ? 'Collapse ' : 'Expand ') + path(node) : path(node)"
+                    [attr.aria-label]="hasChildren(node) ? i18n.t(isExpanded(node) ? 'actions.collapse' : 'actions.expand', {name: path(node)}) : path(node)"
                     [attr.aria-expanded]="hasChildren(node) ? isExpanded(node) : null" [disabled]="!hasChildren(node)">
               @if (hasChildren(node)) {
                 <ion-icon [name]="isExpanded(node) ? 'chevron-down-outline' : 'chevron-forward-outline'"
                           aria-hidden="true"></ion-icon>
               }
-              <span class="node-name">{{ node.name }}</span>
+              <span class="node-name">{{ i18n.name(node) }}</span>
             </button>
           } @else {
             <div class="node-label product-label">
-            <span class="node-name">{{ node.name }} @if (node.brand) {
+            <span class="node-name">{{ i18n.name(node) }} @if (node.brand) {
               <small>· {{ node.brand }}</small>
             }</span>
               <span class="node-meta">{{ saleLabel(node) }}</span>
@@ -40,18 +40,18 @@
           }
           @if (node.kind === 'class') {
             <button class="node-add" type="button" (click)="openAdd(node)"
-                    [attr.aria-label]="'Add under ' + path(node)">
+                    [attr.aria-label]="i18n.t('actions.addUnder', {name: path(node)})">
               <ion-icon name="add"></ion-icon>
             </button>
           }
           <button class="node-edit" type="button" (click)="edit(node)"
-                  [attr.aria-label]="'Edit ' + path(node)">
+                  [attr.aria-label]="i18n.t('actions.edit', {name: path(node)})">
             <ion-icon name="pencil" aria-hidden="true"></ion-icon>
           </button>
         </div>
       </div>
     } @empty {
-      <div class="empty-state">No catalog entries yet. Add a top-level category to start.</div>
+      <div class="empty-state">{{ i18n.t('ui.noCatalogEntriesYetAddATopLevelCategoryToStart') }}</div>
     }
   </main>
 </ion-content>
@@ -60,33 +60,33 @@
 <ng-template>
   <ion-header>
     <ion-toolbar>
-      <ion-title>{{ editingId ? 'Edit ' + (selectedNode?.name ?? 'entry') : 'Add catalog entry' }}</ion-title>
+      <ion-title>{{ editingId ? i18n.t('actions.edit', {name: i18n.name(selectedNode)}) : i18n.t('ui.addCatalogEntry') }}</ion-title>
       <ion-buttons slot="end">
-        <ion-button (click)="reset()" aria-label="Close catalog form"><ion-icon name="close"></ion-icon></ion-button>
+        <ion-button (click)="reset()" [attr.aria-label]="i18n.t('ui.closeCatalogForm')"><ion-icon name="close"></ion-icon></ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
   <ion-content>
   <section class="editor-panel">
-    <h2>{{ editingId ? 'Edit ' + (selectedNode?.name ?? 'entry') : addParentId ? 'Add under ' + parentLabel() : 'Add top-level category' }}</h2>
+    <h2>{{ editingId ? i18n.t('actions.edit', {name: i18n.name(selectedNode)}) : addParentId ? i18n.t('actions.addUnder', {name: parentLabel()}) : i18n.t('ui.addTopLevelCategory') }}</h2>
     @if (error) {
-      <p class="error" role="alert">{{ error }}</p>
+      <p class="error" role="alert">{{ i18n.t(error) }}</p>
     }
     @if (!editingId && addParentId !== null) {
-      <div class="kind-switch" role="group" aria-label="New catalog entry type">
-        <button type="button" [class.active]="kind === 'class'" (click)="kind = 'class'">Category</button>
-        <button type="button" [class.active]="kind === 'product'" (click)="kind = 'product'">Product</button>
+      <div class="kind-switch" role="group" [attr.aria-label]="i18n.t('ui.newCatalogEntryType')">
+        <button type="button" [class.active]="kind === 'class'" (click)="kind = 'class'">{{ i18n.t('ui.category') }}</button>
+        <button type="button" [class.active]="kind === 'product'" (click)="kind = 'product'">{{ i18n.t('ui.product') }}</button>
       </div>
     }
-    <label>Name
+    <label>{{ i18n.t('ui.name') }}
       <input #nameInput [(ngModel)]="name" (keydown.enter)="save()"
-             [placeholder]="kind === 'class' ? 'Category name' : 'Product name'">
+             [placeholder]="kind === 'class' ? i18n.t('ui.categoryName') : i18n.t('ui.productName')">
     </label>
     @if (editingId) {
-      <label>Parent category
+      <label>{{ i18n.t('ui.parentCategory') }}
         <select [(ngModel)]="parentId">
           @if (kind === 'class') {
-            <option value="">Top level</option>
+            <option value="">{{ i18n.t('ui.topLevel') }}</option>
           }
           @for (category of classes; track category.id) {
             <option [value]="category.id">{{ path(category) }}</option>
@@ -95,113 +95,109 @@
       </label>
     }
     @if (kind === 'product') {
-      <label>Brand <span class="optional">optional</span>
-        <input [(ngModel)]="brand" placeholder="Brand">
+      <label>{{ i18n.t('ui.brand') }} <span class="optional">{{ i18n.t('ui.optional') }}</span>
+        <input [(ngModel)]="brand" [placeholder]="i18n.t('ui.brand')">
       </label>
       <button class="more-details" type="button" (click)="productDetailsOpen = !productDetailsOpen"
               [attr.aria-expanded]="productDetailsOpen">
-        {{ productDetailsOpen ? 'Hide package details' : 'Barcode and package details' }}
+        {{ productDetailsOpen ? i18n.t('ui.hidePackageDetails') : i18n.t('ui.barcodeAndPackageDetails') }}
       </button>
       @if (productDetailsOpen) {
         <div class="product-fields">
-          <label>Barcode <span class="optional">optional</span><input [(ngModel)]="barcode" inputmode="numeric"></label>
-          <label>How it is sold
+          <label>{{ i18n.t('ui.barcode') }} <span class="optional">{{ i18n.t('ui.optional') }}</span><input [(ngModel)]="barcode" inputmode="numeric"></label>
+          <label>{{ i18n.t('ui.howItIsSold') }}
             <select [(ngModel)]="saleKind">
-              <option value="unknown">Package size unknown</option>
-              <option value="fixed">Fixed package</option>
-              <option value="variable">Variable quantity</option>
+              <option value="unknown">{{ i18n.t('ui.packageSizeUnknown') }}</option>
+              <option value="fixed">{{ i18n.t('ui.fixedPackage') }}</option>
+              <option value="variable">{{ i18n.t('ui.variableQuantity') }}</option>
             </select>
           </label>
           @if (saleKind === 'fixed') {
             <div class="amount-fields">
-              <label>Content per package <input type="number" min="0.001" step="any"
+              <label>{{ i18n.t('ui.contentPerPackage') }} <input appLocalizedNumber type="number" min="0.001" step="any"
                                                 [(ngModel)]="packageAmount"></label>
-              <label>Unit
+              <label>{{ i18n.t('ui.unit') }}
                 <select [(ngModel)]="packageUnit">
                   @for (unit of units; track unit) {
-                    <option [value]="unit">{{ unit }}</option>
+                    <option [value]="unit">{{ i18n.unit(unit) }}</option>
                   }
                 </select>
               </label>
             </div>
           } @else if (saleKind === 'variable') {
-            <label>Sold by
+            <label>{{ i18n.t('ui.soldBy') }}
               <select [(ngModel)]="variableUnit">
                 @for (unit of units; track unit) {
-                  <option [value]="unit">{{ unit }}</option>
+                  <option [value]="unit">{{ i18n.unit(unit) }}</option>
                 }
               </select>
             </label>
           }
           @if (rawPackage) {
-            <p class="raw-package">Original package label: {{ rawPackage }}</p>
+            <p class="raw-package">{{ i18n.t('ui.originalPackageLabelValue', {p0: (rawPackage)}) }}</p>
           }
         </div>
       }
     }
     <fieldset class="conversion-fields">
-      <legend>Unit conversions</legend>
-      <p>Set the approximate weight or volume of one unit. Categories pass these values to their products.</p>
+      <legend>{{ i18n.t('ui.unitConversions') }}</legend>
+      <p>{{ i18n.t('ui.setTheApproximateWeightOrVolumeOfOneUnitCategoriesPassTheseValuesToTheirProducts') }}</p>
       @for (unit of approximateUnits; track unit) {
         <div class="conversion-row">
           <label class="conversion-toggle">
             <input type="checkbox" [checked]="!!unitConversions[unit]"
                    (change)="setConversionEnabled(unit, $any($event.target).checked)">
-            1 {{ unit }} equals
+            {{ i18n.t('ui.1ValueEquals', {p0: (i18n.unit(unit, 1))}) }}
           </label>
           @if (unitConversions[unit]; as conversion) {
             <label>
-              <span class="sr-only">Amount for {{ unit }}</span>
-              <input type="number" min="0.001" step="any" [ngModel]="conversion.amount"
-                     (ngModelChange)="setConversionAmount(unit, $event)" [attr.aria-label]="'Amount for ' + unit">
+              <span class="sr-only">{{ i18n.t('ui.amountForValue', {p0: (i18n.unit(unit))}) }}</span>
+              <input appLocalizedNumber type="number" min="0.001" step="any" [ngModel]="conversion.amount"
+                     (ngModelChange)="setConversionAmount(unit, $event)" [attr.aria-label]="i18n.t('ui.amountForValue', {p0: i18n.unit(unit, 1)})">
             </label>
             <label>
-              <span class="sr-only">Unit for {{ unit }}</span>
+              <span class="sr-only">{{ i18n.t('ui.unitForValue', {p0: (i18n.unit(unit))}) }}</span>
               <select [ngModel]="conversion.unit" (ngModelChange)="setConversionUnit(unit, $event)"
-                      [attr.aria-label]="'Unit for ' + unit">
-                <option value="g">g</option><option value="ml">ml</option>
+                      [attr.aria-label]="i18n.t('ui.unitForValue', {p0: i18n.unit(unit, 1)})">
+                <option value="g">{{ i18n.t('ui.g') }}</option><option value="ml">{{ i18n.t('ui.ml') }}</option>
               </select>
             </label>
           } @else if (inheritedConversion(unit); as inherited) {
-            <span class="inherited-conversion">Inherited: {{ inherited.amount }} {{ inherited.unit }}</span>
+            <span class="inherited-conversion">{{ i18n.t('ui.inheritedValueValue', {p0: (i18n.number(inherited.amount)), p1: (i18n.unit(inherited.unit))}) }}</span>
           }
         </div>
       }
     </fieldset>
     <div class="editor-actions">
-      <ion-button (click)="save()">Save</ion-button>
-      <ion-button fill="clear" (click)="reset()">Cancel</ion-button>
+      <ion-button (click)="save()">{{ i18n.t('ui.save') }}</ion-button>
+      <ion-button fill="clear" (click)="reset()">{{ i18n.t('ui.cancel') }}</ion-button>
       @if (editingId && canDelete(selectedNode)) {
-        <ion-button fill="clear" color="danger" (click)="beginDelete()">Delete</ion-button>
+        <ion-button fill="clear" color="danger" (click)="beginDelete()">{{ i18n.t('ui.delete') }}</ion-button>
       }
     </div>
     @if (deleteConfirmationOpen) {
-      <div class="delete-panel" role="group" [attr.aria-label]="'Delete ' + (selectedNode?.name ?? name)">
-        <h3>Delete {{ selectedNode?.name }}?</h3>
+      <div class="delete-panel" role="group" [attr.aria-label]="i18n.t('actions.delete', {name: i18n.name(selectedNode) || name})">
+        <h3>{{ i18n.t('ui.deleteValue', {p0: (i18n.name(selectedNode))}) }}</h3>
         @if (deleteDescendantCount > 0) {
           <label class="delete-option">
             <input type="radio" name="delete-scope" [checked]="!deleteDescendants"
                    (change)="setDeleteDescendants(false)">
-            Keep sub-items and move them up one level
+            {{ i18n.t('ui.keepSubItemsAndMoveThemUpOneLevel') }}
           </label>
           <label class="delete-option">
             <input type="radio" name="delete-scope" [checked]="deleteDescendants" (change)="setDeleteDescendants(true)">
-            Delete all {{ deleteDescendantCount }} sub-items too
+            {{ i18n.t('ui.deleteAllValueSubItemsToo', {p0: (deleteDescendantCount)}) }}
           </label>
         }
         @if (deleteImpact) {
           <p>
-            This also removes {{ deleteImpact.shoppingEntryCount }} shopping
-            {{ deleteImpact.shoppingEntryCount === 1 ? 'entry' : 'entries' }},
-            {{ deleteImpact.stockLotCount }} fridge {{ deleteImpact.stockLotCount === 1 ? 'lot' : 'lots' }},
-            and {{ deleteImpact.recipeIngredientCount }} recipe
-            {{ deleteImpact.recipeIngredientCount === 1 ? 'ingredient' : 'ingredients' }}.
+            {{ i18n.t('catalog.deleteImpact', {shopping: deleteImpact.shoppingEntryCount, stock: deleteImpact.stockLotCount, recipe: deleteImpact.recipeIngredientCount}) }}
           </p>
         }
         <div class="delete-actions">
-          <ion-button fill="clear" (click)="cancelDelete()">Keep</ion-button>
+          <ion-button fill="clear" (click)="cancelDelete()">{{ i18n.t('ui.keep') }}</ion-button>
           <ion-button color="danger" [disabled]="!deleteImpact || deleteBusy" (click)="confirmDelete()">
-            {{ deleteBusy ? 'Deleting…' : 'Delete permanently' }}
+            {{ deleteBusy ? i18n.t('ui.deleting') : i18n.t('ui.deletePermanently') }}
           </ion-button>
         </div>
       </div>

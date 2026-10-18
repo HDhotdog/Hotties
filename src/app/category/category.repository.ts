@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {from, map, Observable, switchMap} from 'rxjs';
 import {RxDocument} from 'rxdb';
@@ -17,7 +18,7 @@ export class CategoryRepository extends AbstractRepository<RxCategory> {
     return this.getCollection().pipe(
       switchMap(collection => from(collection.bulkUpsert(categories))),
       map(result => {
-        if (result.error.length) throw new Error('Could not save the shopping list order.');
+        if (result.error.length) throw new AppError('ui.couldNotSaveTheShoppingListOrder', "Could not save the shopping list order.");
         return result.success;
       })
     );

@@ -1,13 +1,13 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="openMenu()" aria-label="Open menu">
+      <ion-button (click)="openMenu()" [attr.aria-label]="i18n.t('ui.openMenu')">
         <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
     <label class="list-picker">
-      <span class="sr-only">Shopping list</span>
-      <select [(ngModel)]="selectedListId" (ngModelChange)="selectList()" aria-label="Shopping list">
+      <span class="sr-only">{{ i18n.t('ui.shoppingList') }}</span>
+      <select [(ngModel)]="selectedListId" (ngModelChange)="selectList()" [attr.aria-label]="i18n.t('ui.shoppingList')">
         @for (list of lists; track list.id) {
           <option [value]="list.id">{{ list.name }}</option>
         }
@@ -15,7 +15,7 @@
       <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
     </label>
     <ion-buttons slot="end">
-      <ion-button (click)="openScanner()" aria-label="Scan acquired product">
+      <ion-button (click)="openScanner()" [attr.aria-label]="i18n.t('ui.scanAcquiredProduct')">
         <ion-icon name="scan-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -26,34 +26,34 @@
   <div class="entries">
     @for (entry of entries; track entry.id) {
       <div class="entry" [class.checked]="entry.checked">
-        <button class="remove-button" type="button" (click)="remove(entry)" [attr.aria-label]="'Remove ' + entry.label">
+        <button class="remove-button" type="button" (click)="remove(entry)" [attr.aria-label]="i18n.t('actions.remove', {name: entry.label})">
           <ion-icon name="close-outline"></ion-icon>
         </button>
         <button class="entry-main" type="button" (click)="toggleEntryDetails(entry)"
-                [attr.aria-label]="'Details for ' + entry.label" [attr.aria-expanded]="expandedEntryId === entry.id">
+                [attr.aria-label]="i18n.t('actions.details', {name: entry.label})" [attr.aria-expanded]="expandedEntryId === entry.id">
           <span class="entry-name">{{ entryTitle(entry) }}</span>
-          <span class="entry-meta">{{ progress(entry) > 0 ? remainingLabel(entry) + ' left' : needLabel(entry) }}</span>
+          <span class="entry-meta">{{ progress(entry) > 0 ? i18n.t('shopping.remaining', {quantity: remainingLabel(entry)}) : needLabel(entry) }}</span>
         </button>
         <button class="check-button" type="button" (click)="toggle(entry)"
-                [attr.aria-label]="(entry.checked ? 'Uncheck ' : 'Check ') + entry.label">
+                [attr.aria-label]="i18n.t(entry.checked ? 'actions.uncheck' : 'actions.check', {name: entry.label})">
           <ion-icon [name]="entry.checked ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
         </button>
       </div>
       @if (expandedEntryId === entry.id) {
         <div class="entry-details">
-          <span>Checked items stay here until the product is added to stock.</span>
+          <span>{{ i18n.t('ui.checkedItemsStayHereUntilTheProductIsAddedToStock') }}</span>
           @if (entry.needKind === 'quantity' && matchingProducts(entry).length > 0) {
-            <label>Package estimate
+            <label>{{ i18n.t('ui.packageEstimate') }}
               <select [(ngModel)]="suggestionProductIds[entry.id]"
-                      [attr.aria-label]="'Package estimate for ' + entry.label">
-                <option value="">Choose a product</option>
+                      [attr.aria-label]="i18n.t('actions.estimate', {name: entry.label})">
+                <option value="">{{ i18n.t('ui.chooseAProduct') }}</option>
                 @for (product of matchingProducts(entry); track product.id) {
-                  <option [value]="product.id">{{ product.name }} {{ product.brand ?? '' }}</option>
+                  <option [value]="product.id">{{ i18n.name(product) }} {{ product.brand ?? '' }}</option>
                 }
               </select>
             </label>
             @if (suggestedPackagesForEntry(entry); as count) {
-              <span>{{ count }} package(s) to buy</span>
+              <span>{{ i18n.t('format.packagesToBuy', {count}) }}</span>
             }
           }
         </div>
@@ -61,8 +61,8 @@
     } @empty {
       <div class="empty-state">
         <ion-icon name="basket-outline" aria-hidden="true"></ion-icon>
-        <p>Your shopping list is empty</p>
-        <span>Type an item below to get started.</span>
+        <p>{{ i18n.t('ui.yourShoppingListIsEmpty') }}</p>
+        <span>{{ i18n.t('ui.typeAnItemBelowToGetStarted') }}</span>
       </div>
     }
   </div>
@@ -70,16 +70,16 @@
 
 <ion-footer class="quick-add">
   @if (error) {
-    <p class="error" role="alert">{{ error }}</p>
+    <p class="error" role="alert">{{ i18n.t(error) }}</p>
   }
   @if (suggestions.length > 0) {
-    <div class="suggestions" role="listbox" aria-label="Matching catalog items">
+    <div class="suggestions" role="listbox" [attr.aria-label]="i18n.t('ui.matchingCatalogItems')">
       @for (node of suggestions; track node.id) {
         <button type="button" role="option" (pointerdown)="$event.preventDefault()" (click)="chooseSuggestion(node)">
-          <span>{{ node.name }} @if (node.brand) {
+          <span>{{ i18n.name(node) }} @if (node.brand) {
             <small>· {{ node.brand }}</small>
           }</span>
-          <small>{{ node.kind === 'class' ? 'Any brand' : 'Product' }}</small>
+          <small>{{ node.kind === 'class' ? i18n.t('ui.anyBrand') : i18n.t('ui.product') }}</small>
         </button>
       }
     </div>
@@ -87,23 +87,23 @@
   @if (detailsOpen) {
     <div class="add-details">
       <div class="detail-fields">
-        <label>Need
-          <select [(ngModel)]="needKind" aria-label="Quantity type">
-            <option value="unspecified">One purchase</option>
-            <option value="quantity">Measured amount</option>
+        <label>{{ i18n.t('ui.need') }}
+          <select [(ngModel)]="needKind" [attr.aria-label]="i18n.t('ui.quantityType')">
+            <option value="unspecified">{{ i18n.t('ui.onePurchase') }}</option>
+            <option value="quantity">{{ i18n.t('ui.measuredAmount') }}</option>
             @if (selectedProduct) {
-              <option value="packages">Packages</option>
+              <option value="packages">{{ i18n.t('ui.packages') }}</option>
             }
           </select>
         </label>
         @if (needKind !== 'unspecified') {
-          <label>Amount <input type="number" min="0.001" step="any" [(ngModel)]="needAmount"
-                               aria-label="Amount"></label>
+          <label>{{ i18n.t('ui.amount') }} <input appLocalizedNumber type="number" min="0.001" step="any" [(ngModel)]="needAmount"
+                               [attr.aria-label]="i18n.t('ui.amount')"></label>
           @if (needKind === 'quantity') {
-            <label>Unit
-              <select [(ngModel)]="needUnit" aria-label="Unit">
+            <label>{{ i18n.t('ui.unit') }}
+              <select [(ngModel)]="needUnit" [attr.aria-label]="i18n.t('ui.unit')">
                 @for (unit of units; track unit) {
-                  <option [value]="unit">{{ unit }}</option>
+                  <option [value]="unit">{{ i18n.unit(unit) }}</option>
                 }
               </select>
             </label>
@@ -111,20 +111,20 @@
         }
       </div>
       @if (suggestedPackages !== null) {
-        <span class="package-hint">About {{ suggestedPackages }} package(s)</span>
+        <span class="package-hint">{{ i18n.t('format.aboutPackages', {count: suggestedPackages}) }}</span>
       }
     </div>
   }
   <div class="composer-row">
     <button class="details-toggle" type="button" (click)="toggleDetails()"
-            [attr.aria-label]="detailsOpen ? 'Hide add options' : 'Show quantity options'"
+            [attr.aria-label]="detailsOpen ? i18n.t('ui.hideAddOptions') : i18n.t('ui.showQuantityOptions')"
             [attr.aria-expanded]="detailsOpen">
       <ion-icon [name]="detailsOpen ? 'options' : 'options-outline'"></ion-icon>
     </button>
     <input #quickInput type="text" [ngModel]="newName" (ngModelChange)="inputChanged($event)"
-           (keydown.enter)="add()" placeholder="Add to shopping list"
-           aria-label="New shopping item" autocomplete="off">
-    <ion-button class="add-button" (click)="add()" [disabled]="adding" aria-label="Add to shopping list">
+           (keydown.enter)="add()" [placeholder]="i18n.t('ui.addToShoppingList')"
+           [attr.aria-label]="i18n.t('ui.newShoppingItem')" autocomplete="off">
+    <ion-button class="add-button" (click)="add()" [disabled]="adding" [attr.aria-label]="i18n.t('ui.addToShoppingList')">
       <ion-icon slot="icon-only" name="add"></ion-icon>
     </ion-button>
   </div>

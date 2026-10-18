@@ -15,7 +15,8 @@
           "options": {
             "allowedCommonJsDependencies": [
               "ajv",
-              "ajv-formats"
+              "ajv-formats",
+              "@messageformat/core"
             ],
             "outputPath": {
               "base": "www"

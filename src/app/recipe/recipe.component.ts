@@ -1,3 +1,4 @@
+import {LocalizationService} from '../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -9,7 +10,6 @@ import {
   IonLabel,
   IonMenu,
   IonRange,
-  IonSearchbar,
   IonTitle,
   IonToolbar,
   MenuController,
@@ -58,12 +58,12 @@ export interface IngredientAvailability {
     IonLabel,
     IonMenu,
     IonRange,
-    IonSearchbar,
-    IonTitle,
+      IonTitle,
     IonToolbar,
   ],
 })
 export class RecipeComponent implements OnInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   private recipeService = inject(RecipeService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -80,7 +80,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   private _setFilters: Label[] = [];
   public search: string = '';
   public selectedTime: number | null = 0;
-  public formatPreparationTime = (value: number | null): string => value ? `${value} min` : 'All';
+  public formatPreparationTime = (value: number | null): string => value ? this.i18n.t('format.minutes', {count: value}) : this.i18n.t('ui.all');
   public results: Recipe[] = [];
 
   private imageUrls = new Map<string, string>();
@@ -194,16 +194,7 @@ export class RecipeComponent implements OnInit, OnDestroy {
   }
 
   public parseDate(recipe: Recipe): string {
-    let hours = (recipe.preparationTime - (recipe.preparationTime % 60)) / 60;
-    let minutes = recipe.preparationTime % 60;
-    let date: string = '';
-    if (hours > 0) {
-      date += hours + 'h ';
-    }
-    if (minutes > 0) {
-      date += minutes + 'm';
-    }
-    return date.trim();
+    return this.i18n.duration(recipe.preparationTime);
   }
 
   public changeFilter(event: Event, label: Label) {

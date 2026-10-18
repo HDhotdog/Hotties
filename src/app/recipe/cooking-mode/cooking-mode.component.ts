@@ -1,4 +1,5 @@
-import {
+import {LocalizationService} from '../../i18n/localization.service';
+import {inject,
   AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, input, OnDestroy, output, signal, viewChild
 } from '@angular/core';
 import {Ingredient} from '../../ingredients/ingredient.dto';
@@ -18,6 +19,7 @@ export interface CookingSlide {
   host: {'(keydown)': 'onKeydown($event)'}
 })
 export class CookingModeComponent implements AfterViewInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   readonly recipeName = input.required<string>();
   readonly slides = input.required<CookingSlide[]>();
   readonly closed = output<void>();

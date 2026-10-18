@@ -1,3 +1,4 @@
+import {AppError} from '../../i18n/language-pack';
 import {AlertController, provideIonicAngular} from '@ionic/angular';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
@@ -51,7 +52,7 @@ describe('Shopping list settings', () => {
     component.newListName = ' FIRST ';
     await component.addList();
     expect(service.save).not.toHaveBeenCalled();
-    expect(component.error).toContain('already exists');
+    expect(component.i18n.t(component.error)).toContain('already exists');
   });
 
   it('renames inline while preserving the list id, order, and suggestion option', async () => {
@@ -70,7 +71,7 @@ describe('Shopping list settings', () => {
     component.newListName = 'Weekend';
     await component.addList();
     expect(component.newListName).toBe('Weekend');
-    expect(component.error).toContain('Could not add');
+    expect(component.i18n.t(component.error)).toContain('Could not add');
     expect(component.busy).toBe(false);
   });
 
@@ -87,7 +88,7 @@ describe('Shopping list settings', () => {
     service.getItemCount.mockResolvedValue(4);
     await component.deleteList(component.categories[0]);
     expect(createAlert).toHaveBeenCalledWith(expect.objectContaining({
-      message: '4 items are still added to this list. Deleting the list will also delete these items.',
+      message: 'Delete “first”? 4 items will also be deleted.',
     }));
     expect(alert.present).toHaveBeenCalled();
     expect(service.deleteCategory).not.toHaveBeenCalled();
@@ -99,7 +100,7 @@ describe('Shopping list settings', () => {
     service.getItemCount.mockResolvedValue(1);
     alert.onDidDismiss.mockResolvedValue({role: 'confirm'});
     await component.deleteList(component.categories[0]);
-    expect(createAlert.mock.calls[0][0].message).toContain('1 item is');
+    expect(createAlert.mock.calls[0][0].message).toContain('1 item will');
     expect(service.deleteCategory).toHaveBeenCalledWith('first', 1);
   });
 
@@ -110,9 +111,9 @@ describe('Shopping list settings', () => {
   });
 
   it('retains the list and shows errors when deletion fails', async () => {
-    service.deleteCategory.mockReturnValue(throwError(() => new Error('The items in this list changed.')));
+    service.deleteCategory.mockReturnValue(throwError(() => new AppError('ui.theItemsInThisListChangedPleaseReviewTheDeletionAgain', 'The items in this list changed.')));
     await component.deleteList(component.categories[0]);
-    expect(component.error).toContain('items in this list changed');
+    expect(component.i18n.t(component.error)).toContain('items in this list changed');
     expect(component.categories).toHaveLength(3);
     expect(component.busy).toBe(false);
   });
@@ -136,7 +137,7 @@ describe('Shopping list settings', () => {
     service.saveAll.mockReturnValue(throwError(() => new Error('write failed')));
     await component.reorderLists(new CustomEvent('ionReorderEnd', {detail: {from: 2, to: 0, complete: jest.fn()}}));
     expect(component.categories.map(entry => entry.id)).toEqual(['first', 'second', 'third']);
-    expect(component.error).toContain('Could not save the shopping list order');
+    expect(component.i18n.t(component.error)).toContain('Could not save the shopping list order');
     component.startEditing(component.categories[0]);
     expect(component.reorderDisabled).toBe(true);
   });

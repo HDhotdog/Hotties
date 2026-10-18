@@ -1,19 +1,19 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button aria-label="Back to recipe" (click)="navigateBack()">
+      <ion-button [attr.aria-label]="i18n.t('ui.backToRecipe')" (click)="navigateBack()">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Edit recipe</ion-title>
+    <ion-title>{{ i18n.t('ui.editRecipe') }}</ion-title>
     <ion-buttons slot="end">
       @if (this.isNew) {
-        <ion-button aria-label="Save recipe" (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
+        <ion-button [attr.aria-label]="i18n.t('ui.saveRecipe')" (click)="saveRecipe()" [ngClass]="{'save-button-active': this.inputChanged()}"
                     [disabled]="!this.inputChanged() || saving || !name.trim()">
           <ion-icon name="save"></ion-icon>
         </ion-button>
       } @else {
-        <ion-button aria-label="Save and return to recipe" class="save-status-button" (click)="navigateBack()" [ngClass]="{
+        <ion-button [attr.aria-label]="i18n.t('ui.saveAndReturnToRecipe')" class="save-status-button" (click)="navigateBack()" [ngClass]="{
           'save-status-saved': this.saveStatus === 'saved',
           'save-status-unsaved': this.saveStatus === 'unsaved',
           'save-status-pulse': this.savePulse
@@ -28,42 +28,43 @@
 <ion-content [fullscreen]="true">
   <div class="container">
     @if (saveError) {
-      <p role="alert">{{ saveError }} <ion-button fill="clear" (click)="saveRecipe()">Retry</ion-button></p>
+      <p role="alert">{{ i18n.t(saveError) }} <ion-button fill="clear" (click)="saveRecipe()">{{ i18n.t('ui.retry') }}</ion-button></p>
     }
     <div class="name-row">
       <input
         class="emoji-input"
+        [attr.aria-label]="i18n.t('recipe.emoji')"
         type="text"
         [(ngModel)]="this.selectedEmoji"
         placeholder="🙂"
         autocomplete="off"
       />
-      <ion-input class="name-input" [(ngModel)]="this.name" placeholder="Enter recipe name"></ion-input>
+      <ion-input class="name-input" [(ngModel)]="this.name" [placeholder]="i18n.t('ui.enterRecipeName')" [attr.aria-label]="i18n.t('ui.enterRecipeName')"></ion-input>
     </div>
 
     <div class="image-frame">
       @if (this.imageSelected) {
         <ion-img id="recipe-image" src="{{this.imagePreviewUrl}}" alt=""></ion-img>
-        <ion-fab-button size="small" color="danger" class="image-action-btn" (click)="deleteImage()">
+        <ion-fab-button [attr.aria-label]="i18n.t('recipe.removeImage')" size="small" color="danger" class="image-action-btn" (click)="deleteImage()">
           <ion-icon name="trash"></ion-icon>
         </ion-fab-button>
       } @else {
         <button type="button" class="image-placeholder" (click)="uploadFile()">
           <ion-icon name="image-outline"></ion-icon>
-          <span>Upload image</span>
+          <span>{{ i18n.t('ui.uploadImage') }}</span>
         </button>
       }
     </div>
 
     <div class="card description-card">
-      <span class="subtle-label">Description</span>
-      <ion-textarea [(ngModel)]="description" placeholder="Enter description" auto-grow="true"></ion-textarea>
+      <span class="subtle-label">{{ i18n.t('ui.description') }}</span>
+      <ion-textarea [(ngModel)]="description" [placeholder]="i18n.t('ui.enterDescription')" auto-grow="true" [attr.aria-label]="i18n.t('ui.enterDescription')"></ion-textarea>
     </div>
 
     <div class="card prep-time-card">
       <div class="prep-time-info">
         <ion-icon name="time-outline"></ion-icon>
-        <span>Preparation time</span>
+        <span>{{ i18n.t('ui.preparationTime') }}</span>
       </div>
       <div class="prep-time-control">
         <ion-button id="prep-time-trigger" fill="clear" class="prep-time-trigger-button">
@@ -80,18 +81,18 @@
                (willPresent)="initPrepTimePicker()">
       <ng-template>
         <div class="picker-header">
-          <ion-button fill="clear" (click)="prepTimeModal.dismiss()">Cancel</ion-button>
-          <ion-button fill="clear" (click)="confirmPrepTimePicker(); prepTimeModal.dismiss()">Done</ion-button>
+          <ion-button fill="clear" (click)="prepTimeModal.dismiss()">{{ i18n.t('ui.cancel') }}</ion-button>
+          <ion-button fill="clear" (click)="confirmPrepTimePicker(); prepTimeModal.dismiss()">{{ i18n.t('ui.done') }}</ion-button>
         </div>
         <ion-picker>
-          <ion-picker-column [value]="this.pickerHours" (ionChange)="onPickerHoursChange($event)">
+          <ion-picker-column [attr.aria-label]="i18n.t('format.hours')" [value]="this.pickerHours" (ionChange)="onPickerHoursChange($event)">
             @for (hour of this.hourOptions; track hour) {
-              <ion-picker-column-option [value]="hour">{{ hour }}h</ion-picker-column-option>
+              <ion-picker-column-option [value]="hour">{{ i18n.t('ui.valueh', {p0: (hour)}) }}</ion-picker-column-option>
             }
           </ion-picker-column>
-          <ion-picker-column [value]="this.pickerMinutes" (ionChange)="onPickerMinutesChange($event)">
+          <ion-picker-column [attr.aria-label]="i18n.t('format.minuteLabel')" [value]="this.pickerMinutes" (ionChange)="onPickerMinutesChange($event)">
             @for (minute of this.minuteOptions; track minute) {
-              <ion-picker-column-option [value]="minute">{{ minute }}m</ion-picker-column-option>
+              <ion-picker-column-option [value]="minute">{{ i18n.t('ui.valuem', {p0: (minute)}) }}</ion-picker-column-option>
             }
           </ion-picker-column>
         </ion-picker>
@@ -100,24 +101,24 @@
 
     <div class="card ingredient-card">
       <div class="ingredient-card-header">
-        <span class="subtle-label">Ingredients</span>
-        <ion-button id="add-ingredient-trigger" fill="clear" class="ingredient-add-button">
+        <span class="subtle-label">{{ i18n.t('ui.ingredients') }}</span>
+        <ion-button id="add-ingredient-trigger" fill="clear" class="ingredient-add-button" [attr.aria-label]="i18n.t('recipe.addIngredient')">
           <ion-icon slot="icon-only" name="add-circle"></ion-icon>
         </ion-button>
       </div>
       @if (this.ingredients.length) {
         @for (ingredient of this.ingredients; track ingredient.id) {
           <div class="ingredient">
-            <span class="ingredient-amount">{{ ingredient.amount }} <span
-              class="ingredient-unit">{{ ingredient.unit }}</span></span>
+            <span class="ingredient-amount">{{ i18n.number(ingredient.amount) }} <span
+              class="ingredient-unit">{{ i18n.unit(ingredient.unit, ingredient.amount) }}</span></span>
             <ion-label>{{ ingredient.name }}</ion-label>
-            <ion-button fill="clear" class="ingredient-remove-button" (click)="removeIngredient(ingredient)">
+            <ion-button fill="clear" class="ingredient-remove-button" [attr.aria-label]="i18n.t('recipe.removeIngredient', {name: ingredient.name})" (click)="removeIngredient(ingredient)">
               <ion-icon slot="icon-only" name="close-circle"></ion-icon>
             </ion-button>
           </div>
         }
       } @else {
-        <p class="no-ingredients-hint">No ingredients yet.</p>
+        <p class="no-ingredients-hint">{{ i18n.t('ui.noIngredientsYet') }}</p>
       }
     </div>
 
@@ -127,52 +128,52 @@
       <ng-template>
         <div class="ingredient-modal-content">
           <div class="picker-header">
-            <ion-button fill="clear" class="modal-close-button" (click)="addIngredientModal.dismiss()">
+            <ion-button fill="clear" class="modal-close-button" (click)="addIngredientModal.dismiss()" [attr.aria-label]="i18n.t('ui.cancel')">
               <ion-icon slot="icon-only" name="close"></ion-icon>
             </ion-button>
             <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmIngredient()"
-                        (click)="confirmAddIngredient(); addIngredientModal.dismiss()">
+                        (click)="confirmAddIngredient(); addIngredientModal.dismiss()" [attr.aria-label]="i18n.t('ui.save')">
               <ion-icon slot="icon-only" name="save"></ion-icon>
             </ion-button>
           </div>
 
           <ion-segment [(ngModel)]="ingredientModalMode">
             <ion-segment-button value="existing">
-              <ion-label>Category or product</ion-label>
+              <ion-label>{{ i18n.t('ui.categoryOrProduct') }}</ion-label>
             </ion-segment-button>
             <ion-segment-button value="new">
-              <ion-label>New category</ion-label>
+              <ion-label>{{ i18n.t('ui.newCategory') }}</ion-label>
             </ion-segment-button>
           </ion-segment>
 
           <div class="ingredient-modal-body">
             @if (this.ingredientModalMode === 'existing') {
               <ion-input class="item-search-input" [(ngModel)]="itemSearchQuery"
-                         placeholder="Search food categories or products"></ion-input>
+                         [placeholder]="i18n.t('ui.searchFoodCategoriesOrProducts')" [attr.aria-label]="i18n.t('ui.searchFoodCategoriesOrProducts')"></ion-input>
               <div class="item-suggestion-list">
                 @for (item of this.filteredItems; track item.id) {
                   <button type="button" class="item-suggestion"
                           [class.selected]="this.selectedExistingItem?.id === item.id"
                           (click)="selectExistingItem(item)">
-                    <span>{{ item.name }}</span>
+                    <span>{{ i18n.name(item) }}</span>
                     <span
-                      class="item-suggestion-unit">{{ item.kind === 'class' ? 'Any product in category' : 'Exact product' }}</span>
+                      class="item-suggestion-unit">{{ item.kind === 'class' ? i18n.t('ui.anyProductInCategory') : i18n.t('ui.exactProduct') }}</span>
                   </button>
                 } @empty {
-                  <p class="no-items-hint">No matching catalog nodes. Create a new food category.</p>
+                  <p class="no-items-hint">{{ i18n.t('ui.noMatchingCatalogNodesCreateANewFoodCategory') }}</p>
                 }
               </div>
             } @else {
               <ion-input class="item-search-input" [(ngModel)]="newItemName"
-                         placeholder="New food category"></ion-input>
+                         [placeholder]="i18n.t('ui.newFoodCategory')" [attr.aria-label]="i18n.t('ui.newFoodCategory')"></ion-input>
             }
 
             <div class="ingredient-amount-row">
-              <span class="subtle-label">Amount</span>
-              <ion-input type="number" min="0" [(ngModel)]="ingredientAmount"></ion-input>
-              <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" placeholder="Unit">
+              <span class="subtle-label">{{ i18n.t('ui.amount') }}</span>
+              <input appLocalizedNumber type="number" min="0" [(ngModel)]="ingredientAmount" [attr.aria-label]="i18n.t('ui.amount')">
+              <ion-select [(ngModel)]="newItemUnit" interface="popover" class="new-item-unit-select" [placeholder]="i18n.t('ui.unit')" [cancelText]="i18n.t('ui.cancel')" [okText]="i18n.t('ui.confirm')" [attr.aria-label]="i18n.t('ui.unit')">
                 @for (unit of this.amountUnits; track unit) {
-                  <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
+                  <ion-select-option [value]="unit">{{ i18n.unit(unit) }}</ion-select-option>
                 }
               </ion-select>
             </div>
@@ -181,71 +182,71 @@
       </ng-template>
     </ion-modal>
 
-    <section class="card steps-card" aria-label="Cooking instructions">
-      <h2>Instructions</h2>
+    <section class="card steps-card" [attr.aria-label]="i18n.t('ui.cookingInstructions')">
+      <h2>{{ i18n.t('ui.instructions') }}</h2>
       @for (step of steps; track step.id; let index = $index) {
-        <section class="step-editor" [attr.aria-label]="'Step ' + (index + 1)">
+        <section class="step-editor" [attr.aria-label]="i18n.t('ui.stepValue', {p0: index + 1})">
           <div class="step-editor-header">
-            <h3>Step {{ index + 1 }}</h3>
+            <h3>{{ i18n.t('ui.stepValue', {p0: (index + 1)}) }}</h3>
             <div class="step-actions">
               <ion-button fill="clear" [disabled]="index === 0" (click)="moveStep(index, -1)"
-                          [attr.aria-label]="'Move step ' + (index + 1) + ' up'">
+                          [attr.aria-label]="i18n.t('step.moveUp', {count: index + 1})">
                 <ion-icon slot="icon-only" name="arrow-up" aria-hidden="true"></ion-icon>
               </ion-button>
               <ion-button fill="clear" [disabled]="index === steps.length - 1" (click)="moveStep(index, 1)"
-                          [attr.aria-label]="'Move step ' + (index + 1) + ' down'">
+                          [attr.aria-label]="i18n.t('step.moveDown', {count: index + 1})">
                 <ion-icon slot="icon-only" name="arrow-down" aria-hidden="true"></ion-icon>
               </ion-button>
               <ion-button fill="clear" class="ingredient-remove-button" (click)="removeStep(step.id)"
-                          [attr.aria-label]="'Remove step ' + (index + 1)">
+                          [attr.aria-label]="i18n.t('step.remove', {count: index + 1})">
                 <ion-icon slot="icon-only" name="close-circle" aria-hidden="true"></ion-icon>
               </ion-button>
             </div>
           </div>
           <ion-textarea [ngModel]="step.instructions" (ngModelChange)="updateStepInstructions(step.id, $event)"
-                        [attr.aria-label]="'Step ' + (index + 1) + ' instructions'"
-                        placeholder="Describe this cooking step" [autoGrow]="true" rows="3"></ion-textarea>
+                        [attr.aria-label]="i18n.t('step.instructions', {count: index + 1})"
+                        [placeholder]="i18n.t('ui.describeThisCookingStep')" [autoGrow]="true" rows="3"></ion-textarea>
           <ion-button fill="clear" class="step-ingredients-trigger" (click)="openStepIngredients(step)"
-                      [attr.aria-label]="'Select ingredients for step ' + (index + 1)">
-            Ingredients · {{ step.ingredientIds.length ? step.ingredientIds.length + ' selected' : 'Choose ingredients' }}
+                      [attr.aria-label]="i18n.t('step.ingredients', {count: index + 1})">
+            {{ i18n.t('ui.ingredientsValue', {p0: (step.ingredientIds.length ? i18n.t('format.selected', {count: step.ingredientIds.length}) : i18n.t('ui.chooseIngredients'))}) }}
           </ion-button>
         </section>
       } @empty {
-        <p>Add steps to guide you through cooking this recipe.</p>
+        <p>{{ i18n.t('ui.addStepsToGuideYouThroughCookingThisRecipe') }}</p>
       }
       <div class="step-add-row">
-        <span class="subtle-label">Add step</span>
-        <ion-button fill="clear" class="ingredient-add-button" aria-label="Add step" (click)="addStep()">
+        <span class="subtle-label">{{ i18n.t('ui.addStep') }}</span>
+        <ion-button fill="clear" class="ingredient-add-button" [attr.aria-label]="i18n.t('ui.addStep')" (click)="addStep()">
           <ion-icon slot="icon-only" name="add-circle" aria-hidden="true"></ion-icon>
         </ion-button>
       </div>
     </section>
 
     <ion-modal class="step-ingredients-modal" [isOpen]="stepIngredientStepId !== null"
-               aria-label="Select step ingredients" (didDismiss)="closeStepIngredients()">
+               [attr.aria-label]="i18n.t('ui.selectStepIngredients')" (didDismiss)="closeStepIngredients()">
       <ng-template>
         <div class="step-ingredients-modal-content">
           <div class="picker-header">
-            <ion-button fill="clear" class="modal-close-button" aria-label="Cancel ingredient selection"
+            <ion-button fill="clear" class="modal-close-button" [attr.aria-label]="i18n.t('ui.cancelIngredientSelection')"
                         (click)="closeStepIngredients()">
               <ion-icon slot="icon-only" name="close" aria-hidden="true"></ion-icon>
             </ion-button>
-            <h2>Step {{ stepIngredientNumber }} ingredients</h2>
-            <ion-button fill="clear" class="modal-confirm-button" aria-label="Save ingredient selection"
+            <h2>{{ i18n.t('ui.stepValueIngredients', {p0: (stepIngredientNumber)}) }}</h2>
+            <ion-button fill="clear" class="modal-confirm-button" [attr.aria-label]="i18n.t('ui.saveIngredientSelection')"
                         (click)="confirmStepIngredients()">
               <ion-icon slot="icon-only" name="save" aria-hidden="true"></ion-icon>
             </ion-button>
           </div>
           <fieldset class="step-ingredient-picker">
-            <legend>Select ingredients for this step</legend>
+            <legend>{{ i18n.t('ui.selectIngredientsForThisStep') }}</legend>
             @for (ingredient of ingredients; track ingredient.id) {
               <label>
                 <input type="checkbox" [checked]="stepIngredientDraftIds.includes(ingredient.id)"
                        (change)="toggleDraftStepIngredient(ingredient.id, $any($event.target).checked)">
-                <span>{{ ingredient.amount }} {{ ingredient.unit }} {{ ingredient.name }}</span>
+                <span>{{ i18n.number(ingredient.amount) }} {{ i18n.unit(ingredient.unit, ingredient.amount) }} {{ ingredient.name }}</span>
               </label>
             } @empty {
-              <p>Add ingredients to the recipe first, then select them here.</p>
+              <p>{{ i18n.t('ui.addIngredientsToTheRecipeFirstThenSelectThemHere') }}</p>
             }
           </fieldset>
         </div>
@@ -253,11 +254,11 @@
     </ion-modal>
 
     <div class="card label-card">
-      <span class="subtle-label">Labels</span>
+      <span class="subtle-label">{{ i18n.t('ui.labels') }}</span>
       <ion-select [(ngModel)]="stringLabels" (ngModelChange)="this.handleLabelChange()" class="label-selector"
-                  placeholder="Choose labels" [multiple]="true">
+                  [placeholder]="i18n.t('ui.chooseLabels')" [multiple]="true" [cancelText]="i18n.t('ui.cancel')" [okText]="i18n.t('ui.confirm')" [attr.aria-label]="i18n.t('ui.chooseLabels')">
         @for (label of this.availableLabels; track label.id) {
-          <ion-select-option value="{{label.id}}">{{ label.name }}</ion-select-option>
+          <ion-select-option value="{{label.id}}">{{ i18n.name(label) }}</ion-select-option>
         }
       </ion-select>
     </div>

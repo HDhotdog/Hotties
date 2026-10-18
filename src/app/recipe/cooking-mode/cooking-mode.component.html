@@ -1,23 +1,23 @@
 <header class="cooking-header">
   <span class="recipe-name">{{ recipeName() }}</span>
-  <button type="button" class="close-button" aria-label="Close cooking mode" (click)="closed.emit()">
+  <button type="button" class="close-button" [attr.aria-label]="i18n.t('ui.closeCookingMode')" (click)="closed.emit()">
     <span aria-hidden="true">×</span>
   </button>
 </header>
-<div #viewport class="slides" (scroll)="onScroll()" role="group" aria-label="Cooking steps">
+<div #viewport class="slides" (scroll)="onScroll()" role="group" [attr.aria-label]="i18n.t('ui.cookingSteps')">
   @for (slide of slides(); track slide.id; let index = $index) {
-    <section class="slide" [attr.aria-label]="'Step ' + (index + 1)"
+    <section class="slide" [attr.aria-label]="i18n.t('ui.stepValue', {p0: index + 1})"
              [attr.aria-hidden]="index !== activeIndex()" [attr.inert]="index !== activeIndex() ? '' : null">
-      <div class="slide-content" tabindex="0" [attr.aria-label]="'Step ' + (index + 1) + ' ingredients and instructions'">
+      <div class="slide-content" tabindex="0" [attr.aria-label]="i18n.t('step.content', {count: index + 1})">
         <div class="step-body">
-          <h1>Step {{ index + 1 }}</h1>
-          <section class="step-ingredients" aria-label="Ingredients for this step">
-            <h2>Ingredients</h2>
+          <h1>{{ i18n.t('ui.stepValue', {p0: (index + 1)}) }}</h1>
+          <section class="step-ingredients" [attr.aria-label]="i18n.t('ui.ingredientsForThisStep')">
+            <h2>{{ i18n.t('ui.ingredients') }}</h2>
             <ul>
               @for (ingredient of slide.ingredients; track ingredient.id) {
-                <li><strong>{{ ingredient.amount }} {{ ingredient.unit }}</strong> {{ ingredient.name }}</li>
+                <li><strong>{{ i18n.number(ingredient.amount) }} {{ i18n.unit(ingredient.unit, ingredient.amount) }}</strong> {{ ingredient.name }}</li>
               } @empty {
-                <li class="empty-ingredients">No ingredients needed</li>
+                <li class="empty-ingredients">{{ i18n.t('ui.noIngredientsNeeded') }}</li>
               }
             </ul>
           </section>
@@ -28,10 +28,10 @@
   }
 </div>
 <footer class="cooking-footer">
-  <button type="button" [disabled]="activeIndex() === 0" (click)="goTo(activeIndex() - 1)">Previous</button>
-  <span role="status" aria-live="polite">Step {{ activeIndex() + 1 }} of {{ slides().length }}</span>
+  <button type="button" [disabled]="activeIndex() === 0" (click)="goTo(activeIndex() - 1)">{{ i18n.t('ui.previous') }}</button>
+  <span role="status" aria-live="polite">{{ i18n.t('ui.stepValueOfValue', {p0: (activeIndex() + 1), p1: (slides().length)}) }}</span>
   <button type="button" class="next-button"
           (click)="activeIndex() === slides().length - 1 ? closed.emit() : goTo(activeIndex() + 1)">
-    {{ activeIndex() === slides().length - 1 ? 'Finish' : 'Next' }}
+    {{ activeIndex() === slides().length - 1 ? i18n.t('ui.finish') : i18n.t('ui.next') }}
   </button>
 </footer>

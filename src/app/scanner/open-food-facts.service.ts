@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {Injectable} from '@angular/core';
 import {Capacitor, CapacitorHttp} from '@capacitor/core';
 import {VERSION} from '../../environments/version';
@@ -19,9 +20,16 @@ export type ProductLookupErrorCode =
   | 'network'
   | 'invalid-response';
 
-export class ProductLookupError extends Error {
-  constructor(public readonly code: ProductLookupErrorCode, message: string) {
-    super(message);
+const lookupErrorKeys: Record<ProductLookupErrorCode, string> = {
+  'invalid-barcode': 'ui.enterAValid814DigitFoodBarcode', 'internal-barcode': 'ui.internalBarcodesAreHandledLocally',
+  'native-only': 'ui.productLookupIsAvailableInTheInstalledMobileApp', 'rate-limited': 'ui.openFoodFactsIsBusyPleaseTryAgainInAboutAMinute',
+  'not-found': 'ui.thisBarcodeIsNotInOpenFoodFacts', network: 'ui.couldNotConnectToOpenFoodFactsCheckYourInternetConnectionAndTryAgain',
+  'invalid-response': 'ui.thisProductHasNoNameInOpenFoodFacts',
+};
+
+export class ProductLookupError extends AppError {
+  constructor(public readonly code: ProductLookupErrorCode, message: string, translationKey = lookupErrorKeys[code]) {
+    super(translationKey, message);
   }
 }
 
@@ -39,14 +47,14 @@ export class OpenFoodFactsService {
 
   public async getProduct(barcode: string): Promise<FoodProduct> {
     if (isInternalBarcode(barcode)) {
-      throw new ProductLookupError('internal-barcode', 'Internal barcodes are handled locally.');
+      throw new ProductLookupError('internal-barcode', 'Internal barcodes are handled locally.', 'ui.internalBarcodesAreHandledLocally');
     }
     if (!/^\d{8,14}$/.test(barcode)) {
-      throw new ProductLookupError('invalid-barcode', 'Enter a valid 8–14 digit food barcode.');
+      throw new ProductLookupError('invalid-barcode', 'Enter a valid 8–14 digit food barcode.', 'ui.enterAValid814DigitFoodBarcode');
     }
     // Browsers forbid setting User-Agent. Native HTTP sends the identification OFF requests.
     if (!Capacitor.isNativePlatform()) {
-      throw new ProductLookupError('native-only', 'Product lookup is available in the installed mobile app.');
+      throw new ProductLookupError('native-only', 'Product lookup is available in the installed mobile app.', 'ui.productLookupIsAvailableInTheInstalledMobileApp');
     }
 
     this.reserveRequest();
@@ -60,25 +68,25 @@ export class OpenFoodFactsService {
         readTimeout: 10_000,
       });
     } catch {
-      throw new ProductLookupError('network', 'Could not connect to Open Food Facts. Check your internet connection and try again.');
+      throw new ProductLookupError('network', 'Could not connect to Open Food Facts. Check your internet connection and try again.', 'ui.couldNotConnectToOpenFoodFactsCheckYourInternetConnectionAndTryAgain');
     }
 
     if (response.status === 429 || response.status === 503) {
       this.setCooldown(Date.now() + WINDOW_MS);
-      throw new ProductLookupError('rate-limited', 'Open Food Facts is busy. Please try again in about a minute.');
+      throw new ProductLookupError('rate-limited', 'Open Food Facts is busy. Please try again in about a minute.', 'ui.openFoodFactsIsBusyPleaseTryAgainInAboutAMinute');
     }
     if (response.status === 404) {
-      throw new ProductLookupError('not-found', 'This barcode is not in Open Food Facts.');
+      throw new ProductLookupError('not-found', 'This barcode is not in Open Food Facts.', 'ui.thisBarcodeIsNotInOpenFoodFacts');
     }
     if (response.status !== 200) {
-      throw new ProductLookupError('network', 'Open Food Facts could not return this product. Please try again.');
+      throw new ProductLookupError('network', 'Open Food Facts could not return this product. Please try again.', 'ui.openFoodFactsCouldNotReturnThisProductPleaseTryAgain');
     }
 
     const body = typeof response.data === 'string' ? this.parseJson(response.data) : response.data;
     const product = body?.product;
     const name = this.optionalText(product?.product_name) ?? this.optionalText(product?.generic_name);
     if (!name) {
-      throw new ProductLookupError('invalid-response', 'This product has no name in Open Food Facts.');
+      throw new ProductLookupError('invalid-response', 'This product has no name in Open Food Facts.', 'ui.thisProductHasNoNameInOpenFoodFacts');
     }
     return {
       barcode,
@@ -92,11 +100,11 @@ export class OpenFoodFactsService {
     const now = Date.now();
     const storedCooldown = this.readNumber(COOLDOWN_KEY, this.fallbackCooldown);
     if (storedCooldown > now) {
-      throw new ProductLookupError('rate-limited', 'Please wait before scanning another new product.');
+      throw new ProductLookupError('rate-limited', 'Please wait before scanning another new product.', 'ui.pleaseWaitBeforeScanningAnotherNewProduct');
     }
     const history = this.readHistory().filter((time) => time > now - WINDOW_MS && time <= now);
     if (history.length >= MAX_REQUESTS_PER_WINDOW) {
-      throw new ProductLookupError('rate-limited', 'Too many new product lookups. Please try again in a minute.');
+      throw new ProductLookupError('rate-limited', 'Too many new product lookups. Please try again in a minute.', 'ui.tooManyNewProductLookupsPleaseTryAgainInAMinute');
     }
     history.push(now);
     this.fallbackHistory = history;

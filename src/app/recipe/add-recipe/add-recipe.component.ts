@@ -1,3 +1,5 @@
+import {LocalizedNumberDirective} from '../../i18n/localized-number.directive';
+import {LocalizationService} from '../../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -55,7 +57,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   styleUrls: ['./add-recipe.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [LocalizedNumberDirective,
     CommonModule,
     FormsModule,
     RouterModule,
@@ -82,6 +84,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   ],
 })
 export class AddRecipeComponent implements OnInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   private router = inject(Router);
   private recipeService = inject(RecipeService);
   private route = inject(ActivatedRoute);
@@ -277,7 +280,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
         }
         return true;
       } catch {
-        this.saveError = 'Could not save recipe. Please try again.';
+        this.saveError = 'ui.couldNotSaveRecipePleaseTryAgain';
         this.setSaveStatus('unsaved');
         return false;
       } finally {
@@ -476,6 +479,8 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
         recipeId: this._recipe.id,
         groupId: template.groupId,
         name: template.name,
+        ...(template.origin ? {origin: template.origin} : {}),
+        ...(template.translationKey ? {translationKey: template.translationKey} : {}),
       }));
     this.scheduleAutoSave();
   }
@@ -594,16 +599,9 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
 
   get prepTimeLabel(): string {
     if (this._hours === 0 && this._minutes === 0) {
-      return 'No time set';
+      return this.i18n.t('ui.noTimeSet');
     }
-    const parts: string[] = [];
-    if (this._hours > 0) {
-      parts.push(`${this._hours}h`);
-    }
-    if (this._minutes > 0) {
-      parts.push(`${this._minutes}m`);
-    }
-    return parts.join(' ');
+    return this.i18n.duration(this._hours * 60 + this._minutes);
   }
 
   get selectedEmoji(): string {
@@ -659,7 +657,7 @@ export class AddRecipeComponent implements OnInit, OnDestroy {
   get filteredItems(): CatalogNode[] {
     const normalized = this._itemSearchQuery.trim().toLowerCase();
     const items = normalized
-      ? this._allItems.filter((item) => item.name.toLowerCase().includes(normalized))
+      ? this._allItems.filter((item) => this.i18n.name(item).toLocaleLowerCase(this.i18n.locale()).includes(normalized))
       : this._allItems;
     return items.filter(item => item.parentId !== null &&
       this.catalog.matches('root-food', item.id, this._allItems)).slice(0, MAX_ITEM_SUGGESTIONS);

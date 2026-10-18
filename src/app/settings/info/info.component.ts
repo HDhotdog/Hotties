@@ -1,3 +1,4 @@
+import {LocalizationService} from '../../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -32,6 +33,7 @@ import {COMMIT_HASH, VERSION} from '../../../environments/version';
   ],
 })
 export class InfoComponent {
+  public readonly i18n = inject(LocalizationService);
   private router = inject(Router);
 
   public readonly version = VERSION;

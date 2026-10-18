@@ -1,3 +1,5 @@
+import {Message, message} from '../i18n/language-pack';
+import {LocalizationService} from '../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -41,6 +43,7 @@ export interface ItemRow extends Item {
   ],
 })
 export class ItemComponent implements OnInit {
+  public readonly i18n = inject(LocalizationService);
   private menuController = inject(MenuController);
   private itemService = inject(ItemService);
   private router = inject(Router);
@@ -49,7 +52,7 @@ export class ItemComponent implements OnInit {
 
   private _items: ItemRow[] = [];
   private _isLoading: boolean = true;
-  private _errorMessage: string | null = null;
+  private _errorMessage: Message | null = null;
 
   ngOnInit(): void {
     this.refreshItems();
@@ -103,7 +106,7 @@ export class ItemComponent implements OnInit {
     this.itemService.deleteById(item.id).subscribe({
       next: () => this.refreshItems(),
       error: (err) => {
-        this._errorMessage = err?.message ?? 'Could not delete item.';
+        this._errorMessage = err?.message ?? this.i18n.t('ui.couldNotDeleteItem');
         this.cdr.markForCheck();
       },
     });

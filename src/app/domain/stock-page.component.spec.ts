@@ -1,7 +1,8 @@
+import {SettingsRepository} from '../database/settings/settings.repository';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
 import {MenuController, provideIonicAngular} from '@ionic/angular';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, of} from 'rxjs';
 import {addIcons} from 'ionicons';
 import {add, chevronDownOutline, chevronForwardOutline, menu, optionsOutline, pricetagsOutline,
   scanOutline, snowOutline, trashOutline} from 'ionicons/icons';
@@ -62,6 +63,7 @@ describe('StockPageComponent category view', () => {
       imports: [StockPageComponent],
       providers: [
         provideIonicAngular(),
+        {provide: SettingsRepository, useValue: {save: () => of({})}},
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: MenuController, useValue: {open: jest.fn()}},
         {provide: CatalogService, useValue: {observe: () => nodes$.asObservable(), matches: jest.fn()}},
@@ -203,4 +205,12 @@ describe('StockPageComponent category view', () => {
       jest.useRealTimers();
     }
   });
+  it('updates unknown-category headings when the language changes', async () => {
+    lots$.next([lot('orphan', 'removed-product')]);
+    const page = fixture.componentInstance;
+    expect(page.stockCategories[0].path).toBe('Unknown category');
+    await page.i18n.setLanguage('de');
+    expect(page.stockCategories[0].path).toBe('Unbekannte Kategorie');
+  });
+
 });

@@ -1,3 +1,4 @@
+import {LocalizationService} from '../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -42,6 +43,7 @@ import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
   ],
 })
 export class TabsPage {
+  public readonly i18n = inject(LocalizationService);
   private menu = inject(MenuController);
 
   openMenu() {

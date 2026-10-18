@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {DatabaseService} from '../database/database';
 import {CatalogService} from '../domain/catalog.service';
@@ -26,13 +27,13 @@ export class InternalProductMapService {
   }
 
   public async save(storeId: string, productCode: string, productId: string): Promise<void> {
-    if (!/^\d{5}$/.test(productCode)) throw new Error('Internal product ID must have five digits.');
+    if (!/^\d{5}$/.test(productCode)) throw new AppError('ui.internalProductIdMustHaveFiveDigits', "Internal product ID must have five digits.");
     const product = await this.catalog.byId(productId);
     if (product.kind !== 'product' || product.saleKind !== 'variable' || product.variableUnit !== 'g') {
-      throw new Error('Choose a product sold by the gram.');
+      throw new AppError('ui.chooseAProductSoldByTheGram', "Choose a product sold by the gram.");
     }
     const db = await this.database.getDb();
-    if (!await db['categories'].findOne(storeId).exec()) throw new Error('Choose a valid shopping list.');
+    if (!await db['categories'].findOne(storeId).exec()) throw new AppError('ui.chooseAValidShoppingList', "Choose a valid shopping list.");
     await db['internal_product_map'].upsert({
       id: this.key(storeId, productCode), storeId, productCode, productId
     });

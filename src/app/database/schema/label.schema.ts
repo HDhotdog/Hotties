@@ -1,9 +1,11 @@
 export const LABEL_SCHEMA_LITERAL = {
   schema: {
-    version: 1,
+    version: 2,
     primaryKey: 'id',
     type: 'object',
     properties: {
+      origin: {type: 'string', enum: ['app', 'user']},
+      translationKey: {type: 'string', maxLength: 255},
       id: {
         type: 'string',
         maxLength: 255,
@@ -27,6 +29,7 @@ export const LABEL_SCHEMA_LITERAL = {
     required: ['id', 'groupId', 'recipeId', 'name'],
   },
   migrationStrategies: {
+    2: (oldDoc: any) => ({...oldDoc}),
     1: (oldDoc: any) => ({...oldDoc, sortOrder: 0})
   }
 };

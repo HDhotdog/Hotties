@@ -4,11 +4,15 @@ export interface Label {
   groupId: string;
   recipeId: string;
   name: string;
+  origin?: 'app' | 'user';
+  translationKey?: string;
   sortOrder?: number;
 }
 
 export interface LabelGroup {
   id: string;
   name: string;
+  origin?: 'app' | 'user';
+  translationKey?: string;
   sortOrder?: number;
 }

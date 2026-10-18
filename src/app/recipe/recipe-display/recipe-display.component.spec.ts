@@ -180,7 +180,7 @@ describe('RecipeDisplayComponent', () => {
     await component.confirmCook();
     expect(component.cookReviewOpen).toBe(true);
     expect(component.cookReview?.fingerprint).toBe('new-snapshot');
-    expect(component.cookReviewMessage).toMatch(/Review the updated amounts/);
+    expect(component.i18n.t(component.cookReviewMessage)).toMatch(/Review the updated amounts/);
 
     let finish!: (result: unknown) => void;
     cook.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
@@ -261,7 +261,7 @@ describe('RecipeDisplayComponent', () => {
     });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.recipe-header').textContent).toContain('Updated soup');
-    expect(fixture.nativeElement.querySelector('.recipe-header').textContent).toContain('1h 5m');
+    expect(fixture.nativeElement.querySelector('.recipe-header').textContent).toContain('1 h 5 min');
     expect(fixture.nativeElement.querySelector('.emoji-display').textContent).toContain('🍲');
     expect(fixture.nativeElement.querySelector('.recipe-description-content').textContent).toContain('Newly added notes');
     expect(fixture.nativeElement.querySelectorAll('.recipe-step')).toHaveLength(1);
@@ -280,7 +280,7 @@ describe('RecipeDisplayComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.ingredient-row')).toHaveLength(1);
     expect(fixture.nativeElement.querySelector('.ingredient-row').textContent).toContain('2 pinch');
     expect(fixture.nativeElement.querySelector('.recipe-labels').textContent).toContain('Dinner');
-    expect(fixture.nativeElement.querySelectorAll('.recipe-step')[1].textContent).toContain('2 pinch Salt');
+    expect(fixture.nativeElement.querySelectorAll('.recipe-step')[1].textContent).toContain('2 pinches Salt');
   });
 
   it('shows, replaces and removes saved images and releases superseded object URLs', () => {

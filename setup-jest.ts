@@ -1,3 +1,5 @@
+import {TestBed} from '@angular/core/testing';
+import {provideLocalization} from './src/app/i18n/localization.providers';
 import {setupZoneTestEnv} from 'jest-preset-angular/setup-env/zone';
 import {disableWarnings} from 'rxdb/plugins/dev-mode';
 import {webcrypto} from 'node:crypto';
@@ -83,3 +85,5 @@ if (typeof HTMLCanvasElement !== 'undefined') {
 setupZoneTestEnv();
 registerAppIcons();
 disableWarnings();
+
+beforeEach(() => TestBed.configureTestingModule({providers: [provideLocalization()]}));

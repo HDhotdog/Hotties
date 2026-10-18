@@ -1,3 +1,5 @@
+import {Message, message} from '../../i18n/language-pack';
+import {LocalizationService} from '../../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -48,6 +50,7 @@ import {BaseUnit} from '../../domain/quantity';
   ],
 })
 export class RecipeDisplayComponent implements OnInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private recipeService = inject(RecipeService);
@@ -67,7 +70,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   public cookReviewLoading = false;
   public cooking = false;
   public cookReview: CookingPlan | null = null;
-  public cookReviewMessage = '';
+  public cookReviewMessage: Message = '';
   public cookingModeOpen = false;
   public cookingModeAnimated = true;
   public cookingSlides: CookingSlide[] = [];
@@ -189,22 +192,13 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
   }
 
   public availabilityLabel(availability: Availability): string {
-    if (availability.status === 'enough') return 'Available';
-    if (availability.status === 'unknown') return 'Check quantity';
-    return availability.available > 0 ? 'Need more' : 'Missing';
+    if (availability.status === 'enough') return this.i18n.t('ui.available');
+    if (availability.status === 'unknown') return this.i18n.t('ui.checkQuantity');
+    return availability.available > 0 ? this.i18n.t('ui.needMore') : this.i18n.t('ui.missing');
   }
 
   public parseDate(recipe: Recipe): string {
-    let hours = (recipe.preparationTime - (recipe.preparationTime % 60)) / 60;
-    let minutes = recipe.preparationTime % 60;
-    let date: string = '';
-    if (hours > 0) {
-      date += hours + 'h ';
-    }
-    if (minutes > 0) {
-      date += minutes + 'm';
-    }
-    return date.trim();
+    return this.i18n.duration(recipe.preparationTime);
   }
 
   /** Resets the modal to the first available category. Call right before it opens. */
@@ -251,7 +245,7 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
       this.cookReview = await this.stock.planCook(this._recipe.id);
       this.cookReviewOpen = true;
     } catch (error) {
-      await this.showCookToast(error instanceof Error ? error.message : 'Could not review stock.', 'danger');
+      await this.showCookToast(this.i18n.error(error), 'danger');
     } finally {
       this.cookReviewLoading = false;
       this.cdr.markForCheck();
@@ -275,13 +269,13 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
       const result = await this.stock.cook(this.cookReview.recipeId, this.cookReview);
       if (result.status === 'changed') {
         this.cookReview = result.plan;
-        this.cookReviewMessage = 'Recipe or stock changed. Review the updated amounts, then confirm again.';
+        this.cookReviewMessage = 'ui.recipeOrStockChangedReviewTheUpdatedAmountsThenConfirmAgain';
       } else {
         this.closeCookReviewAfterSuccess();
-        await this.showCookToast('Cooked. Stock updated.', 'success');
+        await this.showCookToast('ui.cookedStockUpdated', 'success');
       }
     } catch (error) {
-      this.cookReviewMessage = error instanceof Error ? error.message : 'Could not update stock. Review and try again.';
+      this.cookReviewMessage = this.i18n.error(error);
     } finally {
       this.cooking = false;
       this.cdr.markForCheck();
@@ -294,12 +288,12 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     this.cookReviewMessage = '';
   }
 
-  public displayAmount(amount: number): number {
-    return Number(amount.toPrecision(6));
+  public displayAmount(amount: number): string {
+    return this.i18n.number(Number(amount.toPrecision(6)), 6);
   }
 
-  private async showCookToast(message: string, color: 'success' | 'danger'): Promise<void> {
-    const toast = await this.toastCtrl.create({message, duration: 2000, position: 'bottom', color});
+  private async showCookToast(message: Message, color: 'success' | 'danger'): Promise<void> {
+    const toast = await this.toastCtrl.create({message: this.i18n.t(message), duration: 2000, position: 'bottom', color});
     await toast.present();
   }
 
@@ -307,8 +301,8 @@ export class RecipeDisplayComponent implements OnInit, OnDestroy {
     this.toastCtrl
       .create({
         message: categoryName
-          ? `Ingredients added to ${categoryName}.`
-          : 'Ingredients added to shopping list.',
+          ? this.i18n.t('recipe.exported', {name: categoryName})
+          : this.i18n.t('ui.ingredientsAddedToShoppingList'),
         duration: 1500,
         position: 'bottom',
         color: 'success',

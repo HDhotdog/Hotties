@@ -1,3 +1,5 @@
+import {Message} from '../i18n/language-pack';
+import {LocalizationService} from '../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -7,11 +9,13 @@ import {
   IonItem,
   IonLabel,
   IonList,
+  IonSelect,
+  IonSelectOption,
   IonTitle,
   IonToolbar,
   MenuController,
 } from '@ionic/angular';
-import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 
 @Component({
@@ -30,11 +34,29 @@ import {ActivatedRoute, Router, RouterModule} from '@angular/router';
     IonItem,
     IonLabel,
     IonList,
+    IonSelect,
+    IonSelectOption,
     IonTitle,
     IonToolbar,
   ],
 })
 export class SettingsComponent {
+  public readonly i18n = inject(LocalizationService);
+  @ViewChild(IonSelect) private languageSelect?: IonSelect;
+  public languageError: Message = '';
+  public changingLanguage = false;
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  public async changeLanguage(language: string): Promise<void> {
+    this.changingLanguage = true;
+    this.languageError = '';
+    try {await this.i18n.setLanguage(language);}
+    catch (error) {
+      this.languageError = this.i18n.error(error);
+      if (this.languageSelect) this.languageSelect.value = this.i18n.language();
+    }
+    finally {this.changingLanguage = false; this.cdr.markForCheck();}
+  }
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private menuController = inject(MenuController);

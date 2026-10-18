@@ -1,3 +1,5 @@
+import {LocalizedNumberDirective} from '../../i18n/localized-number.directive';
+import {LocalizationService} from '../../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -32,7 +34,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   styleUrls: ['./add-item.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [LocalizedNumberDirective,
     CommonModule,
     FormsModule,
     RouterModule,
@@ -49,6 +51,7 @@ export type SaveStatus = 'saved' | 'unsaved';
   ],
 })
 export class AddItemComponent implements OnInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   private router = inject(Router);
   private itemService = inject(ItemService);
   private route = inject(ActivatedRoute);

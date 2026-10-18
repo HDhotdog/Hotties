@@ -1,3 +1,4 @@
+import {LocalizationService} from '../i18n/localization.service';
 import {inject, Injectable} from '@angular/core';
 import {Capacitor, registerPlugin} from '@capacitor/core';
 import {firstValueFrom, Subject, take} from 'rxjs';
@@ -13,10 +14,13 @@ export interface AiModelStatus {
   error?: string;
 }
 
+interface NotificationCopy {notificationTitle: string; notificationDescription: string}
+
 interface AiModelPlugin {
   connection(): Promise<{type: 'wifi' | 'cellular' | 'none' | 'unknown'}>;
-  status(): Promise<AiModelStatus>;
-  start(options: {allowCellular: boolean}): Promise<AiModelStatus>;
+  status(options: NotificationCopy): Promise<AiModelStatus>;
+  localize(options: NotificationCopy): Promise<void>;
+  start(options: {allowCellular: boolean; notificationTitle: string; notificationDescription: string}): Promise<AiModelStatus>;
   delete(): Promise<AiModelStatus>;
 }
 
@@ -25,9 +29,22 @@ const AI_ENABLED_KEY = 'aiSuggestionsEnabled';
 
 @Injectable({providedIn: 'root'})
 export class AiModelService {
+  private readonly i18n = inject(LocalizationService);
   private readonly settings = inject(SettingsRepository);
   private enabledPromise: Promise<boolean> | null = null;
   public readonly enabledChanged = new Subject<boolean>();
+
+  constructor() {
+    this.i18n.languageChanged.subscribe(() => {
+      if (this.supported) void nativeModel.localize(this.notificationCopy())
+        .catch(error => console.error('Could not update native notification language.', error));
+    });
+  }
+
+  private notificationCopy(): NotificationCopy {
+    return {notificationTitle: this.i18n.t('notification.modelTitle'),
+      notificationDescription: this.i18n.t('notification.modelDescription')};
+  }
 
   public get supported(): boolean {
     return Capacitor.getPlatform() === 'android';
@@ -60,7 +77,7 @@ export class AiModelService {
 
   public async status(): Promise<AiModelStatus> {
     if (!this.supported) return {state: 'missing', downloadedBytes: 0, totalBytes: 0};
-    return nativeModel.status();
+    return nativeModel.status(this.notificationCopy());
   }
 
   public async connection(): Promise<'wifi' | 'cellular' | 'none' | 'unknown'> {
@@ -69,7 +86,7 @@ export class AiModelService {
   }
 
   public async start(allowCellular: boolean): Promise<AiModelStatus> {
-    return nativeModel.start({allowCellular});
+    return nativeModel.start({allowCellular, ...this.notificationCopy()});
   }
 
   public async delete(): Promise<AiModelStatus> {

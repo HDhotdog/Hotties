@@ -1,3 +1,4 @@
+import {SettingsRepository} from '../database/settings/settings.repository';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MenuController, provideIonicAngular} from '@ionic/angular';
 import {of} from 'rxjs';
@@ -30,6 +31,7 @@ describe('CatalogPageComponent', () => {
       imports: [CatalogPageComponent],
       providers: [
         provideIonicAngular(),
+        {provide: SettingsRepository, useValue: {save: () => of({})}},
         {provide: MenuController, useValue: {open: jest.fn()}},
         {
           provide: CatalogService, useValue: {
@@ -123,4 +125,13 @@ describe('CatalogPageComponent', () => {
     await page.save();
     expect(save).toHaveBeenCalledWith(expect.objectContaining({id: onion.id, parentId: bakery.id}));
   });
+  it('keeps default metadata when saving an unchanged draft after a language switch', async () => {
+    const builtin = {...food, origin: 'app' as const, translationKey: 'starter.food'};
+    page.nodes = [builtin, vegetables, onion, empty];
+    page.edit(builtin);
+    await page.i18n.setLanguage('de');
+    await page.save();
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({name: 'Food', origin: 'app', translationKey: 'starter.food'}));
+  });
+
 });

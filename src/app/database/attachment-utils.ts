@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 /**
  * Converts a `data:<mime>;base64,<data>` URL into a Blob without relying on `fetch()`,
  * so it behaves identically in the browser/webview and under Jest/jsdom.
@@ -49,13 +50,13 @@ export function cropImageToSquare(dataUrl: string, maxSize: number): Promise<str
       canvas.height = targetSize;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        reject(new Error('Canvas 2D context unavailable'));
+        reject(new AppError('ui.canvas2dContextUnavailable', "Canvas 2D context unavailable"));
         return;
       }
       ctx.drawImage(img, sx, sy, side, side, 0, 0, targetSize, targetSize);
       resolve(canvas.toDataURL('image/jpeg', 0.9));
     };
-    img.onerror = () => reject(new Error('Failed to load image for cropping'));
+    img.onerror = () => reject(new AppError('ui.failedToLoadImageForCropping', "Failed to load image for cropping"));
     img.src = dataUrl;
   });
 }

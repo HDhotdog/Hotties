@@ -32,7 +32,7 @@ export class OffProductCacheService {
 
   public async lookup(barcode: string, force = false): Promise<FoodProduct> {
     if (isInternalBarcode(barcode)) {
-      throw new ProductLookupError('internal-barcode', 'Internal barcodes are handled locally.');
+      throw new ProductLookupError('internal-barcode', 'Internal barcodes are handled locally.', 'ui.internalBarcodesAreHandledLocally');
     }
     const running = this.pending.get(barcode);
     if (running) return running;
@@ -49,7 +49,7 @@ export class OffProductCacheService {
     const cached = await this.getEntry(barcode);
     if (!force && cached && this.isFresh(cached)) {
       if (cached.status === 'not-found') {
-        throw new ProductLookupError('not-found', 'This barcode is not in Open Food Facts (cached result).');
+        throw new ProductLookupError('not-found', 'This barcode is not in Open Food Facts (cached result).', 'ui.thisBarcodeIsNotInOpenFoodFactsCachedResult');
       }
       if (cached.product) return cached.product;
     }

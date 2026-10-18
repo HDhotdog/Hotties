@@ -5,71 +5,71 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Scan product</ion-title>
+    <ion-title>{{ i18n.t('ui.scanProduct') }}</ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
   <main class="scan-content">
     @if (state === 'scanning') {
-      <p role="status">Opening camera…</p>
+      <p role="status">{{ i18n.t('ui.openingCamera') }}</p>
     } @else if (state === 'looking-up') {
       <p role="status">
         <ion-spinner aria-hidden="true"></ion-spinner>
-        Looking up product…
+        {{ i18n.t('ui.lookingUpProduct') }}
       </p>
     } @else if (state === 'saving') {
       <p role="status">
         <ion-spinner aria-hidden="true"></ion-spinner>
-        Adding to fridge…
+        {{ i18n.t('ui.addingToFridge') }}
       </p>
     }
     @if (errorMessage) {
-      <p class="message error" role="alert">{{ errorMessage }}</p>
+      <p class="message error" role="alert">{{ i18n.t(errorMessage) }}</p>
     }
     @if (infoMessage) {
-      <p class="message info" role="status">{{ infoMessage }}</p>
+      <p class="message info" role="status">{{ i18n.t(infoMessage) }}</p>
     }
     @if (retryAvailable) {
       <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'"
-                  (click)="addBarcode(barcodeInput, true)">Retry Open Food Facts
+                  (click)="addBarcode(barcodeInput, true)">{{ i18n.t('ui.retryOpenFoodFacts') }}
       </ion-button>
     }
     @if (savedName) {
-      <p class="message success" role="status">{{ savedName }} added to fridge.</p>
-      <ion-button expand="block" fill="outline" (click)="viewFridge()">View fridge</ion-button>
+      <p class="message success" role="status">{{ i18n.t('ui.valueAddedToFridge', {p0: (savedName)}) }}</p>
+      <ion-button expand="block" fill="outline" (click)="viewFridge()">{{ i18n.t('ui.viewFridge') }}</ion-button>
     }
     @if (pendingInternal) {
       <section class="product-card">
-        <h2>Store product · {{ pendingInternal.grams }} g</h2>
-        <p>Product ID {{ pendingInternal.productCode }}</p>
+        <h2>{{ i18n.t('ui.storeProductValueG', {p0: (pendingInternal.grams)}) }}</h2>
+        <p>{{ i18n.t('ui.productIdValue', {p0: (pendingInternal.productCode)}) }}</p>
         @if (!selectedStoreId) {
-          <label>Shopping store
+          <label>{{ i18n.t('ui.shoppingStore') }}
             <select [(ngModel)]="selectedStoreId" (ngModelChange)="selectInternalStore()">
-              <option value="">Choose a store</option>
+              <option value="">{{ i18n.t('ui.chooseAStore') }}</option>
               @for (store of stores; track store.id) {
                 <option [value]="store.id">{{ store.name }}</option>
               }
             </select>
           </label>
           @if (!stores.length) {
-            <p>Create a shopping list before assigning this internal product.</p>
+            <p>{{ i18n.t('ui.createAShoppingListBeforeAssigningThisInternalProduct') }}</p>
           }
         } @else {
-          <p>Store: {{ selectedStoreName }}</p>
+          <p>{{ i18n.t('ui.storeValue', {p0: (selectedStoreName)}) }}</p>
           @if (mappingMode) {
-            <label>Product
+            <label>{{ i18n.t('ui.product') }}
               <select [(ngModel)]="selectedInternalProductId">
-                <option value="">Create a new product</option>
+                <option value="">{{ i18n.t('ui.createANewProduct') }}</option>
                 @for (product of gramProducts; track product.id) {
-                  <option [value]="product.id">{{ product.name }}</option>
+                  <option [value]="product.id">{{ i18n.name(product) }}</option>
                 }
               </select>
             </label>
             @if (!selectedInternalProductId) {
-              <label>Product name <input [(ngModel)]="internalName" placeholder="e.g. Zucchini"></label>
-              <label>Category
+              <label>{{ i18n.t('ui.productName') }} <input [(ngModel)]="internalName" [placeholder]="i18n.t('ui.eGZucchini')"></label>
+              <label>{{ i18n.t('ui.category') }}
                 <select [(ngModel)]="internalClassId">
-                  <option value="">Create category from product name</option>
+                  <option value="">{{ i18n.t('ui.createCategoryFromProductName') }}</option>
                   @for (node of classes; track node.id) {
                     <option [value]="node.id">{{ categoryPath(node) }}</option>
                   }
@@ -77,37 +77,36 @@
               </label>
             }
             <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmInternal()">
-              Save product and add {{ pendingInternal.grams }} g
+              {{ i18n.t('ui.saveProductAndAddValueG', {p0: (pendingInternal.grams)}) }}
             </ion-button>
           } @else if (mappedProduct) {
             <h2>{{ mappedProduct.name }}</h2>
             <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmInternal()">
-              Add {{ pendingInternal.grams }} g
+              {{ i18n.t('ui.addValueG', {p0: (pendingInternal.grams)}) }}
             </ion-button>
             <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'"
-                        (click)="changeInternalProduct()">Change product
+                        (click)="changeInternalProduct()">{{ i18n.t('ui.changeProduct') }}
             </ion-button>
           }
           <button class="details-toggle" type="button" (click)="selectedStoreId = ''; mappedProduct = null">
-            Change store
+            {{ i18n.t('ui.changeStore') }}
           </button>
         }
-        <ion-button fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel</ion-button>
+        <ion-button fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">{{ i18n.t('ui.cancel') }}</ion-button>
       </section>
     } @else if (pendingRefresh) {
       <section class="product-card">
-        <h2>Product details changed</h2>
-        <p>Saved: {{ pendingRefresh.saved.name }} · {{ pendingRefresh.saved.rawPackage || 'size unknown' }}</p>
-        <p>Open Food Facts: {{ pendingRefresh.fresh.name }}
-          · {{ pendingRefresh.fresh.packageQuantity || 'size unknown' }}</p>
-        <p>Brand: {{ pendingRefresh.saved.brand || 'none' }} → {{ pendingRefresh.fresh.brand || 'none' }}</p>
+        <h2>{{ i18n.t('ui.productDetailsChanged') }}</h2>
+        <p>{{ i18n.t('ui.savedValueValue', {p0: (pendingRefresh.saved.name), p1: (pendingRefresh.saved.rawPackage || i18n.t('ui.sizeUnknown'))}) }}</p>
+        <p>{{ i18n.t('ui.openFoodFactsValueValue', {p0: (pendingRefresh.fresh.name), p1: (pendingRefresh.fresh.packageQuantity || i18n.t('ui.sizeUnknown'))}) }}</p>
+        <p>{{ i18n.t('ui.brandValueValue', {p0: (pendingRefresh.saved.brand || i18n.t('ui.noBrand')), p1: (pendingRefresh.fresh.brand || i18n.t('ui.noBrand'))}) }}</p>
         <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmRefresh(true)">
-          Use new details and add
+          {{ i18n.t('ui.useNewDetailsAndAdd') }}
         </ion-button>
         <ion-button expand="block" fill="outline" [disabled]="state !== 'idle'" (click)="confirmRefresh(false)">
-          Keep saved details and add
+          {{ i18n.t('ui.keepSavedDetailsAndAdd') }}
         </ion-button>
-        <ion-button fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel</ion-button>
+        <ion-button fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">{{ i18n.t('ui.cancel') }}</ion-button>
       </section>
     } @else if (pendingProduct) {
       <section class="product-card">
@@ -115,40 +114,40 @@
         @if (pendingProduct.brand) {
           <p>{{ pendingProduct.brand }}</p>
         }
-        <p>{{ saleKind === 'fixed' ? packageAmount + ' ' + packageUnit : 'Package size unknown' }}
+        <p>{{ saleKind === 'fixed' ? i18n.quantity(packageAmount, packageUnit) : i18n.t('ui.packageSizeUnknown') }}
           · {{ categoryName }}</p>
-        <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmProduct()">Add to fridge</ion-button>
-        <ion-button expand="block" fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">Cancel
+        <ion-button expand="block" [disabled]="state !== 'idle'" (click)="confirmProduct()">{{ i18n.t('ui.addToFridge') }}</ion-button>
+        <ion-button expand="block" fill="clear" [disabled]="state !== 'idle'" (click)="clearPending()">{{ i18n.t('ui.cancel') }}
         </ion-button>
         <button class="details-toggle" type="button" (click)="detailsOpen = !detailsOpen"
                 [attr.aria-expanded]="detailsOpen">
-          {{ detailsOpen ? 'Hide details' : 'Edit category or package size' }}
+          {{ detailsOpen ? i18n.t('ui.hideDetails') : i18n.t('ui.editCategoryOrPackageSize') }}
         </button>
         @if (detailsOpen) {
           <div class="details-fields">
-            <label>Category
+            <label>{{ i18n.t('ui.category') }}
               <select [(ngModel)]="selectedClassId">
-                <option value="">Create a new category</option>
+                <option value="">{{ i18n.t('ui.createANewCategory') }}</option>
                 @for (node of classes; track node.id) {
                   <option [value]="node.id">{{ categoryPath(node) }}</option>
                 }
               </select>
             </label>
             @if (!selectedClassId) {
-              <label>New category <input [(ngModel)]="newClassName" [placeholder]="pendingProduct.name"></label>
+              <label>{{ i18n.t('ui.newCategory') }} <input [(ngModel)]="newClassName" [placeholder]="pendingProduct.name"></label>
             }
-            <label>Package size
+            <label>{{ i18n.t('ui.packageSize') }}
               <select [(ngModel)]="saleKind">
-                <option value="fixed">Known</option>
-                <option value="unknown">Unknown</option>
+                <option value="fixed">{{ i18n.t('ui.known') }}</option>
+                <option value="unknown">{{ i18n.t('ui.unknown') }}</option>
               </select>
             </label>
             @if (saleKind === 'fixed') {
               <div class="amount-fields">
-                <label>Amount <input type="number" min="0.001" step="any" [(ngModel)]="packageAmount"></label>
-                <label>Unit <select [(ngModel)]="packageUnit">
+                <label>{{ i18n.t('ui.amount') }} <input appLocalizedNumber type="number" min="0.001" step="any" [(ngModel)]="packageAmount"></label>
+                <label>{{ i18n.t('ui.unit') }} <select [(ngModel)]="packageUnit">
                   @for (unit of units; track unit) {
-                    <option [value]="unit">{{ unit }}</option>
+                    <option [value]="unit">{{ i18n.unit(unit) }}</option>
                   }
                 </select></label>
               </div>
@@ -160,20 +159,20 @@
       @if (nativeScanner) {
         <ion-button expand="block" [disabled]="state !== 'idle'" (click)="scan()">
           <ion-icon slot="start" name="scan-outline"></ion-icon>
-          Scan another product
+          {{ i18n.t('ui.scanAnotherProduct') }}
         </ion-button>
       }
       <div class="barcode-entry">
-        <ion-input label="Barcode" labelPlacement="stacked" inputmode="numeric" maxlength="14"
+        <ion-input [label]="i18n.t('ui.barcode')" labelPlacement="stacked" inputmode="numeric" maxlength="14"
                    [(ngModel)]="barcodeInput" [disabled]="state !== 'idle'"
                    (keyup.enter)="addBarcode(barcodeInput)"></ion-input>
         <ion-button fill="clear" [disabled]="state !== 'idle' || !barcodeInput.trim()"
-                    (click)="addBarcode(barcodeInput)" aria-label="Look up barcode">
+                    (click)="addBarcode(barcodeInput)" [attr.aria-label]="i18n.t('ui.lookUpBarcode')">
           <ion-icon slot="icon-only" name="arrow-forward-outline"></ion-icon>
         </ion-button>
       </div>
-      <ion-button expand="block" fill="clear" (click)="addManually()">Manage products manually</ion-button>
+      <ion-button expand="block" fill="clear" (click)="addManually()">{{ i18n.t('ui.manageProductsManually') }}</ion-button>
     }
-    <p class="attribution">New barcode details from Open Food Facts.</p>
+    <p class="attribution">{{ i18n.t('ui.newBarcodeDetailsFromOpenFoodFacts') }}</p>
   </main>
 </ion-content>

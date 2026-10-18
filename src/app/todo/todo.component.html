@@ -2,24 +2,24 @@
   @if (!this.isLoading) {
     <ion-toolbar class="toolbar">
       <ion-buttons slot="start">
-        <ion-button class="menu-button" (click)="openMainMenu()">
+        <ion-button class="menu-button" (click)="openMainMenu()" [attr.aria-label]="i18n.t('ui.openMenu')">
           <ion-icon name="menu"></ion-icon>
         </ion-button>
       </ion-buttons>
       <ion-grid>
         <ion-row>
-          <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()">
+          <ion-select [(ngModel)]="categoryInputField" (ionChange)="changeCategory()" [cancelText]="i18n.t('ui.cancel')" [okText]="i18n.t('ui.confirm')" [attr.aria-label]="i18n.t('ui.shoppingLists')">
             <div slot="label"></div>
             @for (category of this.categories; track category) {
               <ion-select-option [value]="category.id">
-                {{ category.name }}
+                {{ i18n.name(category) }}
               </ion-select-option>
             }
           </ion-select>
         </ion-row>
       </ion-grid>
       <ion-buttons slot="end">
-        <ion-button (click)="openScanner()" aria-label="Scan a product barcode">
+        <ion-button (click)="openScanner()" [attr.aria-label]="i18n.t('ui.scanAProductBarcode')">
           <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
         </ion-button>
         <ion-button class="back-button" (click)="changeSort()">
@@ -39,7 +39,7 @@
             <div class="todo" [ngStyle]="getTodoBackgroundColor(todo.type)">
               <span class="todo-quantity">{{ todo.quantity }}</span>
               <span class="todo-text">{{ todo.name }}</span>
-              <ion-button fill="clear" class="check-button" (click)="markAsDone(todo)">
+              <ion-button fill="clear" class="check-button" (click)="markAsDone(todo)" [attr.aria-label]="i18n.t('ui.confirm')">
                 <ion-icon name="checkmark-outline"></ion-icon>
               </ion-button>
             </div>
@@ -50,7 +50,7 @@
 
     <div class="input-container">
       <div class="lower-input-fields">
-        <ion-button class="delete-button" fill="clear" (click)="clearTodos()">
+        <ion-button class="delete-button" fill="clear" (click)="clearTodos()" [attr.aria-label]="i18n.t('ui.delete')">
           <ion-icon slot="icon-only" name="trash" color="danger"></ion-icon>
         </ion-button>
         <app-item-autocomplete
@@ -61,7 +61,7 @@
           [openUpward]="true"
           [selectSubmits]="true"
         ></app-item-autocomplete>
-        <ion-button class="add-button" fill="clear" (click)="addTodo(inputField)">
+        <ion-button class="add-button" fill="clear" (click)="addTodo(inputField)" [attr.aria-label]="i18n.t('ui.addCatalogEntry')">
           <ion-icon slot="icon-only" name="add" color="primary"></ion-icon>
         </ion-button>
       </div>

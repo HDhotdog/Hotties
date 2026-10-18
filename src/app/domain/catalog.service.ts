@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {from, map, Observable, switchMap} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
@@ -37,7 +38,7 @@ export class CatalogService {
 
   public async byId(id: string): Promise<CatalogNode> {
     const node = (await this.all()).find(item => item.id === id);
-    if (!node) throw new Error('Catalog item not found.');
+    if (!node) throw new AppError('ui.catalogItemNotFound', "Catalog item not found.");
     return node;
   }
 
@@ -83,42 +84,46 @@ export class CatalogService {
 
   public async save(node: CatalogNode): Promise<void> {
     const nodes = await this.all();
-    if (!node.name.trim()) throw new Error('A catalog name is required.');
+    if (!node.name.trim()) throw new AppError('ui.aCatalogNameIsRequired', "A catalog name is required.");
     if (node.kind === 'class' && nodes.some(other => other.id !== node.id && other.kind === 'class' &&
       other.parentId === node.parentId && other.name.trim().toLocaleLowerCase() === node.name.trim().toLocaleLowerCase())) {
-      throw new Error('A class with this name already exists under that parent.');
+      throw new AppError('ui.aClassWithThisNameAlreadyExistsUnderThatParent', "A class with this name already exists under that parent.");
     }
     if (node.kind === 'class' && (node.barcodes.length || node.saleKind !== 'unknown')) {
-      throw new Error('Only products can have barcodes or package details.');
+      throw new AppError('ui.onlyProductsCanHaveBarcodesOrPackageDetails', "Only products can have barcodes or package details.");
     }
-    if (node.kind === 'product' && !node.parentId) throw new Error('Products need a parent class.');
+    if (node.kind === 'product' && !node.parentId) throw new AppError('ui.productsNeedAParentClass', "Products need a parent class.");
     for (const [unit, conversion] of Object.entries(node.unitConversions ?? {})) {
       if (!['piece', 'bunch', 'pinch'].includes(unit) || !conversion ||
         !Number.isFinite(conversion.amount) || conversion.amount <= 0 ||
         !['g', 'ml'].includes(conversion.unit)) {
-        throw new Error('Conversions need a positive amount in g or ml for piece, bunch, or pinch.');
+        throw new AppError('ui.conversionsNeedAPositiveAmountInGOrMlForPieceBunchOrPinch', "Conversions need a positive amount in g or ml for piece, bunch, or pinch.");
       }
     }
     if (node.saleKind === 'fixed' && (!(node.packageAmount && node.packageAmount > 0) || !node.packageUnit)) {
-      throw new Error('A fixed package needs its content amount and unit.');
+      throw new AppError('ui.aFixedPackageNeedsItsContentAmountAndUnit', "A fixed package needs its content amount and unit.");
     }
-    if (node.saleKind === 'variable' && !node.variableUnit) throw new Error('Variable products need a unit.');
+    if (node.saleKind === 'variable' && !node.variableUnit) throw new AppError('ui.variableProductsNeedAUnit', "Variable products need a unit.");
     if (node.parentId) {
       const parent = nodes.find(candidate => candidate.id === node.parentId);
       if (!parent || parent.kind !== 'class' || this.matches(node.id, parent.id, nodes)) {
-        throw new Error('Choose a valid parent class without a cycle.');
+        throw new AppError('ui.chooseAValidParentClassWithoutACycle', "Choose a valid parent class without a cycle.");
       }
     }
     if (node.kind === 'product' && nodes.some(candidate => candidate.parentId === node.id)) {
-      throw new Error('Products must remain leaves.');
+      throw new AppError('ui.productsMustRemainLeaves', "Products must remain leaves.");
     }
     const barcodes = node.barcodes.map(value => value.trim()).filter(Boolean);
     if (barcodes.some(code => nodes.some(other => other.id !== node.id && other.barcodes.includes(code)))) {
-      throw new Error('Barcode already belongs to another product.');
+      throw new AppError('ui.barcodeAlreadyBelongsToAnotherProduct', "Barcode already belongs to another product.");
     }
     const db = await this.database.getDb();
-    await db['catalog_nodes'].upsert({...node, name: node.name.trim(), barcodes,
-      unitConversions: node.unitConversions ?? {}});
+    const saved = {...node, name: node.name.trim(), barcodes, unitConversions: node.unitConversions ?? {}};
+    const original = nodes.find(existing => existing.id === node.id);
+    if (original?.origin) saved.origin = original.origin;
+    else if (!original) saved.origin ??= 'user';
+    if (original && original.name !== saved.name) delete saved.translationKey;
+    await db['catalog_nodes'].upsert(saved);
   }
 
   /** Removing only a class moves its direct children to its parent. Recursive removal deletes the subtree. */
@@ -168,17 +173,17 @@ export class CatalogService {
   }> {
     const nodes = await this.all();
     const node = nodes.find(candidate => candidate.id === nodeId);
-    if (!node) throw new Error('Catalog entry not found.');
-    if (node.id === 'root-food' || node.id === 'root-household') throw new Error('Built-in root categories cannot be deleted.');
+    if (!node) throw new AppError('ui.catalogEntryNotFound', "Catalog entry not found.");
+    if (node.id === 'root-food' || node.id === 'root-household') throw new AppError('ui.builtInRootCategoriesCannotBeDeleted', "Built-in root categories cannot be deleted.");
     const descendants = node.kind === 'class' ? this.descendantsOf(node.id, nodes) : [];
     const childrenToMove = includeDescendants ? [] : nodes.filter(candidate => candidate.parentId === node.id);
     if (!node.parentId && childrenToMove.some(child => child.kind === 'product')) {
-      throw new Error('Products cannot move to the top level. Move them to another category first, or delete the subtree.');
+      throw new AppError('ui.productsCannotMoveToTheTopLevelMoveThemToAnotherCategoryFirstOrDeleteTheSubtree', "Products cannot move to the top level. Move them to another category first, or delete the subtree.");
     }
     if (childrenToMove.some(child => child.kind === 'class' && nodes.some(sibling =>
       sibling.id !== child.id && sibling.kind === 'class' && sibling.parentId === node.parentId &&
       sibling.name.trim().toLocaleLowerCase() === child.name.trim().toLocaleLowerCase()))) {
-      throw new Error('A subcategory already exists under the parent. Rename or move it first, or delete the subtree.');
+      throw new AppError('ui.aSubcategoryAlreadyExistsUnderTheParentRenameOrMoveItFirstOrDeleteTheSubtree', "A subcategory already exists under the parent. Rename or move it first, or delete the subtree.");
     }
     const nodesToDelete = (includeDescendants ? [...descendants, node] : [node])
       .sort((a, b) => this.depth(b.id, nodes) - this.depth(a.id, nodes));

@@ -1,18 +1,18 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button aria-label="Back to recipes" (click)="navigateBack()">
+      <ion-button [attr.aria-label]="i18n.t('ui.backToRecipes')" (click)="navigateBack()">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Recipe
+      {{ i18n.t('ui.recipe') }}
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="deleteRecipe()">
+      <ion-button (click)="deleteRecipe()" [attr.aria-label]="i18n.t('ui.delete')">
         <ion-icon name="trash"></ion-icon>
       </ion-button>
-      <ion-button aria-label="Edit recipe" (click)="editRecipe()">
+      <ion-button [attr.aria-label]="i18n.t('ui.editRecipe')" (click)="editRecipe()">
         <ion-icon name="pencil"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -21,7 +21,7 @@
 
 <ion-content>
   @if (!isLoading && recipeMissing) {
-    <p class="ion-padding" role="status">This recipe is no longer available. Return to Recipes to choose another.</p>
+    <p class="ion-padding" role="status">{{ i18n.t('ui.thisRecipeIsNoLongerAvailableReturnToRecipesToChooseAnother') }}</p>
   }
   @if (!isLoading && !recipeMissing) {
     <div class="recipe-wrapper">
@@ -38,7 +38,7 @@
         <div class="recipe-labels">
           @for (recipeLabel of this.labels; track recipeLabel.id) {
             <p class="recipe-label">
-              {{ recipeLabel.name }}
+              {{ i18n.name(recipeLabel) }}
             </p>
           }
         </div>
@@ -58,9 +58,9 @@
       }
       <div class="ingredients">
         <div class="ingredients-header">
-          <p class="ingredients-title">Ingredients</p>
+          <p class="ingredients-title">{{ i18n.t('ui.ingredients') }}</p>
           <ion-button id="export-trigger" fill="clear" class="export-button"
-                      [disabled]="missingIngredients.length === 0" aria-label="Add missing ingredients to shopping list">
+                      [disabled]="missingIngredients.length === 0" [attr.aria-label]="i18n.t('ui.addMissingIngredientsToShoppingList')">
             <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
           </ion-button>
         </div>
@@ -69,8 +69,8 @@
             <div class="ingredient-row" [class.available]="availabilityFor(item)?.status === 'enough'"
                  [class.missing]="availabilityFor(item)?.status === 'insufficient'"
                  [class.unknown]="availabilityFor(item)?.status === 'unknown'">
-              <span class="ingredient-amount">{{ item.amount }} <span
-                class="ingredient-unit">{{ item.unit }}</span></span>
+              <span class="ingredient-amount">{{ i18n.number(item.amount) }} <span
+                class="ingredient-unit">{{ i18n.unit(item.unit, item.amount) }}</span></span>
               <span class="ingredient-name">{{ item.name }}</span>
               @if (availabilityFor(item); as availability) {
                 <span class="ingredient-status" [class.available]="availability.status === 'enough'"
@@ -79,49 +79,49 @@
                   {{ availabilityLabel(availability) }}
                 </span>
               } @else {
-                <span class="ingredient-status checking">Checking…</span>
+                <span class="ingredient-status checking">{{ i18n.t('ui.checking') }}</span>
               }
             </div>
           }
         </div>
       </div>
       @if (recipe.description) {
-        <section class="recipe-description" aria-label="Recipe description">
-          <h3>Description</h3>
+        <section class="recipe-description" [attr.aria-label]="i18n.t('ui.recipeDescription')">
+          <h3>{{ i18n.t('ui.description') }}</h3>
           <p class="recipe-description-content">{{ recipe.description }}</p>
         </section>
       }
-      <section class="recipe-instructions" aria-label="Recipe instructions">
+      <section class="recipe-instructions" [attr.aria-label]="i18n.t('ui.recipeInstructions')">
         <div class="instructions-header">
-          <h3>Instructions</h3>
+          <h3>{{ i18n.t('ui.instructions') }}</h3>
           <ion-button class="start-cooking-button" [disabled]="!canStartCooking"
-                      (click)="openCookingMode()">Start cooking</ion-button>
+                      (click)="openCookingMode()">{{ i18n.t('ui.startCooking') }}</ion-button>
         </div>
         @for (step of steps; track step.id; let index = $index) {
-          <section class="recipe-step" [attr.aria-label]="'Step ' + (index + 1)">
-            <h4>Step {{ index + 1 }}</h4>
-            <p class="step-instructions">{{ step.instructions || 'Add instructions for this step.' }}</p>
-            <p class="step-amount-label">Ingredients · recipe amounts</p>
+          <section class="recipe-step" [attr.aria-label]="i18n.t('ui.stepValue', {p0: index + 1})">
+            <h4>{{ i18n.t('ui.stepValue', {p0: (index + 1)}) }}</h4>
+            <p class="step-instructions">{{ step.instructions || i18n.t('ui.addInstructionsForThisStep') }}</p>
+            <p class="step-amount-label">{{ i18n.t('ui.ingredientsRecipeAmounts') }}</p>
             <ul>
               @for (ingredient of ingredientsForStep(step); track ingredient.id) {
-                <li>{{ ingredient.amount }} {{ ingredient.unit }} {{ ingredient.name }}</li>
+                <li>{{ i18n.number(ingredient.amount) }} {{ i18n.unit(ingredient.unit, ingredient.amount) }} {{ ingredient.name }}</li>
               } @empty {
-                <li>No ingredients needed</li>
+                <li>{{ i18n.t('ui.noIngredientsNeeded') }}</li>
               }
             </ul>
           </section>
         } @empty {
-          <p>Edit the recipe to add cooking steps.</p>
+          <p>{{ i18n.t('ui.editTheRecipeToAddCookingSteps') }}</p>
         }
         @if (steps.length && !canStartCooking) {
-          <p>Complete or remove empty steps to start cooking.</p>
+          <p>{{ i18n.t('ui.completeOrRemoveEmptyStepsToStartCooking') }}</p>
         }
         <div class="cooking-completion">
           <ion-button fill="outline" color="medium" class="cooked-button"
                       [disabled]="cookReviewLoading || cooking || ingredients.length === 0"
                       (click)="openCookReview()">
             <ion-icon slot="start" name="checkmark-outline" aria-hidden="true"></ion-icon>
-            {{ cookReviewLoading ? 'Checking stock…' : 'Mark as cooked' }}
+            {{ cookReviewLoading ? i18n.t('ui.checkingStock') : i18n.t('ui.markAsCooked') }}
           </ion-button>
         </div>
       </section>
@@ -140,21 +140,21 @@
       <ng-template>
         <div class="export-modal-content">
           <div class="picker-header">
-            <ion-button fill="clear" class="modal-close-button" (click)="exportModal.dismiss()">
+            <ion-button fill="clear" class="modal-close-button" (click)="exportModal.dismiss()" [attr.aria-label]="i18n.t('ui.cancel')">
               <ion-icon slot="icon-only" name="close"></ion-icon>
             </ion-button>
-            <span class="export-modal-title">Add missing ingredients</span>
+            <span class="export-modal-title">{{ i18n.t('ui.addMissingIngredients') }}</span>
             <ion-button fill="clear" class="modal-confirm-button" [disabled]="!this.canConfirmExport()"
-                        (click)="confirmExport(); exportModal.dismiss()">
+                        (click)="confirmExport(); exportModal.dismiss()" [attr.aria-label]="i18n.t('ui.addMissingIngredientsToShoppingList')">
               <ion-icon slot="icon-only" name="arrow-redo"></ion-icon>
             </ion-button>
           </div>
 
           <div class="export-preview">
-            <p>Only the amounts still needed will be added:</p>
+            <p>{{ i18n.t('ui.onlyTheAmountsStillNeededWillBeAdded') }}</p>
             <ul>
               @for (item of missingIngredients; track item.id) {
-                <li>{{ item.amount }} {{ item.unit }} {{ item.name }}</li>
+                <li>{{ i18n.number(item.amount) }} {{ i18n.unit(item.unit, item.amount) }} {{ item.name }}</li>
               }
             </ul>
           </div>
@@ -163,58 +163,57 @@
             @for (category of categories; track category.id) {
               <button type="button" class="category-option" [class.selected]="this.selectedCategoryId === category.id"
                       (click)="selectCategory(category)">
-                {{ category.name }}
+                {{ i18n.name(category) }}
               </button>
             } @empty {
-              <p class="no-categories-hint">No shopping lists yet.</p>
+              <p class="no-categories-hint">{{ i18n.t('ui.noShoppingListsYet') }}</p>
             }
           </div>
         </div>
       </ng-template>
     </ion-modal>
-    <ion-modal class="cooking-mode-modal" aria-label="Cooking mode" [isOpen]="cookingModeOpen" [animated]="cookingModeAnimated"
+    <ion-modal class="cooking-mode-modal" [attr.aria-label]="i18n.t('ui.cookingMode')" [isOpen]="cookingModeOpen" [animated]="cookingModeAnimated"
                (didDismiss)="closeCookingMode()">
       <ng-template>
         <app-cooking-mode [recipeName]="cookingRecipeName" [slides]="cookingSlides" (closed)="closeCookingMode()"></app-cooking-mode>
       </ng-template>
     </ion-modal>
-    <ion-modal class="cook-modal" aria-label="Review stock use" [isOpen]="cookReviewOpen" [canDismiss]="!cooking"
+    <ion-modal class="cook-modal" [attr.aria-label]="i18n.t('ui.reviewStockUse')" [isOpen]="cookReviewOpen" [canDismiss]="!cooking"
                (didDismiss)="closeCookReview()">
       <ng-template>
         <div class="cook-modal-content">
           <div class="picker-header">
-            <ion-button fill="clear" aria-label="Cancel cooking" [disabled]="cooking" (click)="closeCookReview()">
-              Cancel
+            <ion-button fill="clear" [attr.aria-label]="i18n.t('ui.cancelCooking')" [disabled]="cooking" (click)="closeCookReview()">
+              {{ i18n.t('ui.cancel') }}
             </ion-button>
-            <strong id="cook-review-title">Review stock use</strong>
-            <ion-button fill="clear" aria-label="Confirm cooked recipe" [disabled]="cooking || !cookReview"
+            <strong id="cook-review-title">{{ i18n.t('ui.reviewStockUse') }}</strong>
+            <ion-button fill="clear" [attr.aria-label]="i18n.t('ui.confirmCookedRecipe')" [disabled]="cooking || !cookReview"
                         (click)="confirmCook()">
-              {{ cooking ? 'Saving…' : 'Confirm' }}
+              {{ cooking ? i18n.t('ui.saving') : i18n.t('ui.confirm') }}
             </ion-button>
           </div>
           @if (cookReview; as review) {
             <div class="cook-review-list" role="group" aria-labelledby="cook-review-title">
               @for (item of review.ingredients; track item.ingredientId) {
                 <section class="cook-review-item">
-                  <strong>{{ item.name }} · {{ displayAmount(item.required.amount) }} {{ item.required.unit }}</strong>
+                  <strong>{{ item.name }} · {{ displayAmount(item.required.amount) }} {{ i18n.unit(item.required.unit, item.required.amount) }}</strong>
                   @for (deduction of item.deductions; track deduction.lotId) {
-                    <p>{{ deduction.productName }}: use {{ displayAmount(deduction.amount) }} {{ deduction.unit }}
-                      ({{ displayAmount(deduction.remainingAmount) }} {{ deduction.unit }} left)</p>
+                    <p>{{ i18n.t('ui.valueUseValueValueValueValueLeft', {p0: (deduction.productName), p1: (displayAmount(deduction.amount)), p2: (i18n.unit(deduction.unit, deduction.amount)), p3: (displayAmount(deduction.remainingAmount)), p4: (i18n.unit(deduction.unit, deduction.remainingAmount))}) }}</p>
                   } @empty {
-                    <p>No compatible stock will be used.</p>
+                    <p>{{ i18n.t('ui.noCompatibleStockWillBeUsed') }}</p>
                   }
                   @if (item.missing > 0.000000001) {
-                    <p class="cook-shortage">{{ displayAmount(item.missing) }} {{ item.required.unit }} not covered by compatible stock.</p>
+                    <p class="cook-shortage">{{ i18n.t('ui.valueValueNotCoveredByCompatibleStock', {p0: (displayAmount(item.missing)), p1: (i18n.unit(item.required.unit, item.required.amount))}) }}</p>
                   }
                   @if (item.unknown) {
-                    <p class="cook-unknown">Some matching stock has an unknown or incompatible quantity.</p>
+                    <p class="cook-unknown">{{ i18n.t('ui.someMatchingStockHasAnUnknownOrIncompatibleQuantity') }}</p>
                   }
                 </section>
               }
             </div>
           }
           @if (cookReviewMessage) {
-            <p class="cook-review-message" role="status">{{ cookReviewMessage }}</p>
+            <p class="cook-review-message" role="status">{{ i18n.t(cookReviewMessage) }}</p>
           }
         </div>
       </ng-template>
