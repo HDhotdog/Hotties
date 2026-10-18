@@ -3,6 +3,10 @@ ion-menu {
   --width: min(80vw, 360px);
   --background: var(--drawer-surface);
 
+  // Ionic focuses this full-screen host when opening the drawer. Keep focus
+  // indicators on its controls without drawing a ring around the viewport.
+  outline: none;
+
   ion-toolbar,
   ion-content {
     --background: var(--drawer-surface);
