@@ -1,16 +1,16 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="openMenu()" aria-label="Open menu">
+      <ion-button (click)="openMenu()" [attr.aria-label]="i18n.t('ui.openMenu')">
         <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Fridge</ion-title>
+    <ion-title>{{ i18n.t('ui.fridge') }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="openScanner()" aria-label="Scan product">
+      <ion-button (click)="openScanner()" [attr.aria-label]="i18n.t('ui.scanProduct')">
         <ion-icon name="scan-outline"></ion-icon>
       </ion-button>
-      <ion-button (click)="openCatalog()" aria-label="Manage products">
+      <ion-button (click)="openCatalog()" [attr.aria-label]="i18n.t('ui.manageProducts')">
         <ion-icon name="pricetags-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -24,7 +24,7 @@
         <h2 class="category-heading">
           <button class="category-toggle" type="button" (click)="toggleCategory(category.id)"
                   [attr.aria-expanded]="isCategoryExpanded(category.id)"
-                  [attr.aria-label]="(isCategoryExpanded(category.id) ? 'Collapse ' : 'Expand ') + category.path + ', ' + category.lots.length + (category.lots.length === 1 ? ' lot' : ' lots')">
+                  [attr.aria-label]="i18n.t(isCategoryExpanded(category.id) ? 'stock.collapseCategory' : 'stock.expandCategory', {name: category.path, count: category.lots.length})">
             <ion-icon [name]="isCategoryExpanded(category.id) ? 'chevron-down-outline' : 'chevron-forward-outline'"
                       aria-hidden="true"></ion-icon>
             <span class="category-path">{{ category.path }}</span>
@@ -37,36 +37,36 @@
               <div class="lot" [class.expired]="expiryStatus(lot) === 'expired'"
                    [class.soon]="expiryStatus(lot) === 'soon'" [class.no-expiry]="expiryStatus(lot) === 'none'">
                 <button class="lot-main" type="button" (click)="editing?.id === lot.id ? cancelEdit() : edit(lot)"
-                        [attr.aria-label]="'Edit ' + productName(lot.productId)" [attr.aria-expanded]="editing?.id === lot.id">
-                  <span class="lot-quantity"><strong>{{ lotAmount(lot) }}</strong><small>{{ lotUnit(lot) }}</small></span>
+                        [attr.aria-label]="i18n.t('actions.edit', {name: productName(lot.productId)})" [attr.aria-expanded]="editing?.id === lot.id">
+                  <span class="lot-quantity"><strong>{{ i18n.number(lotAmount(lot)) }}</strong><small>{{ lotUnit(lot) }}</small></span>
                   <span class="lot-info">
                     <span class="lot-name">{{ productName(lot.productId) }}</span>
                     @if (productSubtitle(lot.productId)) {
                       <small>{{ productSubtitle(lot.productId) }}</small>
                     }
                     @if (lot.expiryDate) {
-                      <small>Expires {{ lot.expiryDate }}</small>
+                      <small>{{ i18n.t('ui.expiresValue', {p0: (i18n.date(lot.expiryDate))}) }}</small>
                     }
                   </span>
                 </button>
                 <button class="remove-button" type="button" (click)="remove(lot)"
-                        [attr.aria-label]="'Remove ' + productName(lot.productId)">
+                        [attr.aria-label]="i18n.t('actions.remove', {name: productName(lot.productId)})">
                   <ion-icon name="trash-outline"></ion-icon>
                 </button>
               </div>
               @if (editing?.id === lot.id) {
                 <div class="edit-panel">
                   <div class="edit-fields">
-                    <label>Remaining {{ lot.acquiredUnit }}
-                      <input type="number" min="0" step="any" [(ngModel)]="remainingAmount" aria-label="Remaining amount">
+                    <label>{{ i18n.t('ui.remainingValue', {p0: (i18n.unit(lot.acquiredUnit))}) }}
+                      <input appLocalizedNumber type="number" min="0" step="any" [(ngModel)]="remainingAmount" [attr.aria-label]="i18n.t('ui.remainingAmount')">
                     </label>
-                    <label>Expiry date
-                      <input type="date" [(ngModel)]="expiryDate" aria-label="Expiry date">
+                    <label>{{ i18n.t('ui.expiryDate') }}
+                      <app-localized-date [(value)]="expiryDate"></app-localized-date>
                     </label>
                   </div>
                   <div class="edit-actions">
-                    <button type="button" (click)="cancelEdit()">Cancel</button>
-                    <button class="primary-action" type="button" (click)="saveEdit()">Save</button>
+                    <button type="button" (click)="cancelEdit()">{{ i18n.t('ui.cancel') }}</button>
+                    <button class="primary-action" type="button" (click)="saveEdit()">{{ i18n.t('ui.save') }}</button>
                   </div>
                 </div>
               }
@@ -77,8 +77,8 @@
     } @empty {
       <div class="empty-state">
         <ion-icon name="snow-outline" aria-hidden="true"></ion-icon>
-        <p>Your fridge is empty</p>
-        <span>Type a product below to add it.</span>
+        <p>{{ i18n.t('ui.yourFridgeIsEmpty') }}</p>
+        <span>{{ i18n.t('ui.typeAProductBelowToAddIt') }}</span>
       </div>
     }
   </div>
@@ -86,92 +86,92 @@
 
 <ion-footer class="quick-add">
   @if (success) {
-    <p class="success" role="status">{{ success }}</p>
+    <p class="success" role="status">{{ i18n.t(success) }}</p>
   }
   @if (error) {
-    <p class="error" role="alert">{{ error }}</p>
+    <p class="error" role="alert">{{ i18n.t(error) }}</p>
   }
   @if (review) {
-    <section class="review" aria-label="Review fridge addition">
+    <section class="review" [attr.aria-label]="i18n.t('ui.reviewFridgeAddition')">
       <div class="review-heading">
-        <strong>Review product</strong>
-        <button type="button" (click)="cancelReview()" [disabled]="adding" aria-label="Cancel fridge addition">Cancel
+        <strong>{{ i18n.t('ui.reviewProduct') }}</strong>
+        <button type="button" (click)="cancelReview()" [disabled]="adding" [attr.aria-label]="i18n.t('ui.cancelFridgeAddition')">{{ i18n.t('ui.cancel') }}
         </button>
       </div>
       <div class="review-fields">
-        <label>Product name
+        <label>{{ i18n.t('ui.productName') }}
           <input type="text" [ngModel]="review.name" (ngModelChange)="reviewNameChanged($event)"
-                 aria-label="Reviewed product name">
+                 [attr.aria-label]="i18n.t('ui.reviewedProductName')">
         </label>
         <label>{{
-            reviewProduct?.saleKind === 'variable' ? 'Count mentioned' :
-              reviewProduct && (reviewProduct.packageAmount !== 1 || reviewProduct.packageUnit !== 'piece') ? 'Packages' : 'Pieces'
+            reviewProduct?.saleKind === 'variable' ? i18n.t('ui.countMentioned') :
+              reviewProduct && (reviewProduct.packageAmount !== 1 || reviewProduct.packageUnit !== 'piece') ? i18n.t('ui.packages') : i18n.t('ui.pieces')
           }}
-          <input type="number" min="1" max="999" step="1" [(ngModel)]="review.count"
-                 aria-label="Reviewed quantity">
+          <input appLocalizedNumber type="number" min="1" max="999" step="1" [(ngModel)]="review.count"
+                 [attr.aria-label]="i18n.t('ui.reviewedQuantity')">
         </label>
         @if (reviewProduct?.saleKind === 'variable') {
-          <label>Amount in {{ reviewProduct?.variableUnit }}
-            <input type="number" min="0.001" step="any" [(ngModel)]="review.bulkAmount"
-                   aria-label="Acquired weight or volume">
+          <label>{{ i18n.t('ui.amountInValue', {p0: (i18n.unit(reviewProduct?.variableUnit))}) }}
+            <input appLocalizedNumber type="number" min="0.001" step="any" [(ngModel)]="review.bulkAmount"
+                   [attr.aria-label]="i18n.t('ui.acquiredWeightOrVolume')">
           </label>
         }
       </div>
       @if (reviewProduct) {
-        <p class="review-hint">Existing product: {{ reviewProduct.name }}
+        <p class="review-hint">{{ i18n.t('ui.existingProductValue', {p0: (reviewProduct.name)}) }}
           @if (reviewProduct.saleKind === 'variable') {
-            · Enter its measured amount before adding.
+            {{ i18n.t('ui.enterItsMeasuredAmountBeforeAdding') }}
           }
         </p>
       } @else {
         <div class="review-categories">
-          <strong>Category</strong>
+          <strong>{{ i18n.t('ui.category') }}</strong>
           @if (review.ranking) {
-            <span role="status">Finding local suggestions…</span>
+            <span role="status">{{ i18n.t('ui.findingLocalSuggestions') }}</span>
           }
           @if (review.categoryError) {
-            <span>Suggestions are unavailable. Choose a category below.</span>
+            <span>{{ i18n.t('ui.suggestionsAreUnavailableChooseACategoryBelow') }}</span>
           }
           @if (review.modelUnavailable) {
-            <span>AI suggestions need a downloaded model. Choose a category below, or download it in Settings.</span>
+            <span>{{ i18n.t('ui.aiSuggestionsNeedADownloadedModelChooseACategoryBelowOrDownloadItInSettings') }}</span>
           }
           @if (reviewSuggestions.length) {
-            <div class="category-chips" aria-label="Suggested categories">
+            <div class="category-chips" [attr.aria-label]="i18n.t('ui.suggestedCategories')">
               @for (category of reviewSuggestions; track category.id) {
                 <button type="button" [class.selected]="review.categoryId === category.id"
                         (click)="review.categoryId = category.id; review.newCategoryName = ''">
-                  {{ category.name }}
+                  {{ i18n.name(category) }}
                 </button>
               }
             </div>
           }
-          <label>Choose an existing food category
+          <label>{{ i18n.t('ui.chooseAnExistingFoodCategory') }}
             <select [(ngModel)]="review.categoryId" (ngModelChange)="review.newCategoryName = ''">
-              <option value="">Choose category</option>
+              <option value="">{{ i18n.t('ui.chooseCategory') }}</option>
               @for (category of foodClasses; track category.id) {
                 <option [value]="category.id">{{ categoryPath(category) }}</option>
               }
             </select>
           </label>
-          <label>Or create a category
+          <label>{{ i18n.t('ui.orCreateACategory') }}
             <input type="text" [(ngModel)]="review.newCategoryName" (ngModelChange)="review.categoryId = ''"
-                   placeholder="e.g. Backwaren" aria-label="New food category">
+                   [placeholder]="i18n.t('ui.eGBackwaren')" [attr.aria-label]="i18n.t('ui.newFoodCategory')">
           </label>
         </div>
       }
       <ion-button expand="block" (click)="confirmReview()" [disabled]="adding">
-        {{ adding ? 'Adding…' : 'Add to fridge' }}
+        {{ adding ? i18n.t('ui.adding') : i18n.t('ui.addToFridge') }}
       </ion-button>
     </section>
   }
   @if (!review && suggestions.length > 0) {
-    <div class="suggestions" role="listbox" aria-label="Matching products">
+    <div class="suggestions" role="listbox" [attr.aria-label]="i18n.t('ui.matchingProducts')">
       @for (node of suggestions; track node.id) {
         <button type="button" role="option" (pointerdown)="$event.preventDefault()" (click)="chooseSuggestion(node)">
-          <span>{{ node.name }} @if (node.brand) {
+          <span>{{ i18n.name(node) }} @if (node.brand) {
             <small>· {{ node.brand }}</small>
           }</span>
-          <small>{{ node.kind === 'class' ? 'Any brand' : node.saleKind === 'fixed' ? node.packageAmount + ' ' + node.packageUnit : node.saleKind === 'variable' ? 'By weight' : 'Product' }}</small>
+          <small>{{ node.kind === 'class' ? i18n.t('ui.anyBrand') : node.saleKind === 'fixed' ? i18n.quantity(node.packageAmount, node.packageUnit) : node.saleKind === 'variable' ? i18n.t('ui.byWeight') : i18n.t('ui.product') }}</small>
         </button>
       }
     </div>
@@ -180,37 +180,38 @@
     <div class="add-details">
       <div class="detail-fields">
         @if (selectedProduct?.saleKind === 'variable') {
-          <label>Amount ({{ selectedProduct?.variableUnit }})
-            <input #bulkInput type="number" min="0.001" step="any" [(ngModel)]="bulkAmount"
-                   aria-label="Acquired amount">
+          <label>{{ i18n.t('ui.amountValue', {p0: (i18n.unit(selectedProduct?.variableUnit))}) }}
+            <input #bulkInput appLocalizedNumber type="number" min="0.001" step="any" [(ngModel)]="bulkAmount"
+                   [attr.aria-label]="i18n.t('ui.acquiredAmount')">
           </label>
         } @else {
-          <label>Packages
-            <input type="number" min="1" step="1" [(ngModel)]="packages" aria-label="Number of packages">
+          <label>{{ i18n.t('ui.packages') }}
+            <input appLocalizedNumber type="number" min="1" step="1" [(ngModel)]="packages" [attr.aria-label]="i18n.t('ui.numberOfPackages')">
           </label>
         }
-        <label>Expiry date
-          <input type="date" [(ngModel)]="expiryDate" aria-label="Expiry date">
+        <label>{{ i18n.t('ui.expiryDate') }}
+          <app-localized-date [(value)]="expiryDate"></app-localized-date>
         </label>
       </div>
       @if (selectedProduct?.saleKind === 'fixed') {
-        <span class="hint">{{ selectedProduct?.packageAmount }} {{ selectedProduct?.packageUnit }} per package</span>
+        <span class="hint">{{ i18n.t('ui.valueValuePerPackage', {p0: (i18n.number(selectedProduct?.packageAmount)), p1: (i18n.unit(selectedProduct?.packageUnit, selectedProduct?.packageAmount ?? 0))}) }}</span>
       }
     </div>
   }
   @if (!review) {
+    @if (!voiceSupported) {<p class="speech-hint">{{ i18n.t('speech.unavailable') }}</p>}
     <div class="composer-row">
       <button class="details-toggle" type="button" (click)="toggleDetails()"
-              [attr.aria-label]="detailsOpen ? 'Hide amount and expiry options' : 'Show amount and expiry options'"
+              [attr.aria-label]="detailsOpen ? i18n.t('ui.hideAmountAndExpiryOptions') : i18n.t('ui.showAmountAndExpiryOptions')"
               [attr.aria-expanded]="detailsOpen">
         <ion-icon [name]="detailsOpen ? 'options' : 'options-outline'"></ion-icon>
       </button>
       <input #quickInput type="text" [ngModel]="quickName" (ngModelChange)="inputChanged($event)"
-             (keydown.enter)="prepareReview(quickName)" placeholder="Add to fridge" aria-label="New fridge product"
+             (keydown.enter)="prepareReview(quickName)" [placeholder]="i18n.t('ui.addToFridge')" [attr.aria-label]="i18n.t('ui.newFridgeProduct')"
              autocomplete="off">
       <button class="voice-button" type="button" (click)="startVoice()"
               [disabled]="!voiceSupported || listening"
-              [attr.aria-label]="listening ? 'Listening' : voiceSupported ? 'Speak product in German' : 'On-device speech unavailable; type product'">
+              [attr.aria-label]="listening ? i18n.t('ui.listening') : voiceSupported ? i18n.t('speech.speak') : i18n.t('ui.onDeviceSpeechUnavailableTypeProduct')">
         @if (listening) {
           <span aria-hidden="true">…</span>
         } @else {
@@ -221,7 +222,7 @@
         }
       </button>
       <ion-button class="add-button" (click)="prepareReview(quickName)" [disabled]="adding"
-                  aria-label="Review fridge addition">
+                  [attr.aria-label]="i18n.t('ui.reviewFridgeAddition')">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
     </div>

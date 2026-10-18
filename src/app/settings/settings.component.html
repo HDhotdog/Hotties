@@ -1,12 +1,12 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="menu-button" (click)="openMainMenu()">
+      <ion-button class="menu-button" (click)="openMainMenu()" [attr.aria-label]="i18n.t('ui.openMenu')">
         <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Settings
+      {{ i18n.t('ui.settings') }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -14,21 +14,32 @@
 <ion-content>
   <div class="settings-container">
     <ion-list class="settings-list">
+      <ion-item>
+        <ion-icon aria-hidden="true" name="language-outline" slot="start"></ion-icon>
+        <ion-select [label]="i18n.t('settings.language')" [value]="i18n.language()"
+                    [disabled]="changingLanguage" (ionChange)="changeLanguage($event.detail.value)"
+                    [cancelText]="i18n.t('ui.cancel')" [okText]="i18n.t('ui.confirm')">
+          @for (language of i18n.languages; track language.code) {
+            <ion-select-option [value]="language.code">{{ language.nativeName }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      @if (languageError) {<p role="alert">{{ i18n.t(languageError) }}</p>}
       <ion-item (click)="openLabelSetting()">
         <ion-icon aria-hidden="true" name="leaf" slot="start"></ion-icon>
-        <ion-label>Manage labels</ion-label>
+        <ion-label>{{ i18n.t('ui.manageLabels') }}</ion-label>
       </ion-item>
       <ion-item (click)="openCategorySetting()">
         <ion-icon aria-hidden="true" name="list" slot="start"></ion-icon>
-        <ion-label>Shopping lists</ion-label>
+        <ion-label>{{ i18n.t('ui.shoppingLists') }}</ion-label>
       </ion-item>
       <ion-item (click)="openAiModels()">
         <ion-icon aria-hidden="true" name="sparkles-outline" slot="start"></ion-icon>
-        <ion-label>Manage AI models</ion-label>
+        <ion-label>{{ i18n.t('ui.manageAiModels') }}</ion-label>
       </ion-item>
       <ion-item (click)="openInfoSetting()">
         <ion-icon aria-hidden="false" name="information-circle-outline" slot="start"></ion-icon>
-        <ion-label>About</ion-label>
+        <ion-label>{{ i18n.t('ui.about') }}</ion-label>
       </ion-item>
     </ion-list>
   </div>

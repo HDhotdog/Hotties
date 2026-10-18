@@ -1,47 +1,47 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="navigateBack()" aria-label="Back to settings">
+      <ion-button (click)="navigateBack()" [attr.aria-label]="i18n.t('ui.backToSettings')">
         <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Manage labels</ion-title>
+    <ion-title>{{ i18n.t('ui.manageLabels') }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <div class="label-settings">
     @if (error) {
-      <p class="error" role="alert">{{ error }}</p>
+      <p class="error" role="alert">{{ i18n.t(error) }}</p>
     }
     <ion-reorder-group class="group-order" [disabled]="reorderDisabled"
                        (ionReorderEnd)="reorderGroups($event)">
     @for (group of labelGroups; track group.id) {
-      <section class="group-card" [attr.aria-label]="group.name">
+      <section class="group-card" [attr.aria-label]="i18n.name(group)">
         <div class="group-header">
-          <ion-reorder [attr.aria-label]="'Drag to reorder group ' + group.name"></ion-reorder>
+          <ion-reorder [attr.aria-label]="i18n.t('ui.dragToReorderGroup', {name: i18n.name(group)})"></ion-reorder>
           @if (editingGroup?.id === group.id) {
             <form class="edit-row" (ngSubmit)="saveEdit()">
-              <input [(ngModel)]="editName" name="groupName" aria-label="Group name"
+              <input [(ngModel)]="editName" name="groupName" [attr.aria-label]="i18n.t('ui.groupName')"
                      [disabled]="savingEdit || reorderingGroups || reorderingLabels" (keydown.escape)="cancelEdit()">
-              <ion-button type="submit" fill="clear" aria-label="Save group name"
+              <ion-button type="submit" fill="clear" [attr.aria-label]="i18n.t('ui.saveGroupName')"
                           [disabled]="!editName.trim() || savingEdit">
                 <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
               </ion-button>
-              <ion-button fill="clear" color="medium" (click)="cancelEdit()" aria-label="Cancel editing"
+              <ion-button fill="clear" color="medium" (click)="cancelEdit()" [attr.aria-label]="i18n.t('ui.cancelEditing')"
                           [disabled]="savingEdit || reorderingGroups || reorderingLabels">
                 <ion-icon name="close" aria-hidden="true"></ion-icon>
               </ion-button>
             </form>
           } @else {
-            <h2>{{ group.name }}</h2>
+            <h2>{{ i18n.name(group) }}</h2>
             <div class="row-actions">
               <ion-button fill="clear" color="medium" (click)="startEditingGroup(group)"
-                          [attr.aria-label]="'Rename group ' + group.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                          [attr.aria-label]="i18n.t('ui.renameGroup', {name: i18n.name(group)})" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
                 <ion-icon name="pencil" aria-hidden="true"></ion-icon>
               </ion-button>
               <ion-button fill="clear" color="danger" (click)="removeLabelGroup(group)"
-                          [attr.aria-label]="'Delete group ' + group.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                          [attr.aria-label]="i18n.t('ui.deleteGroup', {name: i18n.name(group)})" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
                 <ion-icon name="trash" aria-hidden="true"></ion-icon>
               </ion-button>
             </div>
@@ -53,29 +53,29 @@
                            (ionReorderEnd)="reorderLabels($event, group)">
           @for (label of labelsForGroup(group.id); track label.id) {
             <div class="label-row">
-              <ion-reorder [attr.aria-label]="'Drag to reorder label ' + label.name"></ion-reorder>
+              <ion-reorder [attr.aria-label]="i18n.t('ui.dragToReorderLabel', {name: i18n.name(label)})"></ion-reorder>
               @if (editingLabel?.label?.id === label.id) {
                 <form class="edit-row" (ngSubmit)="saveEdit()">
-                  <input [(ngModel)]="editName" name="labelName" aria-label="Label name"
+                  <input [(ngModel)]="editName" name="labelName" [attr.aria-label]="i18n.t('ui.labelName')"
                          [disabled]="savingEdit || reorderingGroups || reorderingLabels" (keydown.escape)="cancelEdit()">
-                  <ion-button type="submit" fill="clear" aria-label="Save label name"
+                  <ion-button type="submit" fill="clear" [attr.aria-label]="i18n.t('ui.saveLabelName')"
                               [disabled]="!editName.trim() || savingEdit">
                     <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
                   </ion-button>
-                  <ion-button fill="clear" color="medium" (click)="cancelEdit()" aria-label="Cancel editing"
+                  <ion-button fill="clear" color="medium" (click)="cancelEdit()" [attr.aria-label]="i18n.t('ui.cancelEditing')"
                               [disabled]="savingEdit || reorderingGroups || reorderingLabels">
                     <ion-icon name="close" aria-hidden="true"></ion-icon>
                   </ion-button>
                 </form>
               } @else {
-                <span class="label-name">{{ label.name }}</span>
+                <span class="label-name">{{ i18n.name(label) }}</span>
                 <div class="row-actions">
                   <ion-button fill="clear" color="medium" (click)="startEditingLabel(group, label)"
-                              [attr.aria-label]="'Rename label ' + label.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                              [attr.aria-label]="i18n.t('ui.renameLabel', {name: i18n.name(label)})" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
                     <ion-icon name="pencil" aria-hidden="true"></ion-icon>
                   </ion-button>
                   <ion-button fill="clear" color="danger" (click)="removeLabel(label)"
-                              [attr.aria-label]="'Delete label ' + label.name" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
+                              [attr.aria-label]="i18n.t('ui.deleteLabel', {name: i18n.name(label)})" [disabled]="savingEdit || reorderingGroups || reorderingLabels">
                     <ion-icon name="trash" aria-hidden="true"></ion-icon>
                   </ion-button>
                 </div>
@@ -86,24 +86,24 @@
 
         <form class="add-row" (ngSubmit)="addLabel(group)">
           <input [ngModel]="labelDraft(group.id)" (ngModelChange)="labelDrafts[group.id] = $event"
-                 name="newLabel" placeholder="New label" [attr.aria-label]="'New label in ' + group.name">
-          <ion-button type="submit" [attr.aria-label]="'Add label to ' + group.name"
+                 name="newLabel" [placeholder]="i18n.t('ui.newLabel')" [attr.aria-label]="i18n.t('ui.newLabelIn', {name: i18n.name(group)})">
+          <ion-button type="submit" [attr.aria-label]="i18n.t('ui.addLabelTo', {name: i18n.name(group)})"
                       [disabled]="!labelDraft(group.id).trim() || savingLabels.has(group.id) || reorderingGroups || reorderingLabels">
             <ion-icon name="add" aria-hidden="true"></ion-icon>
           </ion-button>
         </form>
       </section>
     } @empty {
-      <p class="empty-state">No label groups yet. Add a group to get started.</p>
+      <p class="empty-state">{{ i18n.t('ui.noLabelGroupsYetAddAGroupToGetStarted') }}</p>
     }
 
     </ion-reorder-group>
 
     <section class="new-group-card" aria-labelledby="new-group-heading">
-      <h2 id="new-group-heading">New label group</h2>
+      <h2 id="new-group-heading">{{ i18n.t('ui.newLabelGroup') }}</h2>
       <form class="add-row" (ngSubmit)="addLabelGroup()">
-        <input [(ngModel)]="newGroupName" name="newGroup" placeholder="Group name" aria-label="New label group">
-        <ion-button type="submit" aria-label="Add label group" [disabled]="!newGroupName.trim() || savingGroup || reorderingGroups || reorderingLabels">
+        <input [(ngModel)]="newGroupName" name="newGroup" [placeholder]="i18n.t('ui.groupName')" [attr.aria-label]="i18n.t('ui.newLabelGroup')">
+        <ion-button type="submit" [attr.aria-label]="i18n.t('ui.addLabelGroup')" [disabled]="!newGroupName.trim() || savingGroup || reorderingGroups || reorderingLabels">
           <ion-icon name="add" aria-hidden="true"></ion-icon>
         </ion-button>
       </form>

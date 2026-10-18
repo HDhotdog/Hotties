@@ -1,3 +1,5 @@
+import {Message, message} from '../../i18n/language-pack';
+import {LocalizationService} from '../../i18n/localization.service';
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {
@@ -15,6 +17,7 @@ import {CategorySuggestionService} from '../../domain/category-suggestion.servic
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AiModelsComponent implements OnInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   private readonly model = inject(AiModelService);
   private readonly suggestions = inject(CategorySuggestionService);
   private readonly router = inject(Router);
@@ -25,7 +28,7 @@ export class AiModelsComponent implements OnInit, OnDestroy {
   public readonly supported = this.model.supported;
   public enabled = true;
   public busy = false;
-  public error = '';
+  public error: Message = '';
   public status: AiModelStatus = {state: 'missing', downloadedBytes: 0, totalBytes: 0};
 
   public ngOnInit(): void {
@@ -48,7 +51,7 @@ export class AiModelsComponent implements OnInit, OnDestroy {
       this.enabled = await this.model.enabled();
       await this.refresh();
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
       this.cdr.markForCheck();
     }
   }
@@ -58,10 +61,10 @@ export class AiModelsComponent implements OnInit, OnDestroy {
     this.refreshing = true;
     try {
       this.status = await this.model.status();
-      this.error = this.status.error ?? '';
+      this.error = this.status.error ? this.i18n.error({code: this.status.error}) : '';
       this.cdr.markForCheck();
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
       this.cdr.markForCheck();
     } finally {
       this.refreshing = false;
@@ -75,7 +78,7 @@ export class AiModelsComponent implements OnInit, OnDestroy {
       this.enabled = enabled;
       this.error = '';
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
     }
     this.cdr.markForCheck();
   }
@@ -90,20 +93,20 @@ export class AiModelsComponent implements OnInit, OnDestroy {
       let allowCellular = false;
       if (connection === 'cellular') {
         const alert = await this.alerts.create({
-          header: 'Use cellular data?',
-          message: 'The AI model is about 157 MB. Cellular charges may apply. This permission is for this download only.',
-          buttons: [{text: 'Cancel', role: 'cancel'}, {text: 'Download', role: 'download'}]
+          header: this.i18n.t('ui.useCellularData'),
+          message: this.i18n.t('ui.theAiModelIsAbout157MbCellularChargesMayApplyThisPermissionIsForThisDownloadOnly'),
+          buttons: [{text: this.i18n.t('ui.cancel'), role: 'cancel'}, {text: this.i18n.t('ui.download'), role: 'download'}]
         });
         await alert.present();
         allowCellular = (await alert.onDidDismiss()).role === 'download';
         if (!allowCellular) return;
       } else if (connection !== 'wifi') {
-        this.error = 'Connect to Wi-Fi before downloading the AI model.';
+        this.error = 'ui.connectToWiFiBeforeDownloadingTheAiModel';
         return;
       }
       this.status = await this.model.start(allowCellular);
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
     } finally {
       this.busy = false;
       this.cdr.markForCheck();
@@ -113,9 +116,9 @@ export class AiModelsComponent implements OnInit, OnDestroy {
   public async delete(): Promise<void> {
     if (this.busy || !this.supported) return;
     const alert = await this.alerts.create({
-      header: 'Delete AI model?',
-      message: 'AI category suggestions will stop. You can download the model again later.',
-      buttons: [{text: 'Cancel', role: 'cancel'}, {text: 'Delete model', role: 'delete'}]
+      header: this.i18n.t('ui.deleteAiModel'),
+      message: this.i18n.t('ui.aiCategorySuggestionsWillStopYouCanDownloadTheModelAgainLater'),
+      buttons: [{text: this.i18n.t('ui.cancel'), role: 'cancel'}, {text: this.i18n.t('ui.deleteModel'), role: 'delete'}]
     });
     await alert.present();
     if ((await alert.onDidDismiss()).role !== 'delete') return;
@@ -125,7 +128,7 @@ export class AiModelsComponent implements OnInit, OnDestroy {
       this.status = await this.model.delete();
       this.error = '';
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
     } finally {
       this.busy = false;
       this.cdr.markForCheck();
@@ -137,7 +140,7 @@ export class AiModelsComponent implements OnInit, OnDestroy {
   }
 
   public formatBytes(bytes: number): string {
-    return `${(bytes / 1_000_000).toFixed(1)} MB`;
+    return `${this.i18n.number(bytes / 1_000_000, 1)} MB`;
   }
 
   public navigateBack(): void {

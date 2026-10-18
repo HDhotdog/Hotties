@@ -1,3 +1,4 @@
+import {SettingsRepository} from '../../database/settings/settings.repository';
 import {provideIonicAngular} from '@ionic/angular';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
@@ -61,6 +62,7 @@ describe('LabelSettingComponent', () => {
       imports: [LabelSettingComponent],
       providers: [
         provideIonicAngular(),
+        {provide: SettingsRepository, useValue: {save: () => of({})}},
         {provide: Router, useValue: {navigate: jest.fn()}},
         {provide: LabelService, useValue: service},
       ],
@@ -144,13 +146,13 @@ describe('LabelSettingComponent', () => {
     component.addLabel(taste);
     expect(component.labelDraft(taste.id)).toBe('Sauer');
     expect(component.savingLabels.has(taste.id)).toBe(false);
-    expect(component.error).toContain('Could not add the label');
+    expect(component.i18n.t(component.error)).toContain('Could not add the label');
     component.newGroupName = 'Küche';
     component.addLabelGroup();
     expect(component.newGroupName).toBe('Küche');
     expect(component.labelGroups).toHaveLength(2);
     expect(component.savingGroup).toBe(false);
-    expect(component.error).toContain('Could not add the group');
+    expect(component.i18n.t(component.error)).toContain('Could not add the group');
   });
 
   it('switches from group editing to label editing and persists the correct name', () => {
@@ -210,7 +212,7 @@ describe('LabelSettingComponent', () => {
     component.reorderGroups(new CustomEvent('ionReorderEnd', {detail: {from: 0, to: 1, complete: jest.fn()}}));
     expect(component.labelGroups.map(group => group.id)).toEqual([taste.id, kind.id]);
     expect(component.reorderDisabled).toBe(false);
-    expect(component.error).toContain('Could not save the group order');
+    expect(component.i18n.t(component.error)).toContain('Could not save the group order');
   });
 
   it('keeps only label definitions in the group rows', () => {
@@ -225,4 +227,22 @@ describe('LabelSettingComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.group-header .edit-row input')).toBeTruthy();
   });
+  it('preserves an untouched default draft after switching languages on a cached editor', async () => {
+    const builtin = {...salty, origin: 'app' as const, translationKey: 'starter.salty'};
+    component.startEditingLabel(taste, builtin);
+    expect(component.editName).toBe('Salty');
+    await component.i18n.setLanguage('de');
+    component.saveEdit();
+    expect(service.saveLabel).not.toHaveBeenCalled();
+  });
+
+  it('treats a deliberate rename to the canonical stored name as a custom name', () => {
+    const builtin = {...salty, origin: 'app' as const, translationKey: 'starter.salty'};
+    component.startEditingLabel(taste, builtin);
+    component.editName = 'Salzig';
+    component.saveEdit();
+    expect(persistedLabels).toHaveBeenCalledWith(expect.objectContaining({origin: 'app', name: 'Salzig'}));
+    expect(persistedLabels.mock.calls[0][0].translationKey).toBeUndefined();
+  });
+
 });

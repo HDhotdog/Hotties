@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {env, pipeline} from '@huggingface/transformers';
 
 let extractor: any = null;
@@ -6,7 +7,7 @@ let cachedEmbeddings: Array<{ categoryId: string; embedding: number[] }> = [];
 let lastNodeCount = 0;
 
 async function getExtractor() {
-  if (!configured) throw new Error('AI model is not configured.');
+  if (!configured) throw new AppError('ui.aiModelIsNotConfigured', "AI model is not configured.");
   if (!extractor) {
     extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
       {dtype: 'q8', local_files_only: true});

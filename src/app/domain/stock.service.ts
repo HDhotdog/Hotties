@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {firstValueFrom, from, map, Observable, switchMap, take} from 'rxjs';
 import {v4 as uuidv4} from 'uuid';
@@ -79,9 +80,9 @@ export class StockService {
 
   public async save(lot: StockLot): Promise<void> {
     const product = await this.catalog.byId(lot.productId);
-    if (product.kind !== 'product') throw new Error('Stock must reference a product.');
+    if (product.kind !== 'product') throw new AppError('ui.stockMustReferenceAProduct', "Stock must reference a product.");
     if (!(lot.acquiredAmount > 0) || lot.remainingAmount < 0 || lot.remainingAmount > lot.acquiredAmount) {
-      throw new Error('Remaining stock must be within the acquired quantity.');
+      throw new AppError('ui.remainingStockMustBeWithinTheAcquiredQuantity', "Remaining stock must be within the acquired quantity.");
     }
     const db = await this.database.getDb();
     const previous = await db['stock_lots'].findOne(lot.id).exec();
@@ -91,13 +92,13 @@ export class StockService {
       previous.acquiredPackages === lot.acquiredPackages;
     if (!sameAcquisition && product.saleKind === 'fixed' && (lot.acquiredUnit !== product.packageUnit ||
       lot.acquiredAmount > lot.acquiredPackages * (product.packageAmount ?? 0))) {
-      throw new Error('Stock exceeds the acquired packages.');
+      throw new AppError('ui.stockExceedsTheAcquiredPackages', "Stock exceeds the acquired packages.");
     }
     if (!sameAcquisition && product.saleKind === 'variable' && lot.acquiredUnit !== product.variableUnit) {
-      throw new Error('Stock unit does not match this product.');
+      throw new AppError('ui.stockUnitDoesNotMatchThisProduct', "Stock unit does not match this product.");
     }
     if (!sameAcquisition && product.saleKind === 'unknown' && lot.acquiredUnit !== 'package') {
-      throw new Error('Confirm package content before recording a measured amount.');
+      throw new AppError('ui.confirmPackageContentBeforeRecordingAMeasuredAmount', "Confirm package content before recording a measured amount.");
     }
     await db['stock_lots'].upsert(lot);
   }
@@ -122,14 +123,14 @@ export class StockService {
 
   public cook(recipeId: string, reviewed: CookingPlan): Promise<CookingResult> {
     const result = this.receiveQueue.then(async (): Promise<CookingResult> => {
-      if (recipeId !== reviewed.recipeId) throw new Error('Recipe changed. Please review again.');
+      if (recipeId !== reviewed.recipeId) throw new AppError('ui.recipeChangedPleaseReviewAgain', "Recipe changed. Please review again.");
       const db = await this.database.getDb();
       const journalKey = `cook:${reviewed.operationId}`;
       const journal = await db['settings'].findOne(journalKey).exec();
       if (!journal) {
         const current = await this.planCook(recipeId);
         if (current.fingerprint !== reviewed.fingerprint) return {status: 'changed', plan: current};
-        if (!current.ingredients.length) throw new Error('This recipe has no ingredients.');
+        if (!current.ingredients.length) throw new AppError('ui.thisRecipeHasNoIngredients', "This recipe has no ingredients.");
         // Absolute target balances make a retry after an interrupted write safe.
         await db['settings'].upsert({key: journalKey, value: JSON.stringify(reviewed.lotChanges)});
       }
@@ -221,15 +222,15 @@ export class StockService {
     shoppingListId?: string; scanId?: string;
   }): Promise<StockLot> {
     const product = await this.catalog.byId(productId);
-    if (product.kind !== 'product') throw new Error('Choose a product leaf.');
+    if (product.kind !== 'product') throw new AppError('ui.chooseAProductLeaf', "Choose a product leaf.");
     const packages = options.packages ?? 1;
-    if (!Number.isInteger(packages) || packages < 1) throw new Error('Package count must be a positive whole number.');
+    if (!Number.isInteger(packages) || packages < 1) throw new AppError('ui.packageCountMustBeAPositiveWholeNumber', "Package count must be a positive whole number.");
     let acquired: BaseQuantity;
     if (product.saleKind === 'fixed') {
       acquired = {amount: packages * product.packageAmount!, unit: product.packageUnit!};
     } else if (product.saleKind === 'variable') {
       if (!options.bulkQuantity || options.bulkQuantity.unit !== product.variableUnit || options.bulkQuantity.amount <= 0) {
-        throw new Error('Enter the acquired bulk quantity.');
+        throw new AppError('ui.enterTheAcquiredBulkQuantity', "Enter the acquired bulk quantity.");
       }
       acquired = options.bulkQuantity;
     } else {
@@ -238,7 +239,7 @@ export class StockService {
     const id = options.scanId ?? uuidv4();
     const existing = (await this.all()).find(lot => lot.id === id);
     if (existing) {
-      if (existing.productId !== productId) throw new Error('Scan ID already belongs to another product.');
+      if (existing.productId !== productId) throw new AppError('ui.scanIdAlreadyBelongsToAnotherProduct', "Scan ID already belongs to another product.");
       await this.shopping.reconcileCompleted(await this.all());
       return existing; // Retry after an interrupted scan must not double count.
     }

@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {Ingredient} from '../ingredients/ingredient.dto';
 import {CategoryRepository} from './category.repository';
@@ -59,9 +60,9 @@ export class CategoryService {
   private async deleteList(id: string, confirmedItemCount: number): Promise<boolean> {
     const lists = await firstValueFrom(this.getCategories());
     if (!lists.some(list => list.id === id)) return false;
-    if (lists.length <= 1) throw new Error('Keep at least one shopping list.');
+    if (lists.length <= 1) throw new AppError('ui.keepAtLeastOneShoppingList', "Keep at least one shopping list.");
     if (await this.getItemCount(id) !== confirmedItemCount) {
-      throw new Error('The items in this list changed. Please review the deletion again.');
+      throw new AppError('ui.theItemsInThisListChangedPleaseReviewTheDeletionAgain', "The items in this list changed. Please review the deletion again.");
     }
     // Remove contents first; if cleanup fails, the list remains available for retry.
     await this.shopping.clearList(id);
@@ -88,7 +89,7 @@ export class CategoryService {
     ingredients: Ingredient[]
   ): Observable<unknown> {
     return from(Promise.all(ingredients.map(ingredient => {
-      if (!ingredient.targetNodeId) return Promise.reject(new Error('Ingredient has no catalog target.'));
+      if (!ingredient.targetNodeId) return Promise.reject(new AppError('ui.ingredientHasNoCatalogTarget', "Ingredient has no catalog target."));
       return this.shopping.addProduct(categoryId, ingredient.targetNodeId, {
         kind: 'quantity',
         quantity: normalizeQuantity({amount: ingredient.amount, unit: ingredient.unit as QuantityUnit})

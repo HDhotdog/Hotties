@@ -1,14 +1,14 @@
 <ion-menu menuId="filter-menu" side="end" contentId="main" swipe-gesture="true" max-edge-start="200">
   <ion-header>
     <ion-toolbar>
-      <ion-title>Select filters</ion-title>
+      <ion-title>{{ i18n.t('ui.selectFilters') }}</ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-content>
     <div class="filter-container">
       <div class="time-filter">
-        <ion-label>Preparation time: {{ formatPreparationTime(selectedTime) }}</ion-label>
-        <ion-range
+        <ion-label>{{ i18n.t('ui.preparationTimeValue', {p0: (formatPreparationTime(selectedTime))}) }}</ion-label>
+        <ion-range [attr.aria-label]="i18n.t('ui.preparationTime')"
           [min]="0"
           [max]="120"
           [step]="10"
@@ -20,9 +20,9 @@
       </div>
       @for (group of this.labelGroups; track group.id) {
         <div class="label-group">
-          <div class="group-name">{{ group.name }}</div>
+          <div class="group-name">{{ i18n.name(group) }}</div>
           @for (label of this.labelsForGroup(group.id); track label.id) {
-            <ion-checkbox labelPlacement="start" (ionChange)="changeFilter($event, label)">{{ label.name }}
+            <ion-checkbox labelPlacement="start" (ionChange)="changeFilter($event, label)">{{ i18n.name(label) }}
             </ion-checkbox>
           }
         </div>
@@ -35,20 +35,20 @@
   <ion-header [translucent]="true">
     <ion-toolbar class="toolbar">
       <ion-buttons slot="start">
-        <ion-button class="menu-button" (click)="openMainMenu()">
+        <ion-button class="menu-button" (click)="openMainMenu()" [attr.aria-label]="i18n.t('ui.openMenu')">
           <ion-icon name="menu"></ion-icon>
         </ion-button>
       </ion-buttons>
 
       <ion-title>
-        Recipes
+        {{ i18n.t('ui.recipes') }}
       </ion-title>
 
       <ion-buttons slot="end">
-        <ion-button class="add-button" (click)="newRecipe()" aria-label="Add recipe">
+        <ion-button class="add-button" (click)="newRecipe()" [attr.aria-label]="i18n.t('ui.addRecipe')">
           <ion-icon name="add"></ion-icon>
         </ion-button>
-        <ion-button (click)="openFilterMenu()">
+        <ion-button (click)="openFilterMenu()" [attr.aria-label]="i18n.t('ui.selectFiltersLabel')">
           <ion-icon name="filter"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -56,7 +56,11 @@
   </ion-header>
 
   <ion-content class="content-wrapper">
-    <ion-searchbar [(ngModel)]="search" (ngModelChange)="filterRecipes()"></ion-searchbar>
+    <div class="recipe-search">
+      <input type="text" inputmode="search" [(ngModel)]="search" (ngModelChange)="filterRecipes()"
+             [placeholder]="i18n.t('ui.search')" [attr.aria-label]="i18n.t('ui.search')">
+      @if (search) {<button type="button" (click)="search = ''; filterRecipes()" [attr.aria-label]="i18n.t('ui.delete')">×</button>}
+    </div>
     <div class="recipes-list-container">
       @for (recipe of this.results; track recipe.id) {
         <div class="recipe-preview-container" (click)="openRecipe(recipe)">
@@ -82,13 +86,13 @@
             @if (this.ingredientAvailabilityFor(recipe.id); as availability) {
               <div class="recipe-preview-meta">
                 <span class="recipe-preview-ingredient-count">
-                  {{ availability.total }} ingredient{{ availability.total === 1 ? '' : 's' }}
+                  {{ i18n.t('format.ingredients', {count: availability.total}) }}
                 </span>
                 @if (availability.total > 0) {
                   <span class="recipe-preview-availability"
                         [class.fully-available]="availability.available === availability.total && availability.unknown === 0">
-                    {{ availability.available }}/{{ availability.total }} available@if (availability.unknown > 0) {
-                    · {{ availability.unknown }} unknown
+                    {{ i18n.t('ui.valueValueAvailable', {p0: (availability.available), p1: (availability.total)}) }}@if (availability.unknown > 0) {
+                    {{ i18n.t('ui.valueUnknown', {p0: (availability.unknown)}) }}
                   }
                   </span>
                 }
@@ -96,7 +100,7 @@
             }
             <div class="recipe-preview-labels">
               @for (label of this.labelsForRecipe(recipe.id); track label.id) {
-                <div class="recipe-preview-label">{{ label.name }}</div>
+                <div class="recipe-preview-label">{{ i18n.name(label) }}</div>
               }
             </div>
           </div>
@@ -105,11 +109,11 @@
         <div class="empty-state">
           <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
           @if (hasRecipes) {
-            <p>No matching recipes</p>
-            <span>Try a different search or clear your filters.</span>
+            <p>{{ i18n.t('ui.noMatchingRecipes') }}</p>
+            <span>{{ i18n.t('ui.tryADifferentSearchOrClearYourFilters') }}</span>
           } @else {
-            <p>Your recipe list is empty</p>
-            <span>Tap + above to add your first recipe.</span>
+            <p>{{ i18n.t('ui.yourRecipeListIsEmpty') }}</p>
+            <span>{{ i18n.t('ui.tapAboveToAddYourFirstRecipe') }}</span>
           }
         </div>
       }

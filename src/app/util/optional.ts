@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 export default class Optional<Type> {
   private readonly t?: Type | undefined | null;
 
@@ -7,7 +8,7 @@ export default class Optional<Type> {
 
   get(): Type {
     if (this.t === null || this.t === undefined) {
-      throw new Error("Null Pointer Exception");
+      throw new AppError('ui.nullPointerException', "Null Pointer Exception");
     }
     return this.t;
   }
@@ -27,7 +28,7 @@ export default class Optional<Type> {
    */
   static of<Type>(t: Type) {
     if (t === null || t === undefined) {
-      throw new Error("Null Pointer Exception");
+      throw new AppError('ui.nullPointerException', "Null Pointer Exception");
     }
     return new Optional<Type>(t);
   }

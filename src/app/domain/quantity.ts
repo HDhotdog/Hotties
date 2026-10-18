@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 export type QuantityUnit = 'g' | 'kg' | 'ml' | 'l' | 'piece' | 'package' | 'bunch' | 'pinch';
 export type BaseUnit = 'g' | 'ml' | 'piece' | 'package' | 'bunch' | 'pinch';
 
@@ -13,7 +14,7 @@ export interface BaseQuantity {
 
 export function normalizeQuantity(quantity: Quantity): BaseQuantity {
   if (!Number.isFinite(quantity.amount) || quantity.amount <= 0) {
-    throw new Error('Quantity must be greater than zero.');
+    throw new AppError('ui.quantityMustBeGreaterThanZero', "Quantity must be greater than zero.");
   }
   if (quantity.unit === 'kg') return {amount: quantity.amount * 1000, unit: 'g'};
   if (quantity.unit === 'l') return {amount: quantity.amount * 1000, unit: 'ml'};

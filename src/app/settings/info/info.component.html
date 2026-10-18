@@ -1,18 +1,18 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="navigateBack()">
+      <ion-button class="back-button" (click)="navigateBack()" [attr.aria-label]="i18n.t('ui.previous')">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>
-      App info
+      {{ i18n.t('ui.appInfo') }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ion-list>
-    <ion-item>Version: {{ version }} ({{ commitHash }})</ion-item>
+    <ion-item>{{ i18n.t('ui.versionValueValue', {p0: (version), p1: (commitHash)}) }}</ion-item>
   </ion-list>
 </ion-content>

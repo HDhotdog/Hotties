@@ -1,3 +1,7 @@
+import {LocalizedNumberDirective} from '../i18n/localized-number.directive';
+import {Message} from '../i18n/language-pack';
+import {AppError} from '../i18n/language-pack';
+import {LocalizationService} from '../i18n/localization.service';
 import {CommonModule} from '@angular/common';
 import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
@@ -25,11 +29,12 @@ import {normalizeQuantity, QuantityUnit} from './quantity';
 
 @Component({
   selector: 'app-shopping-page', standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonToolbar],
+  imports: [LocalizedNumberDirective, CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonToolbar],
   templateUrl: './shopping-page.component.html',
   styleUrls: ['./shopping-page.component.scss']
 })
 export class ShoppingPageComponent implements OnInit, OnDestroy {
+  public readonly i18n = inject(LocalizationService);
   @ViewChild('quickInput') private quickInput?: ElementRef<HTMLInputElement>;
   private readonly menu = inject(MenuController);
   private readonly router = inject(Router);
@@ -51,7 +56,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   public needAmount = 1;
   public needUnit: QuantityUnit = 'piece';
   public readonly units: QuantityUnit[] = ['g', 'kg', 'ml', 'l', 'piece', 'bunch', 'pinch'];
-  public error = '';
+  public error: Message = '';
   public suggestionProductIds: Record<string, string> = {};
   public detailsOpen = false;
   public suggestionsOpen = false;
@@ -71,7 +76,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
     if (!this.lists.length) {
       const created = await firstValueFrom(this.categories.save({
         id: uuidv4(),
-        name: 'Shopping',
+        name: this.i18n.t('ui.shopping'),
         saveSuggestions: true
       }));
       this.lists = [created];
@@ -124,7 +129,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
     return this.nodesForSelection.filter(node =>
       `${node.name} ${node.brand ?? ''}`.toLocaleLowerCase().includes(query))
       .sort((a, b) => Number(b.name.toLocaleLowerCase() === query) - Number(a.name.toLocaleLowerCase() === query) ||
-        Number(a.kind === 'product') - Number(b.kind === 'product') || a.name.localeCompare(b.name))
+        Number(a.kind === 'product') - Number(b.kind === 'product') || this.i18n.compare(this.i18n.name(a), this.i18n.name(b)))
       .slice(0, 5);
   }
 
@@ -146,7 +151,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   }
 
   public nodeLabel(node: CatalogNode): string {
-    return `${node.kind === 'class' ? 'Any' : 'Product'} · ${node.name}${node.brand ? ' · ' + node.brand : ''}`;
+    return `${node.kind === 'class' ? this.i18n.t('ui.any') : this.i18n.t('ui.product')} · ${node.name}${node.brand ? ' · ' + node.brand : ''}`;
   }
 
   public entryTitle(entry: ShoppingEntry): string {
@@ -155,9 +160,9 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   }
 
   public needLabel(entry: ShoppingEntry): string {
-    if (entry.needKind === 'unspecified') return 'Any brand';
-    if (entry.needKind === 'packages') return `${entry.needAmount} pkg`;
-    return `${entry.needAmount} ${entry.needUnit}`;
+    if (entry.needKind === 'unspecified') return this.i18n.t('ui.anyBrand');
+    if (entry.needKind === 'packages') return this.i18n.t('format.packages', {count: entry.needAmount});
+    return this.i18n.quantity(entry.needAmount, entry.needUnit);
   }
 
   public progress(entry: ShoppingEntry): number {
@@ -165,7 +170,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
   }
 
   public remainingLabel(entry: ShoppingEntry): string {
-    return `${Math.max(0, (entry.needAmount ?? 1) - this.progress(entry))} ${entry.needUnit ?? 'package'}`;
+    return this.i18n.quantity(Math.max(0, (entry.needAmount ?? 1) - this.progress(entry)), entry.needUnit ?? 'package');
   }
 
   public matchingProducts(entry: ShoppingEntry): CatalogNode[] {
@@ -216,7 +221,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
     this.adding = true;
     try {
       if (!this.selectedListId) {
-        throw new Error('Create a shopping list first.');
+        throw new AppError('ui.createAShoppingListFirst', "Create a shopping list first.");
       }
       const originalUserInput = this.newName.trim();
       const userInput = originalUserInput.toLocaleLowerCase();
@@ -242,7 +247,7 @@ export class ShoppingPageComponent implements OnInit, OnDestroy {
       this.suggestionsOpen = false;
       this.quickInput?.nativeElement.focus();
     } catch (error) {
-      this.error = String(error instanceof Error ? error.message : error);
+      this.error = this.i18n.error(error);
     } finally {
       this.adding = false;
       this.cdr.detectChanges();

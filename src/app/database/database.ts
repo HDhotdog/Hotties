@@ -50,8 +50,8 @@ async function seedInitialData(db: RxDatabase) {
 
   await db['categories'].upsert(edeka);
   await db['catalog_nodes'].bulkUpsert([
-    blankClass('root-food', 'Food', null),
-    blankClass('root-household', 'Household', null),
+    {...blankClass('root-food', 'Food', null), origin: 'app', translationKey: 'starter.food'},
+    {...blankClass('root-household', 'Household', null), origin: 'app', translationKey: 'starter.household'},
   ]);
 
   // Persist flag
@@ -60,6 +60,8 @@ async function seedInitialData(db: RxDatabase) {
   const kindLabelGroup: RxLabelGroup = {
     id: UUIDv4(),
     name: "Art",
+    origin: "app",
+    translationKey: "starter.kind",
     sortOrder: 0,
   }
 
@@ -68,6 +70,8 @@ async function seedInitialData(db: RxDatabase) {
     return {
       id: UUIDv4(),
       name: kind,
+      origin: "app",
+      translationKey: ["starter.breakfast", "starter.lunch", "starter.dinner", "starter.snack"][sortOrder],
       sortOrder,
       groupId: kindLabelGroup.id,
       recipeId: ""
@@ -77,6 +81,8 @@ async function seedInitialData(db: RxDatabase) {
   const tasteLabelGroup: RxLabelGroup = {
     id: UUIDv4(),
     name: "Geschmack",
+    origin: "app",
+    translationKey: "starter.taste",
     sortOrder: 1
   }
 
@@ -85,6 +91,8 @@ async function seedInitialData(db: RxDatabase) {
     return {
       id: UUIDv4(),
       name: taste,
+      origin: "app",
+      translationKey: ["starter.sweet", "starter.spicy", "starter.salty", "starter.sour"][sortOrder],
       sortOrder,
       groupId: tasteLabelGroup.id,
       recipeId: ""

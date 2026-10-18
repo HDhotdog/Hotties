@@ -1,3 +1,5 @@
+import {Message} from '../../i18n/language-pack';
+import {LocalizationService} from '../../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -29,6 +31,7 @@ import {labelsForGroup as getLabelsForGroup} from '../../recipe/recipe-filter';
   imports: [FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonReorder, IonReorderGroup, IonTitle, IonToolbar],
 })
 export class LabelSettingComponent implements OnInit {
+  public readonly i18n = inject(LocalizationService);
   private router = inject(Router);
   private labelService = inject(LabelService);
   private cdr = inject(ChangeDetectorRef);
@@ -44,7 +47,7 @@ export class LabelSettingComponent implements OnInit {
   savingGroup = false;
   savingLabels = new Set<string>();
   savingEdit = false;
-  error = '';
+  error: Message = '';
   reorderingGroups = false;
   reorderingLabels = false;
 
@@ -76,7 +79,7 @@ export class LabelSettingComponent implements OnInit {
       next: () => {
         if (this.newGroupName === draft) this.newGroupName = '';
       },
-      error: () => this.error = 'Could not add the group. Please try again.',
+      error: () => this.error = 'ui.couldNotAddTheGroupPleaseTryAgain',
     });
   }
 
@@ -94,22 +97,26 @@ export class LabelSettingComponent implements OnInit {
         next: () => {
           if (this.labelDraft(group.id) === draft) this.labelDrafts[group.id] = '';
         },
-        error: () => this.error = 'Could not add the label. Please try again.',
+        error: () => this.error = 'ui.couldNotAddTheLabelPleaseTryAgain',
       });
   }
+
+  private initialEditName = '';
 
   startEditingGroup(group: LabelGroup) {
     if (this.savingEdit || this.reorderingGroups || this.reorderingLabels) return;
     this.cancelEdit();
     this.editingGroup = group;
-    this.editName = group.name;
+    this.editName = this.i18n.name(group);
+    this.initialEditName = this.editName;
   }
 
   startEditingLabel(group: LabelGroup, label: Label) {
     if (this.savingEdit || this.reorderingGroups || this.reorderingLabels) return;
     this.cancelEdit();
     this.editingLabel = {group, label};
-    this.editName = label.name;
+    this.editName = this.i18n.name(label);
+    this.initialEditName = this.editName;
   }
 
   saveEdit() {
@@ -117,13 +124,15 @@ export class LabelSettingComponent implements OnInit {
     if (!name || this.savingEdit) return;
     const target = this.editingGroup ?? this.editingLabel?.label;
     if (!target) return;
-    if (name === target.name) {
+    if (name === this.initialEditName) {
       this.cancelEdit();
       return;
     }
+    const edited = {...target, name};
+    delete edited.translationKey;
     const save = this.editingGroup
-      ? this.labelService.saveLabelGroup({...this.editingGroup, name})
-      : this.labelService.saveLabel({...this.editingLabel!.label, name});
+      ? this.labelService.saveLabelGroup(edited)
+      : this.labelService.saveLabel(edited as Label);
     this.savingEdit = true;
     this.error = '';
     save.pipe(finalize(() => {
@@ -131,7 +140,7 @@ export class LabelSettingComponent implements OnInit {
       this.cdr.markForCheck();
     })).subscribe({
       next: () => this.cancelEdit(),
-      error: () => this.error = 'Could not save the name. Please try again.',
+      error: () => this.error = 'ui.couldNotSaveTheNamePleaseTryAgain',
     });
   }
 
@@ -182,7 +191,7 @@ export class LabelSettingComponent implements OnInit {
     })).subscribe({
       error: () => {
         this.labelGroups = previous;
-        this.error = 'Could not save the group order. Please try again.';
+        this.error = 'ui.couldNotSaveTheGroupOrderPleaseTryAgain';
       },
     });
   }
@@ -204,7 +213,7 @@ export class LabelSettingComponent implements OnInit {
     })).subscribe({
       error: () => {
         this.labels = previous;
-        this.error = 'Could not save the label order. Please try again.';
+        this.error = 'ui.couldNotSaveTheLabelOrderPleaseTryAgain';
       },
     });
   }

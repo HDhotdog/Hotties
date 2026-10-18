@@ -90,3 +90,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Generated from the bundled language packs
+/src/app/i18n/languages.generated.ts

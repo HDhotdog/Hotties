@@ -1,13 +1,13 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button class="menu-button" (click)="openMainMenu()">
+      <ion-button class="menu-button" (click)="openMainMenu()" [attr.aria-label]="i18n.t('ui.openMenu')">
         <ion-icon name="menu"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Items</ion-title>
+    <ion-title>{{ i18n.t('ui.items') }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button class="add-button" (click)="newItem()">
+      <ion-button class="add-button" (click)="newItem()" [attr.aria-label]="i18n.t('ui.addCatalogEntry')">
         <ion-icon name="add"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -16,29 +16,29 @@
 
 <ion-content class="content-wrapper">
   @if (this.errorMessage) {
-    <p class="error-state">{{ this.errorMessage }}</p>
+    <p class="error-state">{{ i18n.t(this.errorMessage) }}</p>
   }
   @if (!this.isLoading) {
     <div class="item-list-container">
       @if (this.items.length === 0) {
-        <p class="empty-state">No items yet.</p>
+        <p class="empty-state">{{ i18n.t('ui.noItemsYet') }}</p>
       }
       @for (item of this.items; track item.id) {
         <div class="item-row">
           <div class="item-info" (click)="editItem(item)">
             <span class="item-name">{{ item.name }}</span>
-            <span class="item-package">{{ item.amount }} {{ item.unit }}@if (item.packageQuantity) {
-              &middot; {{ item.packageQuantity }}
+            <span class="item-package">{{ i18n.number(item.amount) }} {{ i18n.unit(item.unit, item.amount) }}@if (item.packageQuantity) {
+              {{ i18n.t('ui.middotValue', {p0: (item.packageQuantity)}) }}
             }
               @if (item.brand) {
-                &middot; {{ item.brand }}
+                {{ i18n.t('ui.middotValue', {p0: (item.brand)}) }}
               }
               @if (item.price !== null) {
-                &middot; {{ item.price | currency:'EUR' }}
+                · {{ i18n.currency(item.price) }}
               }</span>
           </div>
           <div class="item-actions">
-            <ion-button fill="clear" class="delete-button" [disabled]="!item.deletable" (click)="deleteItem(item)">
+            <ion-button fill="clear" class="delete-button" [disabled]="!item.deletable" (click)="deleteItem(item)" [attr.aria-label]="i18n.t('ui.delete')">
               <ion-icon slot="icon-only" name="trash" [color]="item.deletable ? 'danger' : 'medium'"></ion-icon>
             </ion-button>
           </div>

@@ -210,12 +210,12 @@ describe('AddRecipeComponent', () => {
       (service.save as jest.Mock).mockReturnValueOnce(throwError(() => new Error('Write failed')));
       component.updateStepInstructions('first', 'Updated.');
       await component.navigateBack();
-      expect(component.saveError).toContain('Could not save');
+      expect(component.i18n.t(component.saveError)).toContain('Could not save');
       expect(component.saveStatus).toBe('unsaved');
       expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
       await component.navigateBack();
       expect(service.save).toHaveBeenCalledTimes(2);
-      expect(component.saveError).toBe('');
+      expect(component.i18n.t(component.saveError)).toBe('');
       expect(component.saveStatus).toBe('saved');
       expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/tabs/recipe/display', 'recipe']);
     });

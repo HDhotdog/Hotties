@@ -192,7 +192,7 @@ describe('ScanProductComponent', () => {
     await component.scan();
 
     expect(scanner).toHaveBeenCalledTimes(1);
-    expect(component.errorMessage).toContain('Could not open the camera');
+    expect(component.i18n.t(component.errorMessage)).toContain('Could not open the camera');
   });
 
   it.each(['invalid', found.barcode])('does not reopen after a failed scan of %s', async barcode => {
@@ -202,7 +202,7 @@ describe('ScanProductComponent', () => {
     await component.scan();
 
     expect(scanner).toHaveBeenCalledTimes(1);
-    expect(component.errorMessage).toBeTruthy();
+    expect(component.i18n.t(component.errorMessage)).toBeTruthy();
   });
 
   it('does not reopen after the fridge save fails', async () => {
@@ -213,7 +213,7 @@ describe('ScanProductComponent', () => {
     await component.scan();
 
     expect(scanner).toHaveBeenCalledTimes(1);
-    expect(component.errorMessage).toBeTruthy();
+    expect(component.i18n.t(component.errorMessage)).toBeTruthy();
   });
 
   it('pauses when a stale saved product is used after refresh fails', async () => {
@@ -226,7 +226,7 @@ describe('ScanProductComponent', () => {
     await component.scan();
 
     expect(stock.receive).toHaveBeenCalledTimes(1);
-    expect(component.infoMessage).toContain('saved product details');
+    expect(component.i18n.t(component.infoMessage)).toContain('saved product details');
     expect(scanner).toHaveBeenCalledTimes(1);
   });
 
@@ -331,7 +331,7 @@ describe('ScanProductComponent', () => {
     lookup.lookup.mockRejectedValue(new ProductLookupError('not-found', 'Not found'));
     await component.addBarcode(found.barcode);
     expect(stock.receive).not.toHaveBeenCalled();
-    expect(component.errorMessage).toBe('Not found');
+    expect(component.i18n.t(component.errorMessage)).toBe('This barcode is not in Open Food Facts.');
   });
 
   it.each(['2012345678901', '2812345678901', '2914374003048', '2914374000000', '2914374'])
@@ -339,7 +339,7 @@ describe('ScanProductComponent', () => {
     await component.addBarcode(barcode);
     expect(lookup.lookup).not.toHaveBeenCalled();
     expect(stock.receive).not.toHaveBeenCalled();
-    expect(component.errorMessage).toBeTruthy();
+    expect(component.i18n.t(component.errorMessage)).toBeTruthy();
   });
 
   it('maps an unknown weighed product and receives its exact grams', async () => {
@@ -446,7 +446,7 @@ describe('ScanProductComponent', () => {
     lookup.lookup.mockRejectedValue(new ProductLookupError('network', 'Offline'));
     await component.addBarcode(found.barcode);
     expect(stock.receive).toHaveBeenCalledWith(product.id, expect.any(Object));
-    expect(component.infoMessage).toContain('saved product details');
+    expect(component.i18n.t(component.infoMessage)).toContain('saved product details');
   });
 
   it('applies accepted OFF package changes before receiving another lot', async () => {

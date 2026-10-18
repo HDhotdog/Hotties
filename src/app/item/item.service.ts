@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {ItemRepository} from './item.repository';
 import {forkJoin, map, Observable, of, switchMap, throwError} from 'rxjs';
@@ -100,7 +101,7 @@ export class ItemService {
     return this.isDeletable(id).pipe(
       switchMap((deletable) => {
         if (!deletable) {
-          return throwError(() => new Error('Item is still in use and cannot be deleted.'));
+          return throwError(() => new AppError('ui.itemIsStillInUseAndCannotBeDeleted', "Item is still in use and cannot be deleted."));
         }
         return this.itemRepository.deleteById(id);
       })

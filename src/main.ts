@@ -1,3 +1,6 @@
+import {provideAppInitializer, inject} from '@angular/core';
+import {provideLocalization} from './app/i18n/localization.providers';
+import {LocalizationService} from './app/i18n/localization.service';
 import {
   enableProdMode,
   importProvidersFrom,
@@ -24,6 +27,8 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
+    provideLocalization(),
+    provideAppInitializer(() => inject(LocalizationService).initialize()),
     provideZoneChangeDetection(),
     provideIonicAngular(),
     importProvidersFrom(AppRoutingModule),

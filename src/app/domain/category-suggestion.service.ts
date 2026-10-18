@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {CatalogNode} from './catalog.model';
 import {AiModelService} from './ai-model.service';
@@ -43,7 +44,7 @@ export class CategorySuggestionService {
     if (!this.workerPromise) {
       const generation = this.generation;
       this.workerPromise = import('./category-suggestion.worker.factory').then(({createCategorySuggestionWorker}) => {
-        if (generation !== this.generation) throw new Error('AI suggestions were disabled.');
+        if (generation !== this.generation) throw new AppError('ui.aiSuggestionsWereDisabled', "AI suggestions were disabled.");
         const worker = createCategorySuggestionWorker();
         worker.postMessage({kind: 'configure', baseUrl});
         this.worker = worker;
@@ -55,7 +56,7 @@ export class CategorySuggestionService {
           else pending.resolve(data.ids ?? []);
         };
         worker.onerror = () => {
-          for (const pending of this.pending.values()) pending.reject(new Error('Local category model is unavailable.'));
+          for (const pending of this.pending.values()) pending.reject(new AppError('ui.localCategoryModelIsUnavailable', "Local category model is unavailable."));
           this.pending.clear();
           worker.terminate();
           this.worker = null;

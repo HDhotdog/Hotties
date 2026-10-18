@@ -1,17 +1,17 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="toolbar">
     <ion-buttons slot="start">
-      <ion-button (click)="navigateBack()">
+      <ion-button (click)="navigateBack()" [attr.aria-label]="i18n.t('ui.previous')">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Item</ion-title>
+    <ion-title>{{ i18n.t('ui.item') }}</ion-title>
     <ion-buttons slot="end">
       <ion-button class="save-status-button" (click)="navigateBack()" [ngClass]="{
         'save-status-saved': this.saveStatus === 'saved',
         'save-status-unsaved': this.saveStatus === 'unsaved',
         'save-status-pulse': this.savePulse
-      }">
+      }" [attr.aria-label]="i18n.t('ui.save')">
         <ion-icon name="save"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -20,18 +20,18 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    <ion-input class="name-input" [(ngModel)]="this.name" placeholder="Item name"></ion-input>
+    <ion-input class="name-input" [(ngModel)]="this.name" [placeholder]="i18n.t('ui.itemName')" [attr.aria-label]="i18n.t('ui.itemName')"></ion-input>
 
     <div class="card package-card">
       <div class="card-section">
-        <span class="subtle-label">Package amount</span>
-        <ion-input class="amount-input" [(ngModel)]="this.amount" type="number" min="0"></ion-input>
+        <span class="subtle-label">{{ i18n.t('ui.packageAmount') }}</span>
+        <input appLocalizedNumber class="amount-input" [(ngModel)]="this.amount" type="number" min="0" [attr.aria-label]="i18n.t('ui.packageAmount')">
       </div>
       <div class="card-section align-end">
-        <span class="subtle-label">Unit</span>
-        <ion-select [(ngModel)]="this.unit" interface="popover" class="unit-select">
+        <span class="subtle-label">{{ i18n.t('ui.unit') }}</span>
+        <ion-select [(ngModel)]="this.unit" interface="popover" class="unit-select" [cancelText]="i18n.t('ui.cancel')" [okText]="i18n.t('ui.confirm')" [attr.aria-label]="i18n.t('ui.unit')">
           @for (unit of this.amountUnits; track unit) {
-            <ion-select-option [value]="unit">{{ unit }}</ion-select-option>
+            <ion-select-option [value]="unit">{{ i18n.unit(unit) }}</ion-select-option>
           }
         </ion-select>
       </div>
@@ -39,23 +39,22 @@
 
     <div class="card price-card">
       <div class="card-section">
-        <span class="subtle-label">Price</span>
-        <ion-input class="price-input" [(ngModel)]="this.price" type="number" min="0" step="0.01"
-                   placeholder="0.00"></ion-input>
+        <span class="subtle-label">{{ i18n.t('ui.price') }}</span>
+        <input appLocalizedNumber class="price-input" [(ngModel)]="this.price" type="number" min="0" step="0.01" [attr.aria-label]="i18n.t('ui.price')" [placeholder]="i18n.number(0, 2)">
       </div>
     </div>
 
     <div class="card type-card">
       <div class="card-section">
-        <span class="subtle-label">Type</span>
+        <span class="subtle-label">{{ i18n.t('ui.type') }}</span>
         <div class="type-buttons">
           @for (itemType of this.itemTypes; track itemType) {
-            <div
+            <button type="button" [attr.aria-label]="i18n.t('itemTypes.' + itemType)" [attr.aria-pressed]="this.type === itemType"
               class="type-circle"
               [ngStyle]="getTypeColor(itemType)"
               [ngClass]="{'type-circle-selected': this.type === itemType}"
               (click)="setType(itemType)">
-            </div>
+            </button>
           }
         </div>
       </div>

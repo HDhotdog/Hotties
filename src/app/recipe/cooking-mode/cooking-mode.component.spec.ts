@@ -1,3 +1,5 @@
+import {of} from 'rxjs';
+import {SettingsRepository} from '../../database/settings/settings.repository';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {CookingModeComponent} from './cooking-mode.component';
 
@@ -8,7 +10,7 @@ describe('CookingModeComponent', () => {
   let scrollTo: jest.Mock;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({imports: [CookingModeComponent]}).compileComponents();
+    await TestBed.configureTestingModule({imports: [CookingModeComponent], providers: [{provide: SettingsRepository, useValue: {save: () => of({})}}]}).compileComponents();
     fixture = TestBed.createComponent(CookingModeComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('recipeName', 'Soup');
@@ -31,6 +33,16 @@ describe('CookingModeComponent', () => {
     expect(slides[1].hasAttribute('inert')).toBe(true);
     expect(slides[0].textContent).toContain('1 piece Onion');
     expect(slides[1].textContent).toContain('No ingredients needed');
+  });
+
+  it('switches the existing cooking view to German while preserving recipe content and position', async () => {
+    await component.i18n.setLanguage('de');
+    fixture.detectChanges();
+    expect(component.activeIndex()).toBe(0);
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain('Schritt 1 von 2');
+    expect(fixture.nativeElement.querySelector('.slide').textContent).toContain('1 Stück Onion');
+    expect(fixture.nativeElement.querySelector('.instructions').textContent).toBe('Chop the onion.');
+    expect(fixture.nativeElement.querySelector('.close-button').getAttribute('aria-label')).toBe('Kochmodus schließen');
   });
 
   it('moves with buttons and keyboard, respects boundaries and synchronizes swipe progress', () => {

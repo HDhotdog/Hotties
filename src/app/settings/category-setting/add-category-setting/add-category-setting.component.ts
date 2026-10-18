@@ -1,3 +1,4 @@
+import {LocalizationService} from '../../../i18n/localization.service';
 import {
   IonButton,
   IonButtons,
@@ -47,6 +48,7 @@ import {Category} from '../../../category/category.dto';
   ],
 })
 export class AddCategorySettingComponent implements OnInit {
+  public readonly i18n = inject(LocalizationService);
   private router = inject(Router);
   private categoryService = inject(CategoryService);
   private toastCtrl = inject(ToastController);
@@ -98,7 +100,7 @@ export class AddCategorySettingComponent implements OnInit {
         .length > 0
     ) {
       let toast = this.toastCtrl.create({
-        message: 'There already exists a shopping list with this name',
+        message: this.i18n.t('ui.thereAlreadyExistsAShoppingListWithThisName'),
         duration: 2000,
         position: 'bottom',
         color: 'danger',

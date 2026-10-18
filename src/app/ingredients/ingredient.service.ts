@@ -1,3 +1,4 @@
+import {AppError} from '../i18n/language-pack';
 import {inject, Injectable} from '@angular/core';
 import {from, map, Observable, switchMap} from 'rxjs';
 import {DatabaseService} from '../database/database';
@@ -41,7 +42,7 @@ export class IngredientService {
       const targetNodeId = ingredient.targetNodeId;
       if (!targetNodeId || !nodes.some(node => node.id === targetNodeId) ||
         !this.catalog.matches('root-food', targetNodeId, nodes)) {
-        throw new Error('Recipe ingredients must reference a food category or product.');
+        throw new AppError('ui.recipeIngredientsMustReferenceAFoodCategoryOrProduct', "Recipe ingredients must reference a food category or product.");
       }
       const unit = this.legacyUnit(ingredient.unit);
       const scalar = ingredient.unit === AmountUnit.HUNDRED_GRAM || ingredient.unit === AmountUnit.HUNDRED_MILLILITER ? 100 : 1;

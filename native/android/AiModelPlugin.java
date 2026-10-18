@@ -36,13 +36,33 @@ public class AiModelPlugin extends Plugin {
         });
     }
 
+    private void updateNotificationCopy(PluginCall call) throws Exception {
+        preferences().edit()
+            .putString("notificationTitle", call.getString("notificationTitle", "Hotties"))
+            .putString("notificationDescription", call.getString("notificationDescription", ""))
+            .apply();
+    }
+
+    @PluginMethod
+    public void localize(PluginCall call) {
+        getBridge().execute(() -> {
+            try {
+                updateNotificationCopy(call);
+                call.resolve();
+            } catch (Exception error) {
+                call.reject("Could not update notification language.", "MODEL_STATUS_FAILED", error);
+            }
+        });
+    }
+
     @PluginMethod
     public void status(PluginCall call) {
         getBridge().execute(() -> {
             try {
+                updateNotificationCopy(call);
                 call.resolve(readStatus());
             } catch (Exception error) {
-                call.reject("Could not check the AI model.", error);
+                call.reject("Could not check the AI model.", "MODEL_STATUS_FAILED", error);
             }
         });
     }
@@ -66,11 +86,13 @@ public class AiModelPlugin extends Plugin {
                     return;
                 }
                 SharedPreferences.Editor edit = preferences().edit();
-                edit.putBoolean("allowCellular", allowCellular).remove("error").apply();
+                edit.putString("notificationTitle", call.getString("notificationTitle", "Hotties"))
+                    .putString("notificationDescription", call.getString("notificationDescription", ""))
+                    .putBoolean("allowCellular", allowCellular).remove("error").apply();
                 if (preferences().getLong("downloadId", -1L) < 0) enqueueCurrent();
                 call.resolve(readStatus());
             } catch (Exception error) {
-                call.reject("Could not start the AI model download.", error);
+                call.reject("Could not start the AI model download.", "MODEL_DOWNLOAD_FAILED", error);
             }
         });
     }
@@ -86,7 +108,7 @@ public class AiModelPlugin extends Plugin {
                 removeTree(installedDir());
                 call.resolve(readStatus());
             } catch (Exception error) {
-                call.reject("Could not delete the AI model.", error);
+                call.reject("Could not delete the AI model.", "MODEL_DELETE_FAILED", error);
             }
         });
     }
@@ -112,13 +134,13 @@ public class AiModelPlugin extends Plugin {
         if (id < 0) {
             result.put("state", prefs.contains("error") ? "failed" : "missing");
             result.put("downloadedBytes", completed);
-            if (prefs.contains("error")) result.put("error", prefs.getString("error", "Download failed."));
+            if (prefs.contains("error")) result.put("error", prefs.getString("error", "MODEL_DOWNLOAD_FAILED"));
             return result;
         }
 
         try (Cursor cursor = downloadManager().query(new DownloadManager.Query().setFilterById(id))) {
             if (cursor == null || !cursor.moveToFirst()) {
-                failCurrent("The system download disappeared.");
+                failCurrent("MODEL_DOWNLOAD_FAILED");
                 return readStatus();
             }
             int state = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
@@ -126,7 +148,7 @@ public class AiModelPlugin extends Plugin {
                 JSONObject asset = files.getJSONObject(index);
                 File downloaded = new File(stagingDir(), asset.getString("path"));
                 if (!matchesHash(downloaded, asset)) {
-                    failCurrent("Downloaded model file failed its integrity check. Retry the download.");
+                    failCurrent("MODEL_INTEGRITY_FAILED");
                     return readStatus();
                 }
                 prefs.edit().putInt("index", index + 1).remove("downloadId").apply();
@@ -144,7 +166,7 @@ public class AiModelPlugin extends Plugin {
                 return readStatus();
             }
             if (state == DownloadManager.STATUS_FAILED) {
-                failCurrent("The model download failed. Check the connection and retry.");
+                failCurrent("MODEL_DOWNLOAD_FAILED");
                 return readStatus();
             }
             long current = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
@@ -170,8 +192,8 @@ public class AiModelPlugin extends Plugin {
         if (prefs.getBoolean("allowCellular", false)) networks |= DownloadManager.Request.NETWORK_MOBILE;
         request.setAllowedNetworkTypes(networks);
         request.setAllowedOverRoaming(false);
-        request.setTitle("Hotties AI model");
-        request.setDescription("Downloading optional category suggestions");
+        request.setTitle(preferences().getString("notificationTitle", "Hotties"));
+        request.setDescription(preferences().getString("notificationDescription", ""));
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
         request.setDestinationInExternalFilesDir(getContext(), null,
             "ai-models/." + manifest().getString("version") + "-staging/" + asset.getString("path"));
