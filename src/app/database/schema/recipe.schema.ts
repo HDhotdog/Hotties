@@ -52,10 +52,9 @@ export const RECIPE_SCHEMA_LITERAL = {
       oldDoc.emoji = oldDoc.emoji ?? null;
       return oldDoc;
     },
-    // Deliberately synchronous (no `await`): an async migration strategy here
-    // makes RxDB's migration-schema plugin report the collection as "DONE"
-    // before this document's write is actually persisted (reproduced in
-    // database.spec.ts). See attachment-utils.ts `syncHash` for details.
+    // Keep the existing attachment digest format. Async migration strategies
+    // are supported; the former early-DONE race came from Jest's Zone.js UMD
+    // Promise.all(Set) implementation, not from the migration strategy.
     2: (oldDoc: any) => {
       const imgSrc: string = oldDoc.imgSrc ?? '';
       delete oldDoc.imgSrc;

@@ -108,12 +108,10 @@ async function seedInitialData(db: RxDatabase) {
  * A no-op for fresh installs and collections whose schema hasn't changed.
  */
 async function runPendingMigrations(db: RxDatabase): Promise<void> {
-  // migratePromise() is safe to call unconditionally: it resolves immediately
-  // if nothing needs migrating. Gating on migrationNeeded() first is racy -
-  // RxDB can auto-start a migration during addCollections() that hasn't
-  // finished yet, so migrationNeeded() can already report false while the
-  // migration is still in flight (e.g. while an async migration strategy is
-  // still running), causing us to skip waiting for it.
+  // addCollections() already awaits automatic migrations. Repeating the
+  // readiness barrier is safe and is a no-op when no migration is needed.
+  // The former early-DONE race was caused by Jest's Zone.js Promise.all(Set)
+  // implementation; waiting again or polling individual documents hides it.
   for (const collection of Object.values(db.collections) as any[]) {
     await collection.getMigrationState().migratePromise();
   }

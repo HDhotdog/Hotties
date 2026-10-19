@@ -11,15 +11,10 @@ export function dataUrlToBlob(dataUrl: string): Blob {
 /**
  * A fast, synchronous (non-cryptographic) digest for attachment bytes.
  *
- * RxDB's schema migration runner reports a collection's migration as "DONE"
- * as soon as its replication-based write queue drains, *not* once every
- * per-document write is guaranteed durable. An `await`-ing migration
- * strategy (e.g. computing a digest via the async `crypto.subtle`-backed
- * `database.hashFunction`) reliably wins that race, so `migratePromise()`
- * resolves before the attachment is actually persisted (reproduced in
- * `database.spec.ts`). Keeping the migration strategy fully synchronous
- * avoids the race. RxDB only uses this digest to identify attachment
- * content for local storage/conflict bookkeeping (it isn't cryptographically
+ * Retained for compatibility with existing migrated attachments. The earlier
+ * reason for avoiding async hashing was a Jest/Zone.js Promise.all(Set) bug,
+ * now covered by migration-readiness.spec.ts. RxDB uses this digest to identify
+ * attachment content for local storage/conflict bookkeeping (it isn't cryptographically
  * verified on read), and any later edit via `RxDocument.putAttachment()`
  * recomputes a proper digest anyway.
  */
